@@ -1,0 +1,646 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import DynamicLayout from '../../components/craft/DynamicLayout.astro';
+
+// Generate static paths for all journey items at build time
+export async function getStaticPaths() {
+  const journeyItems = await getCollection('journey', ({ data }: any) => {
+    return data.draft !== true; // Only published journey items
+  });
+
+  return journeyItems.map((item: any) => ({
+    params: { slug: item.slug },
+    props: { journeyItem: item },
+  }));
+}
+
+// Get the journey item data from props
+const { journeyItem }: { journeyItem: CollectionEntry<'journey'> } = Astro.props;
+const { title, media, mediaGallery, additionalMedia, layoutVariant, layoutConfig } = journeyItem.data;
+
+// Render the full markdown content
+const { Content } = await journeyItem.render();
+
+// Combine primary media with gallery for manual placement control
+const allMedia: any[] = [];
+if (media?.src || media?.publicUrl) allMedia.push({ ...media, caption: media.alt !== undefined ? media.alt : title, __originalIndex: -1 });
+if (mediaGallery || additionalMedia) {
+  const galleryItems = additionalMedia || mediaGallery || [];
+  galleryItems.forEach((m: any, idx: number) => allMedia.push({ ...m, caption: m.caption || m.alt || '', __originalIndex: idx }));
+}
+const positionedMedia = allMedia.slice().sort((a: any, b: any) => {
+  const ap = typeof a.position === 'number' ? a.position : Number.POSITIVE_INFINITY;
+  const bp = typeof b.position === 'number' ? b.position : Number.POSITIVE_INFINITY;
+  if (ap !== bp) return ap - bp;
+  return (a.__originalIndex ?? 0) - (b.__originalIndex ?? 0);
+});
+---
+
+<!-- Use DynamicLayout for flexible layout switching -->
+<DynamicLayout 
+  entry={journeyItem}
+  layoutVariant={layoutVariant || 'default'}
+  layoutConfig={layoutConfig || {}}
+>
+  <Content />
+</DynamicLayout>
+
+<!-- Legacy media gallery source for default layout compatibility -->
+{layoutVariant === 'default' && (
+  <div id="media-gallery-source" style="display: none;">
+    {positionedMedia.map((item, index) => (
+      <div class="media-card" data-media-index={index} data-media-type={item.type} data-media-position={typeof item.position === 'number' ? item.position : undefined} data-insert-after-h2={item.insertAfterH2} data-insert-before-h2={item.insertBeforeH2} data-insert-after-h3={item.insertAfterH3} data-insert-before-h3={item.insertBeforeH3} data-insert-at={item.insertAt}>
+        <div class={`media-container ${item.cssClass || ''}`} style={item.type === 'video' && item.aspectRatio ? `aspect-ratio: ${item.aspectRatio};` : undefined}>
+          {item.type === 'image' && (
+            (typeof item.src === 'object') ? (
+              <Image 
+                src={item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-image"
+                quality="max"
+              />
+            ) : (
+              <img 
+                src={item.publicUrl || item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-image"
+                loading="lazy"
+              />
+            )
+          )}
+          {item.type === 'video' && (
+            <video 
+              src={item.publicUrl || item.src}
+              poster={item.poster}
+              class="media-video"
+              controls
+              preload="metadata"
+            />
+          )}
+          {item.type === 'gif' && (
+            <img 
+              src={item.src} 
+              alt={item.alt || `${title} media ${index + 1}`}
+              class="media-gif"
+              loading="lazy"
+            />
+          )}
+        </div>
+        {item.caption && (
+          <div class="media-caption">
+            <p>{item.caption}</p>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+)}
+
+<style is:global>
+  /* Header styling matches main journey page exactly */
+  .journey-header {
+    position: relative;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 0.25rem auto;
+  }
+
+  .breadcrumb {
+    margin-bottom: var(--space-lg);
+  }
+
+  .breadcrumb a {
+    color: var(--rainbow-journey);
+    text-decoration: none;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    transition: all 0.3s ease;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: rgba(220, 140, 90, 0.1);
+    border: 1px solid rgba(220, 140, 90, 0.2);
+  }
+
+  .breadcrumb a:hover {
+    background: rgba(220, 140, 90, 0.2);
+    transform: translateX(-4px);
+  }
+
+  html:not(.dark) .breadcrumb a {
+    color: #A0440C;
+    background: rgba(160, 68, 12, 0.1);
+    border-color: rgba(160, 68, 12, 0.2);
+  }
+
+  html:not(.dark) .breadcrumb a:hover {
+    background: rgba(160, 68, 12, 0.2);
+  }
+
+  /* Harmonized title/subtitle styling (same as notes/projects) */
+  .craft-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm, 0.5rem) 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    background: linear-gradient(135deg,
+      var(--rainbow-projects),
+      var(--rainbow-lab),
+      var(--rainbow-notes)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  html:not(.dark) .craft-title {
+    background: linear-gradient(135deg, #8B4A00, #8B1A5C, #4A1A8B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+  }
+
+  .craft-subtitle {
+    font-size: clamp(1.28rem, 2.2vw, 1.55rem);
+    line-height: 2.0;
+    color: var(--rainbow-bio);
+    margin: 0 auto var(--space-lg, 2rem) auto;
+    max-width: 800px;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    font-weight: 300;
+  }
+
+  html:not(.dark) .craft-subtitle {
+    color: #8B1A42;
+  }
+
+  .journey-meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-lg);
+  }
+
+  .journey-date {
+    color: var(--rainbow-journey);
+    font-size: 1rem;
+    font-weight: 400;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.4rem 1rem;
+    background: rgba(220, 140, 90, 0.1);
+    border-radius: 2rem;
+    border: 1px solid rgba(220, 140, 90, 0.2);
+  }
+
+  html:not(.dark) .journey-date {
+    color: #A0440C;
+    background: rgba(160, 68, 12, 0.1);
+    border-color: rgba(160, 68, 12, 0.2);
+  }
+
+  .journey-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Tag pills fully inherit styling and animations from global.css */
+
+  /* Content container and flow styling */
+  .content-container {
+    max-width: 1200px;
+    margin: var(--space-2xl) auto 0 auto;
+    padding: var(--space-xl) var(--space-md);
+    position: relative;
+  }
+
+  .content-flow {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+    align-items: center;
+    position: relative;
+  }
+
+  /* Remove all list styling and bullet points */
+  .content-flow ul,
+  .content-flow ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .content-flow li {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Content Sections - Card-style containers */
+  .content-section {
+    border-radius: 20px;
+    position: relative;
+    padding: var(--space-lg) var(--space-xl);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Disable entrance fade/slide to prevent flash; keep full design */
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    border: none !important;
+    box-sizing: border-box;
+    contain: layout style;
+    display: block;
+  }
+
+  /* Dark mode content sections */
+  .content-section {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode content sections */
+  html:not(.dark) .content-section {
+    background: rgba(248, 245, 239, 0.95) !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Removed slideInCard entrance animation to avoid flash */
+
+  /* Removed hover effects for content sections */
+  .content-section:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  html:not(.dark) .content-section:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Typography for content sections */
+  .content-section h2 {
+    font-size: clamp(2rem, 4.5vw, 2.8rem);
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(220, 140, 90, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.2;
+    text-align: center;
+    padding-bottom: 0.75rem;
+    position: relative;
+  }
+
+  /* Subtle shadow underline for H2 headers */
+  .content-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(220, 140, 90, 0.3) 20%, 
+      rgba(220, 140, 90, 0.6) 50%, 
+      rgba(220, 140, 90, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(220, 140, 90, 0.2);
+  }
+
+  html:not(.dark) .content-section h2 {
+    color: #A0440C;
+  }
+
+  html:not(.dark) .content-section h2::after {
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(160, 68, 12, 0.3) 20%, 
+      rgba(160, 68, 12, 0.6) 50%, 
+      rgba(160, 68, 12, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(160, 68, 12, 0.2);
+  }
+
+  .content-section h3 {
+    font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+    font-weight: 500;
+    margin: 2rem 0 1rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(230, 90, 160, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .content-section h3:first-of-type {
+    margin-top: 0;
+  }
+
+  html:not(.dark) .content-section h3 {
+    color: #8B1A5C;
+  }
+
+  .content-section p {
+    line-height: 2.0;
+    font-size: clamp(1.28rem, 2.2vw, 1.55rem);
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    margin: 0 0 1rem 0;
+    color: rgba(155, 101, 230, 0.8);
+    transition: color 0.2s ease;
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  .content-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  html:not(.dark) .content-section p {
+    color: #4A1A8B;
+  }
+
+  .content-section ul,
+  .content-section ol {
+    color: rgba(155, 101, 230, 0.8);
+    margin: var(--space-md) 0;
+    padding-left: var(--space-lg);
+  }
+
+  html:not(.dark) .content-section ul,
+  html:not(.dark) .content-section ol {
+    color: #4A1A8B;
+  }
+
+  .content-section li {
+    margin-bottom: var(--space-sm);
+    line-height: 1.85;
+    font-size: clamp(1.18rem, 1.9vw, 1.35rem);
+  }
+
+  /* Media card styling */
+  .media-card {
+    border-radius: 16px;
+    padding: var(--space-md);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 0 auto;
+    /* No entrance fade/slide for stability */
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 600px;
+    width: 100%;
+    border: none !important;
+    box-sizing: border-box;
+    contain: layout style;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Dark mode media cards */
+  .media-card {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode media cards */
+  html:not(.dark) .media-card {
+    background: rgba(248, 245, 239, 0.9) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Removed hover effects for media cards */
+
+  .media-container {
+    border-radius: 12px;
+    overflow: hidden;
+    background: transparent;
+    border: none;
+    width: 100%;
+  }
+
+  /* Clean media display - container handles rounded edges */
+  .media-image,
+  .media-gif {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .media-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #000;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .media-caption {
+    padding: var(--space-md);
+    background: var(--surface-elevated);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .media-caption p {
+    margin: 0;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 1.1rem;
+  }
+
+
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .journey-header {
+      padding: 0 var(--space-md);
+    }
+
+    .journey-meta {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .content-container {
+      padding: var(--space-md) var(--space-sm, 1rem);
+    }
+
+    .content-section,
+    .media-card {
+      max-width: 100% !important;
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    .content-flow {
+      gap: var(--space-lg);
+    }
+
+    /* Mobile typography adjustments to match other pages */
+    .content-section h2 {
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+    }
+
+    .content-section h2::after {
+      width: 80%;
+    }
+    
+    .content-section h3 {
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      margin: 1.5rem 0 0.75rem 0;
+    }
+    
+    .content-section h3:first-of-type {
+      margin-top: 0;
+    }
+    
+    /* Header subtitle - match content paragraph sizing */
+    .craft-subtitle {
+      font-size: clamp(1.18rem, 4.5vw, 1.4rem);
+      line-height: 1.9;
+    }
+
+    .content-section p {
+      margin: 0 0 1rem 0;
+      font-size: clamp(1.18rem, 4.5vw, 1.4rem);
+      line-height: 1.9;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+
+    .content-section li {
+      font-size: clamp(1.12rem, 4.2vw, 1.32rem);
+      line-height: 1.85;
+      margin-bottom: 0.6rem;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+  }
+
+  /* Small mobile devices (iPhone SE, etc) */
+  @media (max-width: 390px) {
+    .content-container {
+      padding: var(--space-sm) 0.75rem;
+    }
+
+    .content-section,
+    .media-card {
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .craft-subtitle {
+      font-size: 1.15rem;
+      line-height: 1.85;
+    }
+
+    .content-section p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+    }
+
+    .content-section li {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+  }
+</style>
+
+<!-- Only run content section setup for default layout -->
+{layoutVariant === 'default' && (
+  <script>
+    function setupContentSections() {
+      const container = document.querySelector('.content-container') as HTMLElement | null;
+      const contentFlow = (container ? (container.querySelector('.content-flow') as HTMLElement | null) : null);
+      const mediaSource = document.getElementById('media-gallery-source');
+      if (!contentFlow || !mediaSource) return;
+
+      const prevVisibility = (contentFlow as HTMLElement).style.visibility;
+      (contentFlow as HTMLElement).style.visibility = 'hidden';
+
+      const mediaElements = Array.from(mediaSource.children);
+      const contentNodes = Array.from((contentFlow as HTMLElement).children);
+      const sections = [] as any[];
+      let currentSection: any = null;
+
+      contentNodes.forEach((node: any) => {
+        if (node.tagName === 'H2') {
+          if (currentSection) sections.push(currentSection);
+          currentSection = document.createElement('div');
+          currentSection.className = 'content-section';
+          currentSection.appendChild(node.cloneNode(true));
+        } else if (currentSection && (node.tagName === 'H3' || node.tagName === 'P' || node.tagName === 'UL' || node.tagName === 'OL')) {
+          currentSection.appendChild(node.cloneNode(true));
+        } else if (!currentSection && (node.tagName === 'H3' || node.tagName === 'P' || node.tagName === 'UL' || node.tagName === 'OL')) {
+          const standalone = document.createElement('div');
+          standalone.className = 'content-section';
+          standalone.appendChild(node.cloneNode(true));
+          sections.push(standalone);
+        }
+      });
+      if (currentSection) sections.push(currentSection);
+
+      const frag = document.createDocumentFragment();
+      let mediaIndex = 0;
+      sections.forEach((section, index) => {
+        section.style.animationDelay = `${index * 150}ms`;
+        frag.appendChild(section);
+        if (mediaIndex < mediaElements.length && (index + 1) % 2 === 0) {
+          const mediaEl = mediaElements[mediaIndex];
+          if (mediaEl) {
+            const mediaCard = mediaEl.cloneNode(true) as HTMLElement;
+            mediaCard.style.animationDelay = `${(index + 1) * 150}ms`;
+            frag.appendChild(mediaCard);
+            mediaIndex++;
+          }
+        }
+      });
+      while (mediaIndex < mediaElements.length) {
+        const mediaEl = mediaElements[mediaIndex];
+        if (mediaEl) {
+          const mediaCard = mediaEl.cloneNode(true) as HTMLElement;
+          mediaCard.style.animationDelay = `${(sections.length + mediaIndex) * 150}ms`;
+          frag.appendChild(mediaCard);
+        }
+        mediaIndex++;
+      }
+
+      (contentFlow as HTMLElement).replaceChildren(); // Safe replacement for innerHTML = ''
+      (contentFlow as HTMLElement).appendChild(frag);
+      (contentFlow as HTMLElement).style.visibility = prevVisibility || '';
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupContentSections, { once: true });
+    } else {
+      setupContentSections();
+    }
+    document.addEventListener('astro:page-load', setupContentSections);
+  </script>
+)}

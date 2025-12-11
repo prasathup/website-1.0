@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Bio page content
+---
+
+<Layout title="Prasathup - Bio" pageName="bio">
+	{/* 
+    Main content goes into the default slot.
+    The <main> tag inside Layout handles flex-grow.
+  */}
+	<div class="container mx-auto px-4 py-16 md:py-24 flex justify-center items-center min-h-full">
+		{/* 
+      Bio content panel.
+      Similar to index.astro, it's now part of the main flow.
+      Adjusted styling for consistency with index.astro's panel but potentially different content/sizing.
+    */}
+	</div>
+</Layout>
+
+<style>
+	/* Optional: Add specific styles for the bio page if needed */
+	.bio-title {
+    /* Example: Different color for bio title */
+    color: #2b6cb0; /* Example blue */
+  }
+  .dark .bio-title {
+     color: #63b3ed; /* Lighter blue for dark mode */
+  }
+</style> 

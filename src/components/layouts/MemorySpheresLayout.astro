@@ -1,0 +1,481 @@
+---
+/**
+ * MemorySpheresLayout - Simplified floating memory spheres
+ * 
+ * Features:
+ * - Clean vanilla JS implementation
+ * - Smooth animations with CSS transitions
+ * - Center-stage interaction for spheres
+ * - Brownian motion for drift effect
+ */
+import type { CollectionEntry } from 'astro:content';
+import CraftLayout from '../craft/CraftLayout.astro';
+import { buildMemoryMedia } from '../../lib/memories/media';
+
+export interface Props {
+  entry: CollectionEntry<'journey'>;
+}
+
+const { entry } = Astro.props;
+const { title, description } = entry.data;
+const baseMediaItems = buildMemoryMedia(entry);
+const baseUrl =
+	(Astro.site as URL | undefined) ??
+	(Astro.url as URL | undefined) ??
+	new URL('/', 'http://localhost');
+
+const resolveMediaPath = (value?: string) => {
+	if (!value) return value;
+	try {
+		return new URL(value, baseUrl).pathname;
+	} catch {
+		return value;
+	}
+};
+
+const sphereColorNames = ['sphere-pink', 'sphere-orange', 'sphere-cyan', 'sphere-purple', 'sphere-green'];
+const hueRotations = [330, 25, 180, 270, 120];
+
+const normalizedMediaItems = baseMediaItems.map((item, index) => {
+	const colorIndex = index % sphereColorNames.length;
+	return {
+		...item,
+		src: resolveMediaPath(item.src),
+		poster: resolveMediaPath(item.poster),
+		colorClass: sphereColorNames[colorIndex],
+		hue: hueRotations[colorIndex]
+	};
+});
+
+// Generate random sphere positions and sizes with colors
+const spherePositions = normalizedMediaItems.map((_, index) => {
+  const colorIndex = index % sphereColorNames.length;
+  return {
+    startX: Math.random() * 70 + 15, // Random X: 15% to 85% of viewport
+    startY: Math.random() * 70 + 15, // Random Y: 15% to 85% of viewport
+    size: 140 + Math.random() * 80,  // Random size: 140px to 220px
+    zIndex: index + 1,               // Layer spheres by index
+    colorClass: sphereColorNames[colorIndex], // CSS class name
+    hue: hueRotations[colorIndex]    // Hue rotation value
+  };
+});
+
+const safeMediaJSON = JSON.stringify(normalizedMediaItems).replace(/</g, '\\u003c');
+const safePaletteJSON = JSON.stringify(spherePositions).replace(/</g, '\\u003c');
+---
+
+<CraftLayout title={`${title} - Prasathup`} pageName="journey">
+  <!-- Unique wrapper for memory spheres layout - prevents CSS conflicts with other journey pages -->
+  <div class="memory-spheres-page" data-media={safeMediaJSON} data-positions={safePaletteJSON}>
+    <!-- Header overlay for title and description -->
+    <div class="orbs-header-overlay">
+      <h1 class="craft-title">{title}</h1>
+      <p class="craft-subtitle" set:html={description}></p>
+    </div>
+
+    <!-- WebGL canvas mount point -->
+    <div class="bubbles-root" data-orbs-root></div>
+
+  </div>
+</CraftLayout>
+
+<style is:global>
+  /* ========================================
+     SCOPED PAGE STYLING - Only for MemorySpheresLayout
+     ======================================== */
+  
+  /* STRICT SCROLL LOCKING FOR MOBILE */
+  /* Lock html and body to prevent any scrolling or rubber-banding */
+  :global(html:has(.memory-spheres-page)),
+  :global(body:has(.memory-spheres-page)) {
+    overflow: hidden !important;
+    height: 100dvh !important;
+    width: 100vw !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    inset: 0 !important;
+    overscroll-behavior: none !important;
+    touch-action: none !important;
+  }
+
+  /* Hide header only for memory spheres layout */
+  body.page-journey .memory-spheres-page ~ .craft-header,
+  .memory-spheres-page ~ .craft-header {
+    display: none;
+  }
+
+  body.page-journey:has(.memory-spheres-page) .craft-header {
+    display: none;
+  }
+
+  body.page-journey:has(.memory-spheres-page) .section-top-spacer {
+    display: none;
+  }
+
+  /* Container for memory spheres page */
+  .memory-spheres-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh; /* Fallback */
+    height: 100dvh; /* Dynamic viewport height */
+    overflow: hidden;
+    /* Prevent touch actions from propagating to scroll */
+    touch-action: none;
+    overscroll-behavior: none;
+    z-index: 10; /* Ensure it sits on top of other content */
+  }
+
+  /* ========================================
+     HEADER OVERLAY - Scoped to memory spheres
+     ======================================== */
+  .memory-spheres-page .orbs-header-overlay {
+    position: fixed;
+    top: clamp(80px, 12vh, 120px); /* Moved much lower to avoid menu overlap */
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 clamp(16px, 3vw, 28px);
+    /* Make header more transparent to avoid visual interference */
+    opacity: 0.8;
+    background: transparent;
+  }
+
+  .memory-spheres-page .orbs-header-overlay .craft-title,
+  .memory-spheres-page .orbs-header-overlay .craft-subtitle {
+    pointer-events: auto;
+  }
+
+  .memory-spheres-page .orbs-header-overlay .craft-title {
+    font-size: clamp(2rem, 4.8vw, 3rem);
+    line-height: 1.1;
+    margin: 4px 0 8px 0;
+    text-shadow: none;
+    -webkit-font-smoothing: antialiased;
+    /* Hide title on memory spheres page - only show subtitle */
+    display: none;
+  }
+
+  .memory-spheres-page .orbs-header-overlay .craft-subtitle {
+    max-width: 1100px;
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+    line-height: 1.5;
+    opacity: 0.95;
+  }
+
+  /* Hide header when center-stage sphere is active to avoid interference */
+  .memory-spheres-page.has-centered-sphere .orbs-header-overlay {
+    opacity: 0.3;
+    transition: opacity 0.7s cubic-bezier(0.45, 0, 0.55, 1);
+  }
+
+  /* ========================================
+     WEBGL CANVAS + OVERLAY
+     ======================================== */
+  .memory-spheres-page .bubbles-root {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh; /* Fallback */
+    height: 100dvh;
+    overflow: hidden;
+    /* Completely disable touch actions except what we explicitly handle */
+    touch-action: none; 
+    overscroll-behavior: none;
+  }
+
+  .memory-spheres-page .bubbles-root canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+  }
+</style>
+
+<!-- Load the vanilla JS sphere animation script -->
+<script>
+import { SphereSystem } from '../../lib/memories/physics';
+import type { MemoryMediaItem } from '../../lib/memories/media';
+import { ThreeRenderer } from '../../lib/memories/threeRenderer';
+import type { SphereBody } from '../../lib/memories/physics';
+
+interface InitialPosition {
+	startX: number;
+	startY: number;
+	size: number;
+}
+
+const pageSelector = '.memory-spheres-page';
+const sphereSystem = new SphereSystem();
+
+let renderer: ThreeRenderer | null = null;
+let animationFrameId: number | null = null;
+let centerIdx: number | null = null;
+let mediaItems: MemoryMediaItem[] = [];
+let initialPositions: InitialPosition[] = [];
+// Store reference to container click handler for proper cleanup
+let containerClickHandler: ((e: Event) => void) | null = null;
+const getMaxSphereCount = (_width: number): number => {
+	return 100;
+};
+
+const getSizeScale = (width: number): number => {
+	if (width <= 600) return 0.7;
+	if (width <= 1024) return 0.95;
+	return 1.25;
+};
+
+const clampArraysForViewport = (
+	media: MemoryMediaItem[],
+	positions: InitialPosition[],
+	width: number
+): { media: MemoryMediaItem[]; positions: InitialPosition[] } => {
+	const limit = getMaxSphereCount(width);
+	if (media.length <= limit) {
+		return { media, positions };
+	}
+	return {
+		media: media.slice(0, limit),
+		positions: positions.slice(0, limit)
+	};
+};
+
+const getViewport = () => {
+	const container = document.querySelector('[data-orbs-root]') as HTMLElement | null;
+	if (container) {
+		const rect = container.getBoundingClientRect();
+		return {
+			width: rect.width,
+			height: rect.height
+		};
+	}
+	return {
+		width: window.innerWidth,
+		height: window.innerHeight
+	};
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const resolveMediaSrc = (src: string | undefined): string | undefined => {
+	if (!src) return undefined;
+	try {
+		return new URL(src, window.location.origin).toString();
+	} catch {
+		return src;
+	}
+};
+
+const stopAnimation = () => {
+	if (animationFrameId) {
+		cancelAnimationFrame(animationFrameId);
+		animationFrameId = null;
+	}
+};
+// Wrapper for astro:page-load to ensure consistent reference for cleanup
+const pageLoadHandler = () => {
+	void initSpheres();
+};
+const destroy = () => {
+	stopAnimation();
+	renderer?.destroy();
+	renderer = null;
+	centerIdx = null;
+	
+	// Remove container click listener if it exists
+	if (containerClickHandler) {
+		const container = document.querySelector('[data-orbs-root]') as HTMLElement | null;
+		if (container) {
+			container.removeEventListener('click', containerClickHandler);
+		}
+		containerClickHandler = null;
+	}
+	
+	// Clean up global event listeners to prevent memory leaks
+	// This prevents duplicate listeners when navigating with View Transitions
+	document.removeEventListener('astro:page-load', pageLoadHandler);
+	document.removeEventListener('astro:before-swap', destroy);
+	window.removeEventListener('resize', handleResize);
+	window.removeEventListener('beforeunload', destroy);
+	document.removeEventListener('DOMContentLoaded', initSpheres);
+};
+
+const animate = () => {
+	sphereSystem.updateViewport(getViewport());
+	const bodies = sphereSystem.step();
+	renderer?.update(bodies, centerIdx);
+	animationFrameId = requestAnimationFrame(animate);
+};
+
+const startAnimation = () => {
+	stopAnimation();
+	animationFrameId = requestAnimationFrame(animate);
+};
+
+const centerSphere = (index: number) => {
+	centerIdx = index;
+	sphereSystem.centerBody(index);
+	renderer?.setCenter(index);
+	document.querySelector(pageSelector)?.classList.add('has-centered-sphere');
+};
+
+const releaseCenterSphere = () => {
+	if (centerIdx === null) return;
+	sphereSystem.releaseBody(centerIdx);
+	renderer?.clearCenter(centerIdx);
+	centerIdx = null;
+	document.querySelector(pageSelector)?.classList.remove('has-centered-sphere');
+};
+
+const convertToBodies = (viewport: { width: number; height: number }): SphereBody[] => {
+	const sizeScale = getSizeScale(viewport.width);
+	return mediaItems.map((_, index) => {
+		const source = initialPositions[index] || {
+			startX: Math.random() * 70 + 15,
+			startY: Math.random() * 70 + 15,
+			size: 180 + Math.random() * 110
+		};
+		const x = (source.startX / 100) * viewport.width;
+		const y = (source.startY / 100) * viewport.height;
+		const radius = (source.size * sizeScale) / 2;
+
+		return {
+			id: index,
+			x,
+			y,
+			vx: (Math.random() - 0.5) * 6,
+			vy: (Math.random() - 0.5) * 6,
+			ax: 0,
+			ay: 0,
+			radius,
+			targetRadius: radius,
+			originalRadius: radius,
+			originalX: x,
+			originalY: y,
+			isCentered: false,
+			z: 0,
+			targetZ: 0,
+			driftAngle: Math.random() * Math.PI * 2,
+			driftSpeed: 0.2 + Math.random() * 0.3
+		};
+	});
+};
+
+const handleResize = () => {
+	const viewport = getViewport();
+	const sizeScale = getSizeScale(viewport.width);
+	sphereSystem.updateViewport(viewport);
+	sphereSystem.setActiveLimit(Math.max(15, sphereSystem.getBodies().length));
+
+	const bodies = sphereSystem.getBodies();
+	bodies.forEach((body) => {
+		const source = initialPositions[body.id];
+		if (source) {
+			body.originalX = (source.startX / 100) * viewport.width;
+			body.originalY = (source.startY / 100) * viewport.height;
+			body.originalRadius = (source.size * sizeScale) / 2;
+			if (!body.isCentered) {
+				body.x = body.originalX;
+				body.y = body.originalY;
+				body.vx = 0;
+				body.vy = 0;
+				body.ax = 0;
+				body.ay = 0;
+				body.releaseProgress = undefined;
+				body.releaseRestX = undefined;
+				body.releaseRestY = undefined;
+			}
+		}
+
+		if (body.isCentered) return;
+
+		body.targetRadius = body.originalRadius;
+		body.x = clamp(body.x, body.radius, viewport.width - body.radius);
+		body.y = clamp(body.y, body.radius, viewport.height - body.radius);
+	});
+
+	renderer?.resize(viewport);
+};
+
+const initSpheres = async () => {
+	destroy();
+
+	const page = document.querySelector(pageSelector) as HTMLElement | null;
+	if (!page) return;
+
+	const viewport = getViewport();
+
+	try {
+		const parsedMedia = JSON.parse(page.dataset['media'] || '[]') as MemoryMediaItem[];
+		const parsedPositions = JSON.parse(page.dataset['positions'] || '[]') as InitialPosition[];
+		const normalizedMedia = parsedMedia.map((item) => {
+			const resolvedPoster = resolveMediaSrc(item.poster);
+			return {
+				...item,
+				src: resolveMediaSrc(item.src) ?? item.src,
+				...(resolvedPoster ? { poster: resolvedPoster } : {})
+			};
+		});
+		const subset = clampArraysForViewport(normalizedMedia, parsedPositions, viewport.width);
+		mediaItems = subset.media;
+		initialPositions = subset.positions;
+	} catch {
+		mediaItems = [];
+		initialPositions = [];
+	}
+
+	if (!mediaItems.length) return;
+
+	const container = page.querySelector('[data-orbs-root]') as HTMLElement | null;
+
+	if (!container) return;
+
+	const bodies = convertToBodies(viewport);
+	sphereSystem.setBodies(bodies, viewport);
+
+	renderer = new ThreeRenderer({
+		container,
+		overlayTexture: resolveMediaSrc('/media/JN-000-OrbMedia_high.webp') ?? '/media/JN-000-OrbMedia_high.webp',
+		onSelect: (idx) => {
+			if (centerIdx === idx) {
+				releaseCenterSphere();
+			} else if (centerIdx !== null && centerIdx !== idx) {
+				releaseCenterSphere();
+				centerSphere(idx);
+			} else {
+				centerSphere(idx);
+			}
+		}
+	});
+
+	await renderer.init(mediaItems, bodies);
+
+	container.addEventListener('click', (e) => {
+		if (e.target === container && centerIdx !== null) {
+			releaseCenterSphere();
+		}
+	});
+
+	startAnimation();
+};
+
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', initSpheres, { once: true });
+} else {
+	void initSpheres();
+}
+
+document.addEventListener('astro:page-load', () => {
+	void initSpheres();
+});
+document.addEventListener('astro:before-swap', destroy);
+window.addEventListener('resize', handleResize);
+window.addEventListener('beforeunload', destroy);
+</script>

@@ -1,0 +1,435 @@
+---
+// MediaCard component for displaying content collection entries
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+
+export interface Props {
+  entry: CollectionEntry<'projects'> | CollectionEntry<'lab'> | CollectionEntry<'notes'> | CollectionEntry<'journey'>;
+  class?: string;
+  adaptiveSize?: string;
+  animationDelay?: string;
+  /** Optional CSS var value to override dark-mode title color for this card only, e.g., 'var(--rainbow-journey)' */
+  titleColorVar?: string | undefined;
+  /** Mark this card as above-the-fold to prioritize image fetch */
+  priority?: boolean;
+}
+
+const { entry, class: className = '', adaptiveSize, animationDelay, titleColorVar, priority = false } = Astro.props;
+// Remove hoverPreview since it's no longer supported
+const { title, tags, publishDate, cardSize, media, featured } = entry.data;
+// Derive intrinsic dimensions from aspect ratio to avoid layout shift
+const aspect = media?.aspectRatio || '16/9';
+const [ax, ay] = aspect.split('/') as [string, string];
+const numX = Number(ax) || 16;
+const numY = Number(ay) || 9;
+const baseWidth = 1200; // intrinsic width hint
+const intrinsicWidth = baseWidth;
+const intrinsicHeight = Math.round((baseWidth * numY) / numX);
+
+// Use adaptive size if provided, otherwise fall back to content cardSize
+const finalCardSize = adaptiveSize || cardSize;
+
+// Format the date for display
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric'
+});
+
+// Render the full markdown content for the card body
+const { Content } = await entry.render();
+
+// Generate the detail page URL based on collection and slug
+const detailUrl = `/${entry.collection}/${entry.slug}`;
+
+// Optional: Auto-assign theme based on content type or tags
+// This ensures EVERY card gets a beautiful rainbow glow effect
+const getThemeClass = () => {
+  // 1. Content collection type gets priority
+  if (entry.collection === 'lab') return 'theme-lab';
+  if (entry.collection === 'notes') return 'theme-notes';
+  
+  // 2. Specific tags override collection defaults
+  if (tags.includes('art') || tags.includes('installation') || tags.includes('bio')) return 'theme-bio';
+  if (tags.includes('neural') || tags.includes('ai') || tags.includes('journey')) return 'theme-journey';
+  if (tags.includes('energy') || tags.includes('plasma') || tags.includes('projects')) return 'theme-projects';
+  
+  // 3. For 'projects' collection, rotate through themes based on title hash
+  // This ensures variety while being consistent for the same project
+  if (entry.collection === 'projects') {
+    const themes = ['theme-projects', 'theme-bio', 'theme-journey', 'theme-notes'];
+    const hash = title.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+    return themes[hash % themes.length];
+  }
+  
+  // 4. Fallback: assign theme based on alphabetical order for consistency
+  const themes = ['theme-projects', 'theme-bio', 'theme-journey', 'theme-notes'];
+  const firstLetter = title.charAt(0).toLowerCase();
+  const letterIndex = firstLetter.charCodeAt(0) - 97; // 'a' = 0, 'b' = 1, etc.
+  return themes[letterIndex % themes.length];
+};
+
+const themeClass = getThemeClass();
+---
+
+<!-- 
+  Clickable Card Structure:
+  - Wrap the entire card in a link for navigation
+  - Preserve all existing styling and layout
+  - Add subtle hover effects to indicate clickability
+-->
+<div 
+  class="card-link"
+  aria-label={`View details for ${title}`}
+  data-card-size={finalCardSize}
+  data-media-type={media?.type || 'none'}
+  data-collection={entry.collection}
+  data-detail-url={detailUrl}
+  style={animationDelay ? `animation-delay: ${animationDelay};` : undefined}
+>
+  <article 
+    class={`craft-card ${className} ${themeClass}`}
+    style={titleColorVar ? `--card-title-dark: ${titleColorVar};` : undefined}
+  >
+    <!-- Featured card highlight icon -->
+    {featured && (
+      <div class="featured-icon" aria-label="Featured content">
+        <svg width="16" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 21L12 16L5 21V5C5 3.9 5.9 3 7 3H17C18.1 3 19 3.9 19 5V21Z" 
+                fill="currentColor" 
+                stroke="currentColor" 
+                stroke-width="1" 
+                stroke-linejoin="round"/>
+        </svg>
+      </div>
+    )}
+    
+    <header class="card-header">
+      <h3 class="card-title"><a class="card-title-link" href={detailUrl} aria-label={`Open ${title}`} rel="prefetch">{title}</a></h3>
+      <time class="card-date" datetime={publishDate.toISOString()}>
+        {formattedDate}
+      </time>
+    </header>
+
+    {media && (
+      <a href={detailUrl} aria-label={`Open ${title}`} class="card-media" data-aspect={media.aspectRatio || '16/9'} rel="prefetch" style={`aspect-ratio: ${media.aspectRatio ? aspect.replace('/', ' / ') : 'auto'}`}>
+        {media.type === 'image' && (
+          media.src ? (
+            <Image 
+              src={media.src} 
+              alt={media.alt || title}
+              class="media-image"
+              width={intrinsicWidth}
+              height={intrinsicHeight}
+              decoding="async"
+              loading={priority ? 'eager' : 'lazy'}
+              quality="mid"
+            />
+          ) : (
+            <img 
+              src={media.publicUrl} 
+              alt={media.alt || title}
+              class="media-image"
+              width={intrinsicWidth}
+              height={intrinsicHeight}
+              decoding="async"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchpriority={priority ? 'high' : 'auto'}
+              style={!media.aspectRatio ? "height: auto; position: relative;" : ""}
+            />
+          )
+        )}
+        {media.type === 'video' && (
+          <video 
+            src={media.publicUrl} 
+            poster={media.poster}
+            class="media-video" 
+            autoplay 
+            muted 
+            loop 
+            playsinline 
+            preload="metadata"
+          ></video>
+        )}
+        {media.type === 'gif' && (
+          media.src ? (
+             <Image 
+              src={media.src} 
+              alt={media.alt || title}
+              class="media-gif"
+              width={intrinsicWidth}
+              height={intrinsicHeight}
+              decoding="async"
+              loading={priority ? 'eager' : 'lazy'}
+            />
+          ) : (
+             <img 
+              src={media.publicUrl} 
+              alt={media.alt || title} 
+              class="media-gif" 
+              width={intrinsicWidth}
+              height={intrinsicHeight}
+              decoding="async"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchpriority={priority ? 'high' : 'auto'}
+            />
+          )
+        )}
+      </a>
+    )}
+
+    <!-- This wrapper ensures the footer is pushed to the bottom correctly -->
+    <div class="card-body-wrapper">
+      <div class="card-content">
+        <div class="card-body">
+          <Content />
+        </div>
+      </div>
+
+      <footer class="card-footer">
+        <div class="tags-container" role="list" aria-label="tags">
+          {tags.slice(0, 4).map((tag: string) => (
+            <span class="tag-pill" role="listitem">{tag}</span>
+          ))}
+          {tags.length > 4 && (
+            <span class="tag-pill tag-more" role="listitem">+{tags.length - 4}</span>
+          )}
+        </div>
+      </footer>
+    </div>
+  </article>
+</div>
+
+<style>
+  /* Card link wrapper - clean and accessible */
+  .card-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    /* Remove transitions that might cause flash effects */
+    transition: box-shadow var(--transition-duration, 0.2s) ease;
+    border-radius: 16px;
+    /* Essential: Let the link wrapper be the masonry grid item */
+    width: 100%;
+    height: 100%;
+    /* Masonry grid properties will be applied to this element */
+    overflow: hidden;
+    position: relative;
+    /* Blur moved to ::before pseudo to stabilize compositing */
+    min-height: 0;
+    isolation: isolate; /* keep card effects from invalidating surroundings */
+    backface-visibility: hidden;
+    cursor: pointer;
+  }
+
+  /* Frosted glass layer as a separate surface (Apple-style) */
+  .card-link::before {
+    content: '';
+    position: absolute; inset: 0;
+    /* Disable per-card backdrop blur; menu blur remains the only page blur */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: inherit;
+    pointer-events: none;
+    contain: paint;
+    z-index: 0;
+  }
+
+  /* Apply masonry card styling to the link wrapper (no borderlines) */
+  .card-link {
+    border: none;
+    background-color: rgba(22, 24, 33, 0.6);
+    /* Subtle default depth */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  }
+
+  /* Light Mode Styles */
+  html:not(.dark) .card-link {
+    background-color: rgba(248, 245, 239, 0.75);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Remove all click/focus effects - no sharp borders or outlines */
+  .card-link:focus,
+  .card-link:active,
+  .card-link:focus-visible {
+    outline: none !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  html:not(.dark) .card-link:focus,
+  html:not(.dark) .card-link:active,
+  html:not(.dark) .card-link:focus-visible {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Hover: refined elevation (no outline ring) */
+  .card-link:hover {
+    /* Smaller, softer glow */
+    box-shadow:
+      0 6px 14px rgba(230, 177, 80, 0.14),
+      0 3px 8px rgba(0, 0, 0, 0.14);
+  }
+
+  /* Light theme: higher contrast but still soft, no hard border */
+  html:not(.dark) .card-link:hover {
+    box-shadow:
+      0 8px 18px rgba(0, 0, 0, 0.12),
+      0 4px 10px rgba(230, 177, 80, 0.12);
+  }
+
+  /* No movement effects - glow only */
+
+  /* Focus styles removed - no sharp borders on click */
+
+  /* Inner card - simplified since link wrapper handles masonry */
+  .card-link .craft-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    /* Remove background/border since link wrapper handles it */
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    position: relative;
+    z-index: 1; /* ensures grid overlay stays below */
+  }
+
+  /* Make sure card body wrapper expands to fill available space */
+  .card-link .card-body-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ensure card content expands and footer stays at bottom */
+  .card-link .card-content {
+    flex: 1;
+  }
+
+  /* --- Lab theme: harmonize hover with other pages (border glow only) --- */
+  .card-link[data-collection="lab"] {
+    border: none;
+    background-color: rgba(22, 24, 33, 0.6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: box-shadow var(--transition-duration, 200ms) ease;
+  }
+
+  html:not(.dark) .card-link[data-collection="lab"] {
+    background-color: rgba(248, 245, 239, 0.75);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Hover: elevation only, no background color shift */
+  .card-link[data-collection="lab"]:hover {
+    box-shadow:
+      0 6px 14px rgba(230, 177, 80, 0.14),
+      0 3px 8px rgba(0, 0, 0, 0.14);
+    background-color: rgba(22, 24, 33, 0.6) !important; /* Force no background change */
+    filter: none;
+  }
+
+  html:not(.dark) .card-link[data-collection="lab"]:hover {
+    box-shadow:
+      0 8px 18px rgba(0, 0, 0, 0.12),
+      0 4px 10px rgba(230, 177, 80, 0.12);
+    background-color: rgba(248, 245, 239, 0.75) !important; /* Force no background change in light mode */
+  }
+
+  /* Remove any extra overlays specific to Lab */
+  .card-link[data-collection="lab"]::before {
+    content: none;
+  }
+
+  /* Make the title a visible link while preserving card styling */
+  .card-title-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .card-title-link:hover {
+    text-decoration: none;
+  }
+
+  /* No title hover/flicker CSS. Title effect handled on-demand by Lab script. */
+
+  /* Featured card highlight icon - clean and subtle */
+  .featured-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    width: 16px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    pointer-events: none;
+  }
+
+  .featured-icon svg {
+    width: 16px;
+    height: 18px;
+    transition: all 0.2s ease;
+  }
+
+  /* Dark theme: subtle dark color */
+  .featured-icon svg {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Light theme: washed out color */
+  html:not(.dark) .featured-icon svg {
+    color: rgba(0, 0, 0, 0.2);
+  }
+
+  /* Very subtle hover effect for featured icon */
+  .card-link:hover .featured-icon svg {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  html:not(.dark) .card-link:hover .featured-icon svg {
+    color: rgba(0, 0, 0, 0.3);
+  }
+</style>
+
+<style>
+/* Link glow moved to global.css */
+
+/* Soft highlight inside cards as well */
+/* Highlight styling moved to global.css */
+</style>
+
+<script is:inline>
+// Enable full-card click navigation without nested anchors
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.__asdEnhanceCards) return;
+  window.__asdEnhanceCards = true;
+  var cards = document.querySelectorAll('.card-link[data-detail-url]');
+  cards.forEach(function(card) {
+    if (!(card instanceof HTMLElement)) return;
+    if (card.dataset.enhanced === '1') return;
+    card.dataset.enhanced = '1';
+    var url = card.getAttribute('data-detail-url') || '';
+    if (!url) return;
+    card.addEventListener('click', function(e) {
+      var target = e.target;
+      if (!(target instanceof Element)) return;
+      // Do nothing if an inner anchor was clicked
+      if (target.closest('a')) return;
+      // Allow modifier keys to open in new tab
+      if (e.metaKey || e.ctrlKey) {
+        window.open(url, '_blank', 'noopener');
+        return;
+      }
+      window.location.href = url;
+    });
+  });
+});
+</script>
+
+<!-- Let Astro handle navigation naturally - title/media link to detail page -->

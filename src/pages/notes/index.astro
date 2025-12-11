@@ -1,0 +1,195 @@
+---
+import { getCollection } from 'astro:content';
+import CraftLayout from '../../components/craft/CraftLayout.astro';
+import ContentGrid from '../../components/craft/ContentGrid.astro';
+import MediaCard from '../../components/craft/MediaCard.astro';
+import GhostSearch from '../../components/craft/GhostSearch.astro';
+import CuratedCollections from '../../components/CuratedCollections.astro';
+
+// Build-time data fetching for notes content
+const notesItems = await getCollection('notes', ({ data }: any) => {
+	return data.draft !== true; // Only published content
+});
+
+// Sort by date, featured first
+const sortedNotesItems = notesItems.sort((a: any, b: any) => {
+	if (a.data.featured && !b.data.featured) return -1;
+	if (!a.data.featured && b.data.featured) return 1;
+	return new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime();
+});
+
+// Enhanced notes items with adaptive sizing for 2-column layout
+const enhancedNotesItems: any[] = [];
+const allSizes = ['standard', 'short', 'tall', 'wide', 'hero'];
+
+for (let i = 0; i < sortedNotesItems.length; i++) {
+	const noteItem = sortedNotesItems[i];
+	
+	// Get the previous card's actual size (if any)
+	const previousSize = enhancedNotesItems[i - 1]?.adaptiveSize || '';
+	
+	// Available sizes (exclude previous to prevent adjacent duplicates)
+	const availableSizes = previousSize ? allSizes.filter(size => size !== previousSize) : allSizes;
+	
+	let adaptiveSize: string;
+	
+	if (noteItem.data.featured) {
+		// Featured notes prefer readable sizes (not too wide for text)
+		const featuredSizes = availableSizes.filter(size => ['hero', 'tall', 'standard'].includes(size));
+		const finalSizes = featuredSizes.length > 0 ? featuredSizes : availableSizes;
+		
+		const featuredCount = enhancedNotesItems.filter(p => p.data.featured).length;
+		adaptiveSize = finalSizes[featuredCount % finalSizes.length] || 'tall';
+	} else {
+		// Regular notes get balanced variety, favoring readability
+		const regularCount = enhancedNotesItems.filter(p => !p.data.featured).length;
+		
+		// Use golden ratio for natural variation
+		const sizeIndex = Math.floor((regularCount * 1.618 + regularCount * 3) % availableSizes.length);
+		adaptiveSize = availableSizes[sizeIndex] || 'standard';
+	}
+	
+	// Add to enhanced array with assigned size
+	enhancedNotesItems.push({ ...noteItem, adaptiveSize });
+}
+---
+
+<CraftLayout title="Prasathup - Notes" pageName="notes">
+	<!-- Header control panel with ghost search -->
+	<div slot="header" class="header-container">
+		<h1 class="craft-title notes-title">Notes</h1>
+		<p class="craft-subtitle">
+			My personal reflections and abstract thoughts on any topics I find interesting. Things that inspire me, challenge me, and make me think.
+		</p>
+		
+		<!-- Ghost Search positioned relative to title -->
+		<GhostSearch searchType="notes" />
+	</div>
+
+	<!-- Curated Collections Showcase Section -->
+	<CuratedCollections />
+
+	<!-- CSS-only masonry grid with notes theme and 2-column layout -->
+	<ContentGrid columns={2} theme="notes">
+		{enhancedNotesItems.map((noteItem: any, idx: number) => {
+			const palette = ['var(--rainbow-notes)','var(--rainbow-bio)','var(--rainbow-projects)','var(--rainbow-journey)','var(--rainbow-lab)'];
+			const prev = idx > 0 ? palette[(idx - 1) % palette.length] : '';
+			let color = palette[idx % palette.length];
+			if (color === prev) color = palette[(idx + 2) % palette.length];
+			return (
+				<MediaCard 
+					entry={noteItem}
+					adaptiveSize={noteItem.adaptiveSize}
+					class="craft-card notes-card"
+					animationDelay={`${idx * 150}ms`}
+					titleColorVar={color}
+					priority={idx < 6}
+				/>
+			);
+		})}
+	</ContentGrid>
+
+	<!-- Empty state if no notes -->
+	{sortedNotesItems.length === 0 && (
+		<div class="empty-state glass-panel">
+			<h2>No notes found</h2>
+			<p>Check back soon for new thoughts and reflections!</p>
+		</div>
+	)}
+</CraftLayout>
+
+<style>
+	/* Header container for relative positioning */
+	.header-container {
+		position: relative;
+	}
+
+	/* Notes-specific title styling with journal/paper aesthetic */
+	.notes-title {
+		font-size: clamp(2rem, 5vw, 3.5rem);
+		font-weight: 500; /* Matched to other pages */
+		line-height: 1.2;
+		color: var(--text-primary, rgba(255, 255, 255, 0.9));
+		margin: 0 0 var(--space-sm, 0.5rem) 0;
+		font-family: 'Ubuntu', system-ui, sans-serif;
+		background: linear-gradient(135deg, 
+			rgba(45, 212, 191, 0.9),   /* Teal - cellular vitality */
+			rgba(139, 92, 246, 0.8)    /* Purple - neural networks */
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		letter-spacing: -0.02em;
+	}
+
+	/* Light mode notes title - solid dark text (no gradient) */
+	html:not(.dark) .notes-title {
+		background: none !important;
+		-webkit-background-clip: unset !important;
+		-webkit-text-fill-color: #4A1A8B !important;
+		background-clip: unset !important;
+		color: #4A1A8B !important;
+		font-weight: 500; /* Matched to other pages */
+	}
+
+	.craft-subtitle {
+		font-size: clamp(1rem, 2vw, 1.25rem);
+		line-height: 1.6;
+		color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+		margin: 0 0 var(--space-lg, 2rem) 0;
+		max-width: 2000px; /* Increased from 600px for better space utilization */
+		font-family: 'Ubuntu', system-ui, sans-serif;
+		font-weight: 300;
+	}
+
+	/* Light mode subtitle text */
+	html:not(.dark) .craft-subtitle {
+		color: rgba(0, 0, 0, 0.7) !important;
+	}
+
+	/* Proper spacing between sections - removed extra margin to match projects page */
+
+	/* Empty state styling */
+	.empty-state {
+		padding: var(--space-2xl, 4rem);
+		text-align: center;
+		max-width: 400px;
+		margin: var(--space-2xl, 4rem) auto;
+	}
+
+	.empty-state h2 {
+		font-size: 1.5rem;
+		color: var(--text-primary, rgba(255, 255, 255, 0.9));
+		margin: 0 0 var(--space-md, 1rem) 0;
+	}
+
+	.empty-state p {
+		color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+		margin: 0;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.notes-title {
+			font-size: clamp(1.75rem, 8vw, 2.5rem);
+		}
+		
+		.craft-subtitle {
+			font-size: 1rem;
+		}
+	}
+
+	/* Focus management for accessibility */
+	.craft-controls:focus-within {
+		outline: 2px solid var(--text-accent, rgba(45, 212, 191, 0.9));
+		outline-offset: 4px;
+		border-radius: 8px;
+	}
+
+	.media-card {
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		/* Stable first paint on listings too */
+		opacity: 1;
+		transform: translateY(0);
+	}
+</style> 

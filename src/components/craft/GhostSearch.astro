@@ -1,0 +1,341 @@
+---
+// Ghost Search with Live Filtering - Dynamic per page type
+export interface Props {
+  searchType?: 'projects' | 'lab' | 'notes' | 'journey';
+  placeholder?: string;
+}
+
+const { 
+  searchType = 'projects',
+  placeholder 
+} = Astro.props;
+
+// Generate dynamic placeholder text
+const getPlaceholder = () => {
+  if (placeholder) return placeholder;
+  
+  switch (searchType) {
+    case 'lab':
+      return 'Search lab...';
+    case 'notes':
+      return 'Search notes...';
+    case 'journey':
+      return 'Search journey...';
+    case 'projects':
+    default:
+      return 'Search projects...';
+  }
+};
+
+const dynamicPlaceholder = getPlaceholder();
+---
+
+<!-- Ghost Search Container -->
+<div class="ghost-search-wrapper" data-search-type={searchType}>
+  <!-- Invisible Ghost Trigger Area -->
+  <div class="ghost-trigger">
+    <div class="ghost-invisible-zone"></div>
+  </div>
+  
+  <!-- Search Input (revealed on hover/focus) -->
+  <div class="search-reveal">
+    <input 
+      type="search" 
+      class="ghost-search-input"
+      placeholder={dynamicPlaceholder}
+      autocomplete="off"
+      id="ghost-search"
+      data-search-type={searchType}
+    />
+  </div>
+</div>
+
+<style>
+  /* Ghost Search - Right Side Discovery Zone */
+  .ghost-search-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 40px;
+    z-index: 10;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Invisible ghost area - completely transparent until hover */
+  .ghost-trigger {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 40px;
+    z-index: 2;
+  }
+  
+  .ghost-invisible-zone {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+  
+  /* Very subtle hint on hover - barely visible */
+  .ghost-invisible-zone:hover {
+    background: rgba(45, 212, 191, 0.02);
+    border-radius: 20px;
+    opacity: 1;
+  }
+  
+  /* Search reveal container */
+  .search-reveal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 40px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+  
+  /* Reveal search on trigger hover */
+  .ghost-search-wrapper:hover .search-reveal {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0) scale(1);
+  }
+  
+  /* Hide trigger when search is revealed */
+  .ghost-search-wrapper:hover .ghost-trigger {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* Search input styling */
+  .ghost-search-input {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(45, 212, 191, 0.2);
+    border-radius: 20px;
+    padding: 0 20px;
+    font-size: 14px;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(255, 255, 255, 0.9);
+    /* Safari-compatible: backdrop-filter removed */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+  }
+  
+  .ghost-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 300;
+  }
+
+  /* Light theme: ensure visible text and placeholder */
+  html:not(.dark) .ghost-search-input {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.15);
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  html:not(.dark) .ghost-search-input::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  html:not(.dark) .ghost-search-input:focus {
+    border-color: rgba(26, 92, 139, 0.45);
+    background: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 0 0 3px rgba(26, 92, 139, 0.12), 0 8px 25px rgba(0, 0, 0, 0.06);
+  }
+  
+  .ghost-search-input:focus {
+    border-color: rgba(45, 212, 191, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 0 0 3px rgba(45, 212, 191, 0.1),
+      0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Keep search visible when focused or active */
+  .search-reveal:focus-within {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0) scale(1);
+  }
+  
+  .ghost-search-wrapper.search-active .search-reveal {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0) scale(1);
+  }
+  
+  .ghost-search-wrapper.search-active .ghost-trigger {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* Responsive adjustments - prevent title overlap on mobile */
+  @media (max-width: 768px) {
+    .search-reveal {
+      width: 220px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .search-reveal {
+      width: 180px;
+    }
+    
+    .ghost-search-input {
+      font-size: 13px;
+      padding: 0 14px;
+    }
+  }
+  
+  @media (max-width: 360px) {
+    .search-reveal {
+      width: 160px;
+    }
+    
+    .ghost-search-input {
+      font-size: 12px;
+      padding: 0 12px;
+    }
+  }
+  
+  /* Mobile portrait mode - extra short to prevent title overlap */
+  @media (max-width: 390px) and (orientation: portrait) {
+    .search-reveal {
+      width: 140px;
+    }
+    
+    .ghost-search-input {
+      font-size: 12px;
+      padding: 0 10px;
+    }
+    
+    .ghost-search-input::placeholder {
+      content: "Search...";
+    }
+  }
+  
+  /* Accessibility improvements */
+  @media (prefers-reduced-motion: reduce) {
+    .ghost-invisible-zone,
+    .search-reveal,
+    .ghost-search-input {
+      transition: none;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .ghost-invisible-zone:hover {
+      border-color: rgba(45, 212, 191, 0.8);
+    }
+    
+    .ghost-search-input {
+      border-color: rgba(45, 212, 191, 0.8);
+    }
+  }
+</style>
+
+<script>
+// Simple and efficient ghost search with live filtering
+document.addEventListener('DOMContentLoaded', function() {
+  const wrapper = document.querySelector('.ghost-search-wrapper') as HTMLElement;
+  const input = document.querySelector('.ghost-search-input') as HTMLInputElement;
+  
+  if (!input || !wrapper) return;
+  
+  let searchTimeout: number;
+  
+  // Live filtering function - works for projects, lab, notes, and journey
+  // Hide entire grid items (the clickable wrapper), not just inner content
+  function filterContent(searchTerm: string) {
+    const cards = document.querySelectorAll('.card-link');
+    const term = searchTerm.toLowerCase().trim();
+    
+    // Show all cards if search is empty
+    if (!term) {
+      cards.forEach(card => {
+        (card as HTMLElement).style.display = '';
+      });
+      return;
+    }
+    
+    // Filter cards based on content
+    cards.forEach(card => {
+      const cardElement = card as HTMLElement;
+      const title = cardElement.querySelector('.card-title')?.textContent?.toLowerCase() || '';
+      const content = cardElement.querySelector('.card-body')?.textContent?.toLowerCase() || '';
+      const tags = Array.from(cardElement.querySelectorAll('.tag-pill')).map(tag => 
+        tag.textContent?.toLowerCase() || ''
+      ).join(' ');
+      
+      // Search in title, content, and tags
+      const searchableContent = `${title} ${content} ${tags}`;
+      const matches = searchableContent.includes(term);
+      
+      // Hide the entire grid item when it does not match
+      cardElement.style.display = matches ? '' : 'none';
+    });
+  }
+  
+  // Handle search input with debouncing for performance
+  input.addEventListener('input', function(this: HTMLInputElement) {
+    const value = this.value;
+    
+    // Manage search wrapper state
+    if (value.length > 0) {
+      wrapper.classList.add('search-active');
+    } else {
+      wrapper.classList.remove('search-active');
+    }
+    
+    // Debounce search for better performance
+    clearTimeout(searchTimeout);
+    searchTimeout = window.setTimeout(() => {
+      filterContent(value);
+    }, 150);
+  });
+  
+  // Hide search when clicking outside (if empty)
+  document.addEventListener('click', function(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (!wrapper.contains(target) && input.value.length === 0) {
+      wrapper.classList.remove('search-active');
+    }
+  });
+  
+  // Handle keyboard shortcuts
+  input.addEventListener('keydown', function(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      // Clear search and hide
+      this.value = '';
+      wrapper.classList.remove('search-active');
+      filterContent('');
+    }
+  });
+  
+  // Global keyboard shortcut (Ctrl/Cmd + K or /) to focus search
+  document.addEventListener('keydown', function(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k' || e.key === '/') {
+      e.preventDefault();
+      wrapper.classList.add('search-active');
+      input.focus();
+    }
+  });
+});
+</script>
+
+ 
