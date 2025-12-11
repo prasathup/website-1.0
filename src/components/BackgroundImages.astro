@@ -1,0 +1,396 @@
+---
+// Responsive background image component using pure CSS
+// Images used:
+// - Left: 709×1117px
+// - Right: 689×1073px
+// - Bottom: 363×315px (Enterprise)
+import leftBg from '../assets/Landing Background/macbook-pro-16-left-screen.png';
+import rightBg from '../assets/Landing Background/macbook-pro-16-right-screen.png';
+import bottomBg from '../assets/Landing Background/macbook-pro-16-mid-bottom-screen.png';
+
+// Shown on home and bio pages as specified in Layout.astro
+const { pageName } = Astro.props;
+const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
+---
+
+<div class={`background-container ${shouldShowByDefault ? 'visible' : ''}`} data-page-name={pageName || 'unknown'}>
+  <!-- Simple solid background color -->
+  <div class="base-color"></div>
+  
+  <!-- Background artwork images - shown on home and bio pages -->
+  <!-- Left image - now using actual image element for better control -->
+  <div class="art-container left-art">
+    <img 
+      src={leftBg.src} 
+      alt="" 
+      class="bg-image left-bg-image" 
+      loading="eager"
+    />
+  </div>
+  
+  <!-- Right image - now using actual image element for better control -->
+  <div class="art-container right-art">
+    <img 
+      src={rightBg.src} 
+      alt="" 
+      class="bg-image right-bg-image" 
+      loading="eager"
+    />
+  </div>
+  
+  <!-- Bottom image (Enterprise) with improved visibility -->
+  <div class="art-container bottom-art" id="enterprise-container">
+    <img 
+      src={bottomBg.src} 
+      alt="" 
+      class="bg-image bottom-bg-image" 
+      loading="eager"
+      id="enterprise-image"
+    />
+  </div>
+</div>
+
+<script is:inline define:vars={{ shouldShowByDefault }}>
+  // Refined content overlap detection for the enterprise image
+  function setupEnterpriseResponsiveness() {
+    const enterpriseImg = document.getElementById('enterprise-image');
+    const enterpriseContainer = document.getElementById('enterprise-container');
+    
+    if (!enterpriseImg || !enterpriseContainer) return;
+
+    // If CSS has hidden the container (on mobile), do not run this script
+    if (window.getComputedStyle(enterpriseContainer).display === 'none') {
+      return;
+    }
+    
+    // Reset to ensure visibility and remove any scroll-related logic.
+    enterpriseImg.style.opacity = '1';
+    // Removed: enterpriseContainer.style.display = 'block'; - let CSS control this
+  }
+  
+  // Check if we're on home or bio page and set visibility accordingly
+  function checkVisibility() {
+    const backgroundContainer = document.querySelector('.background-container');
+    if (!backgroundContainer) return;
+
+    const body = document.body;
+    const pageName = body.getAttribute('data-page') || backgroundContainer.getAttribute('data-page-name');
+    const isDisplayPage = pageName === 'home' || pageName === 'bio';
+    
+    if (isDisplayPage) {
+      // Make sure we're not in the middle of a transition
+      if (!document.documentElement.classList.contains('transitioning')) {
+        // Make the background container visible with a smooth fade
+        backgroundContainer.classList.add('visible');
+        
+        // Ensure proper theme is applied to the base-color element
+        const baseColor = backgroundContainer.querySelector('.base-color');
+        if (baseColor && baseColor instanceof HTMLElement) {
+          // Use CSS variables rather than direct style manipulation
+          // This is more consistent with theme changes
+          baseColor.setAttribute('data-theme', 
+            document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+          
+          // Force hardware acceleration for smoother transitions
+          baseColor.style.transform = 'translateZ(0)';
+        }
+      }
+      
+      // Set up the enterprise image responsiveness
+      setupEnterpriseResponsiveness();
+    } else {
+      // Not a display page, hide the background
+      backgroundContainer.classList.remove('visible');
+    }
+  }
+  
+  // Run checks on events with a small delay to ensure DOM is updated
+  function initialize() {
+    // Initial setup based on props - delay slightly to ensure DOM is ready
+    setTimeout(() => {
+      if (shouldShowByDefault) {
+        const backgroundContainer = document.querySelector('.background-container');
+        if (backgroundContainer) {
+          backgroundContainer.classList.add('visible');
+          setupEnterpriseResponsiveness();
+        }
+      }
+      
+      // Check again after a delay (helps with theme transitions)
+      setTimeout(checkVisibility, 50);
+    }, 10);
+  }
+  
+  // Run on DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+  } else {
+    initialize();
+  }
+  
+  // Run after Astro view transitions
+  document.addEventListener('astro:page-load', () => {
+    checkVisibility();
+  });
+  
+  // Theme changes are now handled by CSS variables automatically
+  // No need for JavaScript event listeners that can cause conflicts
+  
+  // Listen for pre-transition events to handle animation
+  document.addEventListener('astro:before-preparation', () => {
+    // Mark as transitioning to prevent flashing
+    document.documentElement.classList.add('transitioning');
+    
+    // Temporarily pause animations
+    const backgroundContainer = document.querySelector('.background-container');
+    if (backgroundContainer) {
+      backgroundContainer.classList.add('no-transition');
+    }
+  });
+  
+  document.addEventListener('astro:after-preparation', () => {
+    // Re-enable transitions
+    document.documentElement.classList.remove('transitioning');
+    
+    // Re-enable animations
+    const backgroundContainer = document.querySelector('.background-container');
+    if (backgroundContainer) {
+      backgroundContainer.classList.remove('no-transition');
+    }
+  });
+</script>
+
+<style>
+  /* CSS Variables for configurable scaling */
+  :root {
+    --left-art-width-xl: 45%;
+    --right-art-width-xl: 45%;
+    --left-art-max-width: 709px;
+    --right-art-max-width: 689px;
+    --bottom-art-width: 12%; /* Reduced by another 25% from 16% */
+    --bottom-art-max-width: 173px; /* Reduced by another 25% from 230px */
+    --art-opacity: 1; /* Increased to full opacity */
+    
+    /* Height adjustments to fill viewport */
+    --art-min-height: 100vh;
+    --art-bottom-position: 0;
+  }
+  
+  /* Main container */
+  .background-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    /* Create a stacking context with lower z-index */
+    z-index: var(--z-background, -1);
+    isolation: isolate; /* Explicitly create stacking context */
+    opacity: 0; /* Start hidden */
+    transition: opacity 0.5s ease;
+  }
+  
+  /* Show container when on home/bio page */
+  .background-container.visible {
+    opacity: 1;
+  }
+  
+  /* Base color layer */
+  .base-color {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--current-bg-light); /* Updated to use theme variable */
+    transition: background-color var(--transition-duration, 0.5s) ease, 
+                background-image var(--transition-duration, 0.5s) ease;
+    z-index: 1; /* Positive z-index within background container */
+  }
+  
+  /* Dark mode base color */
+  :global(.dark) .base-color {
+    background-color: var(--current-bg-dark);
+    background-image: var(--current-bg-dark-gradient);
+  }
+  
+  /* Art container base styles */
+  .art-container {
+    position: fixed;
+    overflow: visible;
+    z-index: 2; /* Higher than base color */
+    transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+    will-change: transform; /* Hardware acceleration */
+  }
+  
+  /* Background image base styles using actual img elements */
+  .bg-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: var(--art-opacity);
+    transition: opacity 0.3s ease;
+    object-position: bottom;
+    object-fit: contain;
+    max-height: none;
+    transform-origin: bottom center;
+  }
+  
+  /* Left artwork - anchored to bottom */
+  .left-art {
+    bottom: var(--art-bottom-position); /* Anchor to bottom */
+    left: 0;
+    width: var(--left-art-width-xl);
+    height: var(--art-min-height); /* Fill viewport height */
+    max-width: var(--left-art-max-width);
+    display: flex;
+    align-items: flex-end; /* Align to bottom */
+  }
+  
+  .left-bg-image {
+    object-position: left bottom; /* Position at bottom left */
+  }
+  
+  /* Right artwork - anchored to bottom */
+  .right-art {
+    bottom: var(--art-bottom-position); /* Anchor to bottom */
+    right: 0;
+    width: var(--right-art-width-xl);
+    height: var(--art-min-height); /* Fill viewport height */
+    max-width: var(--right-art-max-width);
+    display: flex;
+    align-items: flex-end; /* Align to bottom */
+  }
+  
+  .right-bg-image {
+    object-position: right bottom; /* Position at bottom right */
+  }
+  
+  /* Bottom artwork (Enterprise) with improved visibility */
+  .bottom-art {
+    bottom: -2rem; /* Lowered the enterprise */
+    left: 50%;
+    transform: translateX(-50%);
+    width: var(--bottom-art-width);
+    height: auto;
+    max-width: var(--bottom-art-max-width);
+    aspect-ratio: 363/315;
+    z-index: 4; /* Increased z-index to ensure it's above other background elements */
+    transition: opacity 0.4s ease;
+  }
+  
+  .bottom-bg-image {
+    object-position: center bottom;
+    transition: opacity 0.4s ease;
+    filter: brightness(1.2); /* Slightly brighten the enterprise */
+  }
+  
+  /* Dark mode color adjustments */
+  :global(html.dark) .base-color {
+    background-color: var(--bg-dark); /* Dark mode color from CSS variable */
+    background-image: var(--bg-dark-gradient); /* Dark mode gradient from CSS variable */
+  }
+  
+  /* Ensure enterprise is visible in dark mode (when not hidden by breakpoint) */
+  :global(html.dark) .bottom-bg-image {
+    filter: brightness(1.5); /* Further brighten in dark mode */
+    /* Removed forced opacity - let responsive breakpoints control visibility */
+  }
+  
+  /* ----- Responsive Breakpoints ----- */
+  /* Ultrawide screens (>1800px) */
+  @media (min-width: 1800px) {
+    :root {
+      --left-art-width-xl: 50%;
+      --right-art-width-xl: 50%;
+    }
+  }
+  
+  /* Large screens (1400px - 1800px) */
+  @media (max-width: 1800px) {
+    :root {
+      --left-art-width-xl: 45%;
+      --right-art-width-xl: 45%;
+      --bottom-art-width: 10.5%; /* Reduced by another 25% from 14% */
+    }
+  }
+  
+  /* Medium-large screens (1200px - 1400px) */
+  @media (max-width: 1400px) {
+    :root {
+      --left-art-width-xl: 38%;
+      --right-art-width-xl: 38%;
+      --bottom-art-width: 9.5%; /* Reduced by another 25% from 12.75% */
+    }
+  }
+  
+  /* Medium screens (1024px - 1200px) */
+  @media (max-width: 1200px) {
+    :root {
+      --left-art-width-xl: 32%;
+      --right-art-width-xl: 32%;
+      --bottom-art-width: 8.6%; /* Reduced by another 25% from 11.5% */
+    }
+  }
+  
+  /* Small screens (768px - 1024px) */
+  @media (max-width: 1024px) {
+    :root {
+      --left-art-width-xl: 25%;
+      --right-art-width-xl: 25%;
+      --bottom-art-width: 7.1%; /* Reduced by another 25% from 9.5% */
+    }
+  }
+  
+  /* Hide all background art on narrower viewports to keep bio readable */
+  @media (max-width: 1024px) {
+    .left-art, .right-art, .bottom-art {
+      display: none;
+    }
+  }
+  
+  /* Adjust for short height screens */
+  @media (max-height: 600px) {
+    .left-art, .right-art {
+      height: 600px; /* Minimum height for very short screens */
+    }
+  }
+  
+  /* Remove the CSS-only hiding rule - rely on JS for better precision */
+  @media (min-height: 900px) {
+    body:has(.content-container:nth-child(3)) .bottom-art {
+      /* Removed opacity: 0 */
+    }
+  }
+  
+  /* Add a helper class for dark theme */
+  .dark-theme {
+    background-color: var(--current-bg-dark) !important;
+    background-image: var(--current-bg-dark-gradient) !important;
+  }
+  
+  /* Prevent transitions during page navigation */
+  .background-container.no-transition,
+  .background-container.no-transition * {
+    transition: none !important;
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+  }
+  
+  /* Hardware acceleration for background elements */
+  .background-container {
+    will-change: opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  
+  /* Ensure smooth fade-in/out */
+  .background-container {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+  
+  .background-container.visible {
+    opacity: 1;
+  }
+</style> 

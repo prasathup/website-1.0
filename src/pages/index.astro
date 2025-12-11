@@ -1,0 +1,878 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EndosomeBackground from '../components/EndosomeBackground.astro';
+---
+
+<Layout title="Prasathup" pageName="home">
+	<!-- The .main-content class in Layout.astro now handles the safe area -->
+    <div class="content-wrapper flex justify-center items-center">
+		<!-- Background Endosomes (Outside the wobble container) -->
+		<EndosomeBackground />
+		
+		<div class="wave-bubble-container">
+            <div id="section-1" class="content-section active">
+				<div class="bio-content flex flex-col items-center w-full">
+					{/* Title with animated gradient and properly aligned underline */}
+					<div class="name-container">
+						<div class="title-wrapper">
+							<div class="hi-svg-container">
+								<img src="/HeartStopperSVG/Hi.svg" alt="" class="hi-svg" />
+							</div>
+							<h1 class="name-title">
+								<span class="animated-gradient">I am Prasath</span>
+							</h1>
+							<div class="title-underline"></div>
+						</div>
+					</div>
+					
+					{/* Paragraphs with proper sizing and centering - optimized width for better appearance */}
+					<div class="w-full max-w-3xl text-center">
+						<p class="bio-paragraph">
+							A cell biologist working to improve peoples lives by contributing in early research and developing treatments for genetic diseases for which currently no treatment available. In my free time, I explore my curiosity on the intersection of technology, design, arts, music and bring some of them to life.
+						</p>
+					</div>
+				</div>
+			</div>
+            <div id="section-2" class="content-section">
+				<div class="bio-content flex flex-col items-center w-full">
+					<div class="name-container">
+						<div class="title-wrapper">
+							<h1 class="name-title">
+								<span class="animated-gradient">Career Path</span>
+							</h1>
+							<div class="title-underline"></div>
+						</div>
+					</div>
+					<div class="w-full max-w-3xl text-center">
+						<p class="bio-paragraph"> Over 12 years, I have been at the frontier of biologics, first as a doctoral and postdoctoral researcher at the Max Planck Institute, and now as a senior scientist at Silence Therapeutics. I studied intracellular trafficking, and built high-throughput pipelines. Now advancing siRNA science toward therapies for unmet medical needs.</p>
+					</div>
+				</div>
+			</div>
+            <div id="section-3" class="content-section">
+                <div class="bio-content flex flex-col md:flex-row items-center w-full gap-8">
+                    <div class="text-content text-center md:text-left">
+                        <div class="name-container">
+                            <div class="title-wrapper">
+                                <h1 class="name-title">
+                                    <span class="animated-gradient">Farpoint</span>
+                                </h1>
+                                <div class="title-underline"></div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <p class="bio-paragraph">In a small village, surrounded by trees and songs of birds by day, stars and sounds of insects by night, I grew up reading science and stories of scientists. That early spark eventually led me to Germany, where I built my life and became a citizen. With gratitude, I am stepping into the unfolding future with curiosity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="section-4" class="content-section">
+                <div class="bio-content flex flex-col items-center w-full">
+                    <div class="name-container">
+                        <div class="title-wrapper">
+                            <h1 class="name-title">
+                                <span class="animated-gradient">Wandering mind</span>
+                            </h1>
+                            <div class="title-underline"></div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-3xl text-center">
+                        <p class="bio-paragraph">I listen to lots of music, podcasts, submerge myself into random topics I find fascinating, read books rarely than I hope to, and sometimes be just silly and give space for ideas to shape. </p>
+                    </div>
+                </div>
+            </div>
+            <div id="section-5" class="content-section">
+                <div class="bio-content flex flex-col md:flex-row items-center w-full gap-8">
+                    <div class="profile-image-container">
+                        <img src="/media/Profile_pic.jpg" alt="A photo of Prasath" class="profile-image"/>
+                    </div>
+                    <div class="text-content text-center md:text-left">
+                        <div class="name-container">
+                            <div class="title-wrapper">
+                                <h1 class="name-title">
+                                    <span class="animated-gradient">Becoming</span>
+                                </h1>
+                                <div class="title-underline"></div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <p class="bio-paragraph">As a student of life, I find myself imperfect, and continue working to become a better version of myself than yesterday. I may come across eccentric but interesting. I think ...							</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="section-6" class="content-section">
+                <div class="bio-content flex flex-col items-center w-full">
+                    <div class="name-container">
+                        <div class="title-wrapper">
+                            <h1 class="name-title">
+                                <span class="animated-gradient">What now?</span>
+                            </h1>
+                            <div class="title-underline"></div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-3xl text-center">
+                        <p class="bio-paragraph">If you have come this far and would like to connect, these are the platforms I am hoping to be on every now and then.</p>
+                        <div class="social-links">
+                            <div class="social-group">
+                                <a href="https://www.youtube.com/@strange0new0worlds" aria-label="YouTube" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.7 3.5 12 3.5 12 3.5s-7.7 0-9.4.6A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.7.6 9.4.6 9.4.6s7.7 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"></path></svg>
+                                </a>
+                                <a href="https://www.instagram.com/prassiva/" aria-label="Instagram" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.5a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"></path></svg>
+                                </a>
+                                <a href="https://github.com/prasathup" aria-label="GitHub" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.4.7-4.1-1.6-4.1-1.6-.6-1.5-1.5-1.9-1.5-1.9-1.2-.8.1-.8.1-.8 1.3.1 2 .1 2 .1 1.2 2 3 1.4 3.7 1.1.1-.9.5-1.4.9-1.7-2.7-.3-5.5-1.4-5.5-6.1 0-1.4.5-2.5 1.3-3.4-.1-.3-.6-1.7.1-3.6 0 0 1.1-.4 3.5 1.3a12.1 12.1 0 0 1 6.3 0c2.4-1.7 3.5-1.3 3.5-1.3.7 1.9.2 3.3.1 3.6.8.9 1.3 2 1.3 3.4 0 4.7-2.8 5.8-5.5 6.1.5.4 1 1.2 1 2.5v3.7c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"></path></svg>
+                                </a>
+                            </div>
+                            <div class="social-separator"></div>
+                            <div class="social-group">
+                                <a href="https://patreon.com/Strange_New_Worlds?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" aria-label="Patreon" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 3.5h3v17h-3v-17zm10 .5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17z"></path></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	/* Wrapper for entire content area */
+    .content-wrapper {
+        min-height: calc(100vh * 6); /* allow scrolling through 6 sections */
+        width: 100%;
+        position: relative;
+    }
+
+    /* Container for the bio content - spacing handled by CSS variables */
+    .bio-content {
+        gap: var(--spacing-md); /* Reduced from lg for tighter spacing */
+        transform: translateY(-3vh); /* Nudge content up to visually center it (original behavior) */
+    }
+	
+	/* Container for title and gradient border */
+	.name-container {
+		position: relative;
+		text-align: center;
+		width: 100%;
+	}
+	
+	/* Wrapper to contain title and its underline together */
+	.title-wrapper {
+		display: inline-block;
+		position: relative;
+		margin: 0 auto;
+		z-index: 2;
+		cursor: default;
+	}
+
+	/* Hi SVG container and styling */
+	.hi-svg-container {
+		position: absolute;
+		left: -48px;
+		top: -16px;
+		width: 45px;
+		height: 45px;
+		transform: rotate(-7deg);
+		animation: wave 6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+		transform-origin: 70% 70%;
+		z-index: 3;
+	}
+	
+	/* Animation for subtle waving effect */
+	@keyframes wave {
+		0%, 100% { transform: rotate(-7deg); }
+		50% { transform: rotate(0deg); }
+	}
+	
+	.hi-svg {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		transition: filter 0.3s ease;
+	}
+	
+	/* Dark mode adjustment for SVG */
+	.dark .hi-svg {
+		filter: brightness(0.9);
+	}
+
+	/* Clean title styling - fluid and responsive */
+	.name-title {
+		font-family: var(--font-family-mono);
+		/* Revert to previous title size */
+		font-size: var(--font-size-3xl);
+		font-weight: 800;
+		line-height: var(--line-height-tight);
+		margin: 0;
+		text-shadow: none;
+	}
+	
+	/* Animated gradient text matching menu colors */
+	.animated-gradient {
+		background-image: linear-gradient(
+			to right,
+			#d98cac, /* Bio - richer rose */
+			#d9b88c, /* Projects - richer amber */
+			#8cb2d9, /* Journey - richer sky */
+			#ad8cd9, /* Notes - richer lavender */
+			#d98cbb, /* Lab - richer pink */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		display: inline-block;
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+	
+	/* Underline with same animation - exactly matching title width */
+	.title-underline {
+		height: 0px;
+		width: 100%;
+		background-image: linear-gradient(
+			to right,
+			#d98cac, /* Bio - richer rose */
+			#d9b88c, /* Projects - richer amber */
+			#8cb2d9, /* Journey - richer sky */
+			#ad8cd9, /* Notes - richer lavender */
+			#d98cbb, /* Lab - richer pink */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+
+	/* Animation for the gradient */
+	@keyframes gradient-shift {
+		0% { background-position: 0% 50%; }
+		100% { background-position: 100% 50%; }
+	}
+
+	/* Paragraph styling - slightly larger than before, but not oversized */
+	.bio-paragraph {
+		font-size: clamp(1rem, 3.2vw, 1.2rem);
+		line-height: 1.72;
+		font-weight: 400; /* Normal weight, not bold */
+		color: #4A1A8B; /* Dark lavender for light mode, from --card-content-light */
+		text-align: center; /* Reverted from justify to center */
+		width: 100%;
+		max-width: 65ch; /* Optimal reading width */
+		margin-left: auto;
+		margin-right: auto;
+		margin-bottom: 0; /* Remove bottom margin for tighter spacing */
+	}
+	
+	/* Add a specific override for the bio paragraph in dark mode to ensure visibility */
+	html.dark .bio-paragraph {
+		color: #a5a7a278 !important;
+	}
+
+	/* Dark mode adjustments - keep the same gradient for name title */
+	.dark .animated-gradient {
+		background-image: linear-gradient(
+			to right,
+			#d98cac, /* Bio - same as light mode */
+			#d9b88c, /* Projects - same as light mode */
+			#8cb2d9, /* Journey - same as light mode */
+			#ad8cd9, /* Notes - same as light mode */
+			#d98cbb, /* Lab - same as light mode */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+	
+	.dark .title-underline {
+		background-image: linear-gradient(
+			to right, 
+			#d98cac, /* Bio - same as light mode */
+			#d9b88c, /* Projects - same as light mode */
+			#8cb2d9, /* Journey - same as light mode */
+			#ad8cd9, /* Notes - same as light mode */
+			#d98cbb, /* Lab - same as light mode */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+	
+	/* Simple dark mode text styling - using a more specific selector to win the specificity war */
+	.dark .content-wrapper .bio-paragraph {
+		text-shadow: none; /* Remove glow effect to match card styles */
+		opacity: 1 !important; /* Force full opacity */
+	}
+	
+	/* Remove margin from last paragraph */
+	.mb-0 {
+		margin-bottom: 0;
+	}
+	
+	/* Clean responsive adjustments */
+	.name-container {
+		/* margin-bottom is handled by the parent's gap property */
+	}
+	
+	/* Hi SVG positioning - fluid scaling */
+	.hi-svg-container {
+		left: clamp(-30px, -2.5vw, -20px);
+		top: clamp(-10px, -1vw, -6px);
+		width: clamp(25px, 2.5vw, 35px);
+		height: clamp(25px, 2.5vw, 35px);
+	}
+
+	/* The wave bubble container - premium fixed gravitational lens */
+    .wave-bubble-container {
+        position: fixed; /* Keep the bubble in place */
+        /* Offset from header so it doesn't visually overlap menu */
+        top: calc(50% + var(--header-height) * 0.25);
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: clamp(540px, 72vw, 920px);
+        height: clamp(420px, 68vh, 680px);
+        padding: 3rem;
+		overflow: hidden;
+		z-index: 1;
+		animation: morph-wave 25s linear infinite alternate;
+
+		background-color: transparent;
+
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		
+		/* Premium performance optimizations */
+		transform: translate(-50%, -50%) translateZ(0); /* Hardware acceleration */
+		backface-visibility: hidden; /* Prevent flicker */
+		will-change: transform; /* Optimize for animations */
+	}
+
+    /* Content section styling - premium cross-fade with subtle enhancements */
+    .content-section {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        pointer-events: none;
+        will-change: opacity;
+        /* ISOLATION: Prevent section interference */
+        contain: layout style; /* CSS containment for performance and isolation */
+        /* Premium visual enhancements */
+        transform: translateZ(0); /* Hardware acceleration */
+        backface-visibility: hidden; /* Prevent flicker */
+    }
+
+    /* Active mapping via data attribute (1-indexed) */
+    .wave-bubble-container[data-active="1"] #section-1,
+    .wave-bubble-container[data-active="2"] #section-2,
+    .wave-bubble-container[data-active="3"] #section-3,
+    .wave-bubble-container[data-active="4"] #section-4,
+    .wave-bubble-container[data-active="5"] #section-5,
+    .wave-bubble-container[data-active="6"] #section-6 {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* ISOLATION: Farpoint section specific isolation to prevent interference */
+    #section-3 {
+        contain: layout style; /* CSS containment for this section only */
+        isolation: isolate; /* Create new stacking context */
+    }
+
+    #section-3 .bio-content {
+        contain: layout; /* Additional containment for bio content */
+    }
+
+    /* Remove unused scroll-sentinel styles (kept empty intentionally) */
+
+	.placeholder-content {
+		text-align: center;
+		color: var(--text-primary);
+		max-width: 65ch;
+	}
+	html.dark .placeholder-content {
+		color: #a5a7a2;
+	}
+	.placeholder-title {
+		font-size: var(--font-size-2xl);
+		font-weight: 700;
+		margin-bottom: var(--spacing-md);
+	}
+	.placeholder-paragraph {
+		font-size: var(--font-size-lg);
+		line-height: var(--line-height-normal);
+		margin-bottom: var(--spacing-sm);
+	}
+	html.dark .placeholder-paragraph {
+		color: #a5a7a278;
+	}
+
+	/* This pseudo-element creates the 3D beveled edge */
+	.wave-bubble-container::after {
+		content: '';
+		position: absolute;
+		inset: 0; /* Align to the inside edge */
+		z-index: -1;
+		border-radius: inherit; /* Follows the parent's animated shape */
+
+		/* A more diffused inner shadow for a subtle gradient bevel */
+		box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+	}
+
+	/* Dark theme shadow override */
+	html.dark .wave-bubble-container::after {
+		box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.407);
+	}
+
+	/* Keyframes for a unified, ambiguous, "blunt-ended" morphing effect */
+	@keyframes morph-wave {
+		0% {
+			border-radius: 45% 55% 60% 40% / 65% 50% 55% 45%;
+		}
+		25% {
+			border-radius: 55% 45% 50% 50% / 50% 60% 40% 50%;
+		}
+		50% {
+			border-radius: 60% 40% 45% 55% / 55% 65% 50% 45%;
+		}
+		75% {
+			border-radius: 40% 60% 50% 50% / 50% 40% 60% 50%;
+		}
+		100% {
+			border-radius: 45% 55% 60% 40% / 65% 50% 55% 45%;
+		}
+	}
+
+    @media (max-width: 768px) {
+        .wave-bubble-container {
+            padding: 2rem; /* Reduce padding on smaller screens */
+            height: 65vh; /* Adjust height for smaller screens */
+            /* Additional safe offset for mobile header */
+            top: calc(52% + var(--header-height-mobile) * 0.2);
+            /* Use the same fluid desktop animation on mobile */
+            animation: morph-wave 25s linear infinite alternate;
+            width: 92vw; /* Make bubble wider on mobile screens */
+        }
+
+        .bio-content {
+            transform: translateY(-1vh); /* Original slight mobile nudge */
+        }
+
+        .bio-paragraph {
+			/* Keep mobile comfortably readable, modest bump */
+			font-size: clamp(1.02rem, 4vw, 1.2rem);
+        }
+
+        /* Fix Farpoint section mobile alignment - ISOLATED styling to prevent section interaction */
+        #section-3 .bio-content {
+            flex-direction: column !important; /* Force vertical layout on mobile */
+            align-items: center !important; /* Center content horizontally */
+            justify-content: center !important; /* Center content vertically */
+            text-align: center !important; /* Center text alignment */
+            /* ISOLATION: Only affect this specific section */
+            transform: none !important; /* Reset any inherited transforms */
+            margin: 0 !important; /* Reset any inherited margins */
+            padding: 0 !important; /* Reset any inherited padding */
+        }
+
+        #section-3 .text-content {
+            text-align: center !important; /* Override md:text-left for mobile */
+            width: 100% !important; /* Full width for proper centering */
+            max-width: 100% !important; /* Remove any max-width constraints */
+            /* ISOLATION: Prevent interference with other sections */
+            margin: 0 !important; /* Reset margins */
+            padding: 0 !important; /* Reset padding */
+        }
+
+        #section-3 .name-container {
+            width: 100% !important;
+            text-align: center !important;
+            margin: 0 !important; /* Reset margins */
+        }
+
+        #section-3 .bio-paragraph {
+            text-align: center !important;
+            margin: 0 auto !important;
+            max-width: 90% !important; /* Slightly constrained for readability */
+            /* ISOLATION: Prevent text styling interference */
+            font-size: clamp(1.02rem, 4vw, 1.2rem) !important; /* Consistent with other sections */
+        }
+
+        /* Make profile image smaller on mobile to prioritize text */
+        .profile-image {
+            width: clamp(120px, 30vw, 160px) !important;
+            height: auto !important;
+            aspect-ratio: 220 / 270;
+        }
+        .profile-image-container { 
+            margin-bottom: 10rem; /* Reduced from 13rem to 10rem for tighter spacing */
+        }
+        
+        /* Bring "Becoming" text closer to the picture for better bubble fit */
+        .text-content { 
+            margin-top: -10rem; /* Reduced from -13rem to -10rem for better positioning */
+        }
+	}
+
+    /* Additional responsive breakpoint for very small screens */
+    @media (max-width: 480px) {
+        .wave-bubble-container {
+            width: 95vw; /* Even wider on very small screens */
+            padding: 1.5rem; /* Reduce padding further */
+            height: 70vh; /* Slightly taller for better content visibility */
+        }
+
+        /* Ensure Farpoint section is perfectly centered on very small screens - ISOLATED */
+        #section-3 .bio-content {
+            padding: 1rem !important; /* Consistent padding */
+            gap: 1rem !important; /* Tighter spacing */
+            /* ISOLATION: Maintain section independence */
+            transform: none !important; /* No transforms */
+            margin: 0 !important; /* No margins */
+        }
+
+        #section-3 .bio-paragraph {
+            font-size: clamp(0.95rem, 4.5vw, 1.1rem) !important; /* Slightly smaller text */
+            line-height: 1.6 !important; /* Tighter line height for small screens */
+            /* ISOLATION: Prevent text interference */
+            margin: 0 auto !important; /* Center only */
+        }
+
+        /* Fine-tune profile section positioning on very small screens - REMOVED duplicate rule */
+        
+        .profile-image-container { 
+            margin-bottom: 8rem !important; /* Even tighter spacing on very small screens */
+        }
+        
+        .text-content { 
+            margin-top: -8rem !important; /* Closer text positioning */
+        }
+    }
+
+	.profile-image-container {
+		flex-shrink: 0;
+		position: relative;
+	}
+	.profile-image {
+		/* Smaller and uncropped so full head is visible */
+		width: clamp(180px, 28vw, 210px) !important;
+		height: auto !important;
+		object-fit: contain !important;
+		object-position: top center !important;
+		/* Simple rectangular feather: fade on all four edges, intersected */
+		-webkit-mask-image:
+			linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 12%, black 88%, transparent 100%);
+		mask-image:
+			linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 12%, black 88%, transparent 100%);
+		/* Intersect the two masks so only the middle stays fully opaque */
+		-webkit-mask-composite: source-in;
+		mask-composite: intersect;
+		border: none !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+	}
+	
+	html.dark .profile-image {
+		/* Slightly stronger feathering in dark mode */
+		-webkit-mask-image:
+			linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 16%, black 84%, transparent 100%);
+		mask-image:
+			linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 16%, black 84%, transparent 100%);
+		-webkit-mask-composite: source-in;
+		mask-composite: intersect;
+		border: none !important;
+		box-shadow: none !important;
+	}
+
+	.text-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+    /* Keep text away from morphing edges without changing bubble behavior */
+    .wave-bubble-container .bio-content { padding-block: clamp(0.5rem, 2vh, 1rem); }
+    .wave-bubble-container .w-full.max-w-3xl,
+    .wave-bubble-container .text-content { padding-inline: clamp(0.75rem, 2.2vw, 1.25rem); }
+
+    /* Desktop/laptop spacing and readability adjustments */
+    @media (min-width: 1024px) {
+        .wave-bubble-container {
+            padding-top: 4.5rem;
+            padding-bottom: 4.5rem;
+        }
+        .bio-paragraph {
+            /* Make desktop text only slightly smaller than original var(--font-size-2xl) */
+            font-size: calc(var(--font-size-2xl) * 0.95);
+        }
+    }
+
+    /* Social links styling for final page */
+    .social-links {
+        display: flex;
+        gap: 0.875rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 2rem; /* Increased spacing to avoid cross-interaction with content above */
+    }
+    
+    /* Social groups for visual separation */
+    .social-group {
+        display: flex;
+        gap: 0.875rem;
+        align-items: center;
+    }
+    
+    /* Subtle vertical separator between social media and transactional platforms */
+    .social-separator {
+        width: 1px;
+        height: 32px;
+        background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(0, 0, 0, 0.1) 20%,
+            rgba(0, 0, 0, 0.2) 50%,
+            rgba(0, 0, 0, 0.1) 80%,
+            transparent 100%
+        );
+        margin: 0 0.5rem;
+    }
+    
+    /* Dark mode separator */
+    html.dark .social-separator {
+        background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(255, 255, 255, 0.1) 20%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.1) 80%,
+            transparent 100%
+        );
+    }
+    .social-links a {
+        display: inline-flex;
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.06);
+        color: #4A1A8B;
+        transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+	html.dark .social-links a {
+		background: rgba(255,255,255,0.08);
+		color: rgba(220,230,245,0.9);
+		border: 1px solid rgba(255,255,255,0.07);
+		box-shadow: inset 0 1px 1px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.35);
+		/* Safari-compatible: replaced backdrop-filter with increased opacity */
+	}
+    .social-links a:hover {
+        /* Removed transform to prevent jiggling - only background color change */
+        background: rgba(0,0,0,0.1);
+    }
+	html.dark .social-links a:hover {
+		background: rgba(255,255,255,0.08);
+		color: rgba(235,242,252,0.9);
+		/* Removed transform to prevent jiggling - only background and color changes */
+	}
+	.social-links svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+        display: block;
+    }
+	html.dark .social-links svg { opacity: 0.9; }
+
+    /* Keep desktop positioning as it was - only adjust mobile/small screens */
+    .wave-bubble-container #section-5 .bio-content { 
+        transform: translateY(-4.5vh); /* Revert to original desktop positioning */
+    }
+    
+    @media (max-width: 768px) {
+        /* Move profile section higher on mobile for better bubble fit - OVERRIDE mobile bio-content transform */
+        .wave-bubble-container #section-5 .bio-content { 
+            transform: translateY(-4vh) !important; /* Keep mobile adjustment */
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Fine-tune profile section positioning on very small screens - OVERRIDE all other transforms */
+        .wave-bubble-container #section-5 .bio-content { 
+            transform: translateY(-5vh) !important; /* Keep small screen adjustment */
+        }
+    }
+</style>
+
+<script is:inline>
+    // Premium scroll experience with efficient coordination
+    /** @type {HTMLDivElement|null} */
+    let bubbleEl = null;
+    let activeIndex = 1;
+    const totalSections = 6;
+    const MIN_INDEX = 1;
+    const MAX_INDEX = totalSections;
+    const COOLDOWN_MS = 400; // Reduced for more responsive touch
+    const WHEEL_MIN_DELTA = 20; // ignore tiny noise
+    let lastNavAt = 0;
+    let touchStartY = 0;
+    let touchLastY = 0;
+    
+    // Premium scroll coordination - prevent conflicts
+    let isProgrammaticScroll = false;
+    let scrollEndTimer = null;
+
+    /** @param {number} index */
+    function setActive(index) {
+        const clamped = Math.max(MIN_INDEX, Math.min(MAX_INDEX, index));
+        activeIndex = clamped;
+        bubbleEl && bubbleEl.setAttribute('data-active', String(activeIndex));
+        
+        // Premium smooth scroll with enhanced coordination
+        isProgrammaticScroll = true;
+        const top = (activeIndex - 1) * window.innerHeight;
+        
+        // Use requestAnimationFrame for smoother animation
+        requestAnimationFrame(() => {
+            window.scrollTo({ 
+                top, 
+                behavior: 'smooth'
+            });
+        });
+        
+        // Reset flag after scroll completes - shorter timeout for better responsiveness
+        setTimeout(() => {
+            isProgrammaticScroll = false;
+        }, 30);
+    }
+
+    function canNav() { return Date.now() - lastNavAt > COOLDOWN_MS; }
+    function goNext() { if (canNav()) { lastNavAt = Date.now(); setActive(activeIndex + 1); } }
+    function goPrev() { if (canNav()) { lastNavAt = Date.now(); setActive(activeIndex - 1); } }
+
+    /** @param {WheelEvent} e */
+    function onWheel(e) {
+        e.preventDefault();
+        if (!canNav() || isProgrammaticScroll) return;
+        if (Math.abs(e.deltaY) < WHEEL_MIN_DELTA) return;
+        if (e.deltaY > 0) goNext(); else goPrev();
+    }
+
+    /** @param {TouchEvent} e */
+    function onTouchStart(e) {
+        if (isProgrammaticScroll) return;
+        touchStartY = e.touches[0].clientY;
+        touchLastY = touchStartY;
+    }
+
+    /** @param {TouchEvent} e */
+    function onTouchMove(e) {
+        if (isProgrammaticScroll) return;
+        touchLastY = e.touches[0].clientY;
+    }
+
+    /** @param {TouchEvent} e */
+    function onTouchEnd(e) {
+        if (isProgrammaticScroll) return;
+        if (!canNav()) return;
+        
+        const deltaY = touchStartY - touchLastY;
+        const minSwipeDistance = 50; // Minimum swipe distance for navigation
+        
+        if (Math.abs(deltaY) > minSwipeDistance) {
+            if (deltaY > 0) goNext(); else goPrev();
+        }
+    }
+
+    /** @param {KeyboardEvent} e */
+    function onKey(e) {
+        const tgt = e.target;
+        const tag = tgt && tgt.tagName ? tgt.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || e.isComposing) return;
+        if (['ArrowDown','PageDown'].includes(e.key) || (e.key === ' ' && !e.shiftKey)) { e.preventDefault(); goNext(); }
+        else if (['ArrowUp','PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey)) { e.preventDefault(); goPrev(); }
+        else if (e.key === 'Home') { e.preventDefault(); lastNavAt = 0; setActive(MIN_INDEX); }
+        else if (e.key === 'End') { e.preventDefault(); lastNavAt = 0; setActive(MAX_INDEX); }
+    }
+
+    /** @param {TouchEvent} e */
+    function onTouchStart(e) {
+        if (e.touches.length < 1) return;
+        const t = e.touches.item(0); if (!t) return;
+        touchStartY = t.clientY; touchLastY = touchStartY;
+    }
+    /** @param {TouchEvent} e */
+    function onTouchMove(e) {
+        if (e.touches.length < 1) return;
+        const t = e.touches.item(0); if (!t) return;
+        touchLastY = t.clientY;
+    }
+    function onTouchEnd() {
+        const dy = touchStartY - touchLastY; const thr = 50;
+        if (Math.abs(dy) < thr || isProgrammaticScroll) return;
+        if (dy > 0) goNext(); else goPrev();
+    }
+
+    function initPaging() {
+        bubbleEl = document.querySelector('.wave-bubble-container');
+        setActive(activeIndex);
+        
+        // Remove previous listeners
+        window.removeEventListener('wheel', onWheel);
+        document.removeEventListener('keydown', onKey);
+        window.removeEventListener('touchstart', onTouchStart);
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+        
+        // Add listeners with premium coordination
+        window.addEventListener('wheel', onWheel, { passive: false });
+        document.addEventListener('keydown', onKey);
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchmove', onTouchMove, { passive: true });
+        window.addEventListener('touchend', onTouchEnd, { passive: true });
+        
+        // Keep aligned on resize
+        window.addEventListener('resize', () => setActive(activeIndex), { passive: true });
+        
+        // Mobile-specific scroll handling
+        const isMobile = window.innerWidth <= 768;
+        
+        window.addEventListener('scroll', () => {
+            if (isProgrammaticScroll) return; // Skip during programmatic scroll
+            
+            if (scrollEndTimer) window.clearTimeout(scrollEndTimer);
+            scrollEndTimer = window.setTimeout(() => {
+                const idx = Math.round(window.scrollY / window.innerHeight) + 1;
+                const newIndex = Math.max(MIN_INDEX, Math.min(MAX_INDEX, idx));
+                if (newIndex !== activeIndex) {
+                    activeIndex = newIndex;
+                    bubbleEl && bubbleEl.setAttribute('data-active', String(activeIndex));
+                }
+            }, isMobile ? 150 : 100); // Slightly longer timeout on mobile only
+        }, { passive: true });
+    }
+
+    initPaging();
+    document.addEventListener('astro:page-load', initPaging);
+</script>
+
+
+
