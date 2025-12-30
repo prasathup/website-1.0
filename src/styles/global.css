@@ -1,0 +1,1773 @@
+/* 
+  Global styles for Prasathup 
+  Clean, universal responsive system
+*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure dark mode class is honored correctly by Tailwind */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Override Tailwind's preflight (background: transparent) to ensure Safari
+     extends our theme background into the notch/status bar area */
+  body {
+    background-color: var(--current-bg-light);
+  }
+
+  html.dark body {
+    background-color: var(--current-bg-dark);
+  }
+}
+
+/* ===== UNIVERSAL RESPONSIVE SYSTEM ===== */
+/* Clean, mobile-first approach */
+
+/* CSS Reset & Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Apple-style seamless background - body is the visual edge */
+html {
+  -webkit-text-size-adjust: 100%;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Use percentage for root */
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--current-bg-light);
+  /* Enhanced smooth scrolling with momentum */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  /* Prevent native tap highlight interference */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS Safari Safe Area Background Fix
+   This pseudo-element explicitly paints the safe area (notch/status bar region) 
+   with the theme background color. It sits behind everything else (z-index: -1)
+   and only targets devices with a safe-area-inset-top (iPhones with notch). */
+/* iOS Safari Status Bar Shim - Replaces html::before
+   A physical div is much more reliable than a pseudo-element for painting the safe area */
+@supports (padding-top: env(safe-area-inset-top)) {
+
+  /* Top safe area shim (status bar) */
+  #status-bar-shim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 20px);
+    background-color: var(--current-bg-light);
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  html.dark #status-bar-shim {
+    background-color: var(--current-bg-dark);
+  }
+
+  /* Bottom safe area shim (home indicator region) - iOS ONLY */
+  /* Hidden by default to prevent Chrome/Android band issue */
+  #status-bar-shim-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom, 0px);
+    background-color: var(--current-bg-light);
+    z-index: 9999;
+    pointer-events: none;
+    display: none;
+    /* Default hidden */
+  }
+
+  /* Strict gating: Only show on actual iOS devices detected by JS */
+  body.ios-device #status-bar-shim-bottom {
+    display: block;
+  }
+
+  html.dark #status-bar-shim-bottom {
+    background-color: var(--current-bg-dark);
+  }
+
+  /* Enable smooth transitions only after initial paint */
+  html:not(.theme-animating) #status-bar-shim,
+  html:not(.theme-animating) #status-bar-shim-bottom {
+    transition: background-color 0.2s ease;
+  }
+
+  /* Disable transitions during theme changes to prevent lag */
+  html.theme-animating #status-bar-shim,
+  html.theme-animating #status-bar-shim-bottom {
+    transition: none !important;
+  }
+
+  /* Blur layer above menu for content scrolling into status bar area */
+  /* Outside isolated context so backdrop-filter can blur scrolling content */
+  #menu-status-bar-blur {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: transparent;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    /* Above content (10), menu (30), and status-bar-shim (9999) to blur content behind */
+    z-index: 10000;
+    pointer-events: none;
+    display: block;
+    mask: linear-gradient(to bottom,
+      rgba(0,0,0,1) 0%,
+      rgba(0,0,0,0.95) 50%,
+      rgba(0,0,0,0) 100%);
+    -webkit-mask: linear-gradient(to bottom,
+      rgba(0,0,0,1) 0%,
+      rgba(0,0,0,0.95) 50%,
+      rgba(0,0,0,0) 100%);
+  }
+  
+  /* Ensure blur works in both themes - transparent background required */
+  html:not(.dark) #menu-status-bar-blur,
+  html.dark #menu-status-bar-blur {
+    background: transparent;
+    background-color: transparent;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  @media (hover: hover) {
+    #menu-status-bar-blur {
+      display: none;
+    }
+  }
+
+  @supports not (padding-top: env(safe-area-inset-top)) {
+    #menu-status-bar-blur {
+      display: none;
+    }
+  }
+}
+
+body {
+  font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  /* Fallback */
+  min-height: 100dvh;
+  /* Dynamic viewport height */
+  width: 100%;
+  min-width: 320px;
+  /* Prevent layout breaking at extremely small sizes */
+  box-sizing: border-box;
+  background: var(--current-bg-light);
+  display: flex;
+  flex-direction: column;
+  /* Enhanced smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: auto;
+
+  /* Adaptive Card Colors - Must be on body to inherit page-specific RGB vars */
+  --card-bg-light: rgba(var(--bg-opacity-light), 0.7);
+  --card-overlay-light: rgba(var(--bg-opacity-light), 0.95);
+}
+
+/* Disable transitions during theme switch to prevent jitter */
+html.theme-animating,
+html.theme-animating *,
+html.theme-animating *::before,
+html.theme-animating *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Optimize repaints during theme switch using CSS containment */
+/* NOTE: Exclude 'layout' containment to prevent scroll position reset */
+/* 'layout' containment creates new formatting context which can reset scroll */
+html.theme-animating {
+  contain: style paint;
+  overflow-anchor: none;
+  /* Prevents Chrome scroll anchoring reset during theme change */
+  scroll-behavior: auto !important;
+  /* Forces immediate scroll restoration without animation */
+}
+
+/* View Transitions API overrides for theme toggling */
+/* Disable default cross-fade for the root to prevent theme flicker/fades */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal;
+}
+
+/* Smooth re-enable of transitions after theme switch */
+html:not(.theme-animating) {
+  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+}
+
+html:not(.theme-animating) body {
+  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+}
+
+/* Ensure body text size var is recognized in Safari */
+:root {
+  --font-size-body: clamp(1.14rem, 0.55vw + 1.06rem, 1.32rem);
+}
+
+/* Fix for iPhone/Mobile inconsistency: Enforce fixed readable size */
+@media (max-width: 768px) {
+  :root {
+    --font-size-body: 1.2rem;
+  }
+}
+
+/* ===== THEME SYSTEM ===== */
+/* Base theme variables */
+:root {
+  --sketch-text: #111111;
+  --bg-light: #FCFAF5;
+  --bg-dark: #0b0d14;
+  /* Slightly lighter dark shade */
+  --bg-dark-gradient: linear-gradient(135deg, #0d0f17, #0f111a, #090b11);
+  /* Lighter gradient */
+  /* Text colors */
+  --text-primary: var(--sketch-text);
+  --text-secondary: #333333;
+
+  /* Typography System - Fluid font sizes */
+  --font-size-xs: clamp(0.75rem, 0.5vw + 0.6rem, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.5vw + 0.75rem, 1rem);
+  --font-size-base: clamp(1rem, 0.5vw + 0.875rem, 1.125rem);
+  /* Unified body/copy size - bump for clearer readability */
+  --font-size-body: clamp(1.14rem, 0.55vw + 1.06rem, 1.32rem);
+  --font-size-lg: clamp(1.125rem, 1vw + 0.875rem, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.5vw + 0.875rem, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 2vw + 1rem, 2rem);
+  --font-size-3xl: clamp(1.875rem, 3vw + 1rem, 2.5rem);
+
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Spacing system */
+  --spacing-xs: clamp(0.5rem, 1vw, 0.75rem);
+  --spacing-sm: clamp(0.75rem, 1.5vw, 1rem);
+  --spacing-md: clamp(1rem, 2vw, 1.5rem);
+  --spacing-lg: clamp(1.5rem, 3vw, 2rem);
+  --spacing-xl: clamp(2rem, 4vw, 3rem);
+
+  /* Layout spacing control */
+  --section-gap: 2rem;
+  --card-gap: 1.25rem;
+  --container-padding: clamp(1rem, 2vw, 2rem);
+
+  /* Font families */
+  --font-family-primary: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'Ubuntu Mono', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+
+  /* Universal Layout Constants */
+  --container-max-width: 72rem;
+  --container-padding: 1rem;
+
+  /* Updated z-index variables for consistent management */
+  --z-background: -1;
+  --z-content: 10;
+  --z-header: 110;
+  /* Boosted to sit above Stitch (100) */
+  /* Boosted to sit above Stitch (100) */
+  --z-menu: 120;
+  --z-toggle: 100001;
+  /* Must be above flash div (99999) on iOS */
+  --z-overlay: 200;
+
+  /* Transition system - consolidated for consistency and performance */
+  --transition-duration: 0.15s;
+  --transition-duration-medium: 0.3s;
+  --transition-easing: ease;
+  --transition-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Background opacity for blur effects - RGB values */
+  --bg-opacity-light: 252, 250, 245;
+  --bg-opacity-dark: 11, 13, 20;
+  /* Updated RGB for new lighter dark background */
+
+  /* Page-specific theme colors - light mode */
+  /* Whisper of color - extremely low saturation, barely perceptible */
+  --home-bg-light: #FCFAF5;
+  /* Near-white cream */
+  --bio-bg-light: #FCFAF5;
+  /* Near-white cream */
+  --projects-bg-light: #F9F6EE;
+  /* Whisper of sand */
+  --journey-bg-light: #EFF7FA;
+  /* Whisper of mist */
+  --notes-bg-light: #F5EFFB;
+  /* Whisper of lilac */
+  --lab-bg-light: #FAF0F7;
+  /* Whisper of blush */
+
+  /* Page-specific theme colors - dark mode */
+  /* Unified dark palette (matches desktop) */
+  --home-bg-dark: #0b0d14;
+  --bio-bg-dark: #0b0d14;
+  --projects-bg-dark: #0b0d14;
+  --journey-bg-dark: #0b0d14;
+  --notes-bg-dark: #0b0d14;
+  --lab-bg-dark: #0b0d14;
+
+  /* Unified dark gradient (matches desktop) */
+  --home-bg-dark-gradient: linear-gradient(135deg, #0d0f17, #0f111a, #090b11);
+  --bio-bg-dark-gradient: var(--home-bg-dark-gradient);
+  --projects-bg-dark-gradient: var(--home-bg-dark-gradient);
+  --journey-bg-dark-gradient: var(--home-bg-dark-gradient);
+  --notes-bg-dark-gradient: var(--home-bg-dark-gradient);
+  --lab-bg-dark-gradient: var(--home-bg-dark-gradient);
+
+  /* Default page theme */
+  --current-bg-light: var(--home-bg-light);
+  --current-bg-dark: var(--home-bg-dark);
+  --current-bg-dark-gradient: var(--home-bg-dark-gradient);
+
+  /* New card background colors - Adaptive (Moved to body) */
+  /* --card-bg-light moved to body rule to pick up dynamic RGB vars */
+  --card-bg-dark: rgba(22, 24, 33, 0.6);
+  --card-overlay-dark: rgba(22, 24, 33, 1);
+
+  /* Rainbow Theme Variables - Matching Menu Colors */
+  --rainbow-bio: #e66585;
+  /* Bio - vibrant rose */
+  --rainbow-projects: #e6b150;
+  /* Projects - vibrant amber */
+  --rainbow-journey: #5aa0e6;
+  /* Journey - vibrant sky */
+  --rainbow-notes: #9b65e6;
+  /* Notes - vibrant lavender */
+  --rainbow-lab: #e65aa0;
+  /* Lab - vibrant pink */
+
+  /* Optimized: Shared hover shadow dimensions for consistency and performance */
+  --hover-shadow-large: 0 12px 32px;
+  --hover-shadow-small: 0 8px 16px;
+  --hover-shadow-opacity-primary: 0.3;
+  --hover-shadow-opacity-secondary: 0.2;
+
+  /* Card Theme Assignments */
+  --card-title-color: var(--rainbow-projects);
+  /* Amber for titles */
+  --card-date-color: var(--rainbow-journey);
+  /* Sky blue for dates */
+  --card-description-color: var(--rainbow-bio);
+  /* Rose for descriptions */
+  --card-content-color: var(--rainbow-notes);
+  /* Lavender for content */
+  --card-heading-color: var(--rainbow-lab);
+  /* Pink for headings */
+
+  /* Light Mode Readable Text Colors */
+  --card-title-light: #8B4A00;
+  /* Dark amber - readable on light */
+  --card-date-light: #1A5C8B;
+  /* Dark sky blue - readable on light */
+  --card-description-light: #8B1A42;
+  /* Dark rose - readable on light */
+  --card-content-light: #4A1A8B;
+  /* Dark lavender - readable on light */
+  --card-heading-light: #8B1A5C;
+  /* Dark pink - readable on light */
+
+  /* Dark Mode Vibrant Colors */
+  --card-title-dark: var(--rainbow-projects);
+  --card-date-dark: var(--rainbow-journey);
+  --card-description-dark: var(--rainbow-bio);
+  --card-content-dark: var(--rainbow-notes);
+  --card-heading-dark: var(--rainbow-lab);
+
+  /* ===== WEEK UNIT THEME VARIABLES ===== */
+  --week-bg: rgba(0, 0, 0, 0.15);
+  --week-border: 1px solid rgba(0, 0, 0, 0.05);
+  --week-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --week-filled-opacity: 0.25;
+  --week-hover-filled-opacity: 0.65;
+  /* More vibrant hover opacity */
+  --week-trail-shadow: 0 0 15px 3px rgba(100, 180, 200, 0.4);
+  /* Enhanced trail glow */
+  --week-hover-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 6px 12px rgba(0, 0, 0, 0.15);
+  /* More vibrant shadow */
+}
+
+/* Dark mode variables */
+html.dark:root {
+  --text-primary: #f0f0ff;
+  --text-secondary: #c0c0e6;
+}
+
+/* Page-specific theme variables */
+body.page-home {
+  --current-bg-light: var(--home-bg-light);
+  --bg-opacity-light: 252, 250, 245;
+  /* Home RGB */
+  --current-bg-dark: var(--home-bg-dark);
+  --current-bg-dark-gradient: var(--home-bg-dark-gradient);
+  background-color: var(--home-bg-light);
+}
+
+body.page-bio {
+  --current-bg-light: var(--bio-bg-light);
+  --bg-opacity-light: 252, 250, 245;
+  /* Bio RGB */
+  --current-bg-dark: var(--bio-bg-dark);
+  --current-bg-dark-gradient: var(--bio-bg-dark-gradient);
+  background-color: var(--bio-bg-light);
+}
+
+body.page-projects {
+  --current-bg-light: var(--projects-bg-light);
+  --bg-opacity-light: 249, 246, 238;
+  /* Projects RGB */
+  --current-bg-dark: var(--projects-bg-dark);
+  --current-bg-dark-gradient: var(--projects-bg-dark-gradient);
+  background-color: var(--projects-bg-light);
+}
+
+body.page-journey {
+  --current-bg-light: var(--journey-bg-light);
+  --bg-opacity-light: 239, 247, 250;
+  /* Journey RGB */
+  --current-bg-dark: var(--journey-bg-dark);
+  --current-bg-dark-gradient: var(--journey-bg-dark-gradient);
+  background-color: var(--journey-bg-light);
+}
+
+body.page-notes {
+  --current-bg-light: var(--notes-bg-light);
+  --bg-opacity-light: 245, 239, 251;
+  /* Notes RGB */
+  --current-bg-dark: var(--notes-bg-dark);
+  --current-bg-dark-gradient: var(--notes-bg-dark-gradient);
+  background-color: var(--notes-bg-light);
+}
+
+body.page-lab {
+  --current-bg-light: var(--lab-bg-light);
+  --bg-opacity-light: 250, 240, 247;
+  /* Lab RGB */
+  --current-bg-dark: var(--lab-bg-dark);
+  --current-bg-dark-gradient: var(--lab-bg-dark-gradient);
+  background-color: var(--lab-bg-light);
+}
+
+/* Apply theme colors - HTML for iOS status bar, Body for visible content */
+html {
+  background-color: var(--current-bg-light);
+}
+
+html.dark {
+  background-color: var(--current-bg-dark);
+  background-image: var(--current-bg-dark-gradient);
+  --week-bg: rgba(0, 0, 0, 0.15);
+  --week-border: none;
+  --week-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --week-filled-opacity: 0.16;
+  --week-hover-filled-opacity: 0.5;
+  /* More vibrant dark mode hover */
+  --week-trail-shadow: 0 0 18px 4px rgba(100, 180, 200, 0.35);
+  /* Enhanced dark mode trail */
+  --week-hover-shadow: 0 0 25px rgba(255, 255, 255, 0.25), 0 8px 16px rgba(0, 0, 0, 0.2);
+  /* More vibrant dark shadow */
+}
+
+/* Main background styling */
+body {
+  background-color: var(--current-bg-light);
+  color: var(--text-primary);
+  transition: background-color var(--transition-duration) ease, color var(--transition-duration) ease;
+}
+
+/* Dark mode body styling */
+html.dark body {
+  background-color: var(--current-bg-dark);
+  background-image: var(--current-bg-dark-gradient);
+  color: var(--text-primary);
+}
+
+/* ===== UNIVERSAL LAYOUT SYSTEM ===== */
+/* Universal container system */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+/* Responsive container padding */
+@media (min-width: 768px) {
+  .container {
+    --container-padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    --container-padding: 0;
+  }
+}
+
+/* ===== MAIN CONTENT LAYOUT ===== */
+main {
+  flex: 1;
+  position: relative;
+  z-index: var(--z-content);
+  min-height: 100dvh;
+  width: 100vw;
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  /* Enhanced smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.main-content {
+  min-height: 100dvh;
+  width: 100vw;
+  box-sizing: border-box;
+  position: relative;
+  flex: 1;
+}
+
+/* Content wrapper - clean, no overflow */
+.content-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding-left: clamp(1rem, 2vw, 1.5rem);
+  padding-right: clamp(1rem, 2vw, 1.5rem);
+  position: relative;
+  z-index: var(--z-content);
+  box-sizing: border-box;
+}
+
+/* Bio content - responsive and properly centered */
+.bio-content {
+  max-width: 50rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: var(--z-content);
+  padding: clamp(1rem, 3vw, 2rem);
+  margin-top: clamp(2rem, 5vh, 4rem);
+  text-align: center;
+}
+
+/* Simple responsive behavior - no overflow */
+@media (min-width: 1024px) {
+  .content-wrapper {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .main-content {
+    padding-top: calc(var(--header-height-mobile) + 0.5rem);
+  }
+
+  .content-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .bio-content {
+    padding: 1rem;
+    margin-top: clamp(3rem, 8vh, 6rem);
+    max-width: 40rem;
+  }
+}
+
+/* Landscape mode - full width usage */
+@media (max-width: 768px) and (orientation: landscape) {
+  .content-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .bio-content {
+    padding: 1rem;
+    margin-top: clamp(1rem, 3vh, 2rem);
+    max-width: none;
+    /* Use full width in landscape */
+  }
+}
+
+/* ===== TYPOGRAPHY SYSTEM ===== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+p,
+li {
+  color: var(--text-primary);
+  line-height: var(--line-height-relaxed);
+  font-size: var(--font-size-body);
+}
+
+/* ===== THEME TOGGLE STYLING ===== */
+#theme-toggle {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  z-index: var(--z-toggle);
+  transition: all var(--transition-duration) ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  /* Resets for Chrome/Mobile consistency */
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  touch-action: manipulation;
+  /* Fix for random disappearing on scroll in some mobile browsers */
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Dark mode theme toggle */
+html.dark #theme-toggle {
+  background-color: rgba(0, 0, 0, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile theme toggle positioning */
+@media (max-width: 767px) {
+  #theme-toggle {
+    /* Sit above the bottom safe area/home indicator */
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    right: 0.5rem;
+    top: auto;
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Landscape mode theme toggle */
+@media (max-width: 768px) and (orientation: landscape) {
+  #theme-toggle {
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* ===== MENU STYLING ===== */
+/* Container styling removed - only icons and labels are visible */
+.menu-container {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  transition: none;
+}
+
+html.dark .menu-container {
+  background-color: transparent;
+  background-image: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ===== BACKGROUND STYLING ===== */
+/* Background colors are now applied directly to body for Apple-style edge-to-edge */
+
+/* ===== ACCESSIBILITY ===== */
+*:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* ===== ANIMATIONS - PERFORMANCE OPTIMIZED ===== */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Base breadcrumb styling shared across pages (colors/background set per page) */
+.breadcrumb a {
+  text-decoration: none;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  transition: all var(--transition-duration-medium) var(--transition-easing);
+  font-family: 'Ubuntu', system-ui, sans-serif;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+@media (max-width: 767px) {
+  .hidden-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .hidden-desktop {
+    display: none;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+
+  #theme-toggle,
+  .menu-container {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* ===== CRAFT LAYOUT SYSTEM ===== */
+/* 
+  Universal Rainbow Theming System
+  
+  This system applies the same rainbow colors used in the menu to all cards.
+  
+  Default Color Assignments:
+  - Card Titles: Amber (#e6b150)
+  - Card Dates: Sky Blue (#5aa0e6) 
+  - Card Content: Lavender (#9b65e6)
+  - Card Headings: Pink (#e65aa0)
+  - Card Tags: Rose (#e66585)
+  
+  Usage Examples:
+  1. Default rainbow theme: <MediaCard class="craft-card" />
+  2. Specific theme: <MediaCard class="craft-card theme-bio" />
+  3. Monochrome card: <MediaCard class="craft-card mono-projects" />
+  4. Gradient text: <h3 class="gradient-text">Title</h3>
+  
+  Available Theme Classes:
+  - theme-bio, theme-projects, theme-journey, theme-notes, theme-lab
+  - mono-bio, mono-projects, mono-journey, mono-notes, mono-lab
+  
+  All colors automatically adjust for light/dark mode with proper contrast.
+*/
+
+.craft-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 16px;
+  border: none;
+  transition: transform var(--transition-duration-medium) var(--transition-easing);
+  /* Optimized: Remove expensive box-shadow transition */
+  overflow: hidden;
+  position: relative;
+  /* Blur is handled on the outer link wrapper to avoid double backdrop compositing */
+  min-height: 0;
+  /* Allow proper flex shrinking and media priority */
+}
+
+
+/* Dark Mode Styles (Default) */
+.craft-card {
+  background-color: rgba(22, 24, 33, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Light Mode Styles */
+html:not(.dark) .craft-card {
+  background-color: rgba(248, 245, 239, 0.75);
+}
+
+/* Universal Rainbow Theme Text Colors */
+
+/* Card Titles */
+.craft-card .card-title {
+  color: var(--card-title-dark) !important;
+  font-size: var(--font-size-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: var(--spacing-xs, 0.5rem);
+}
+
+html:not(.dark) .craft-card .card-title {
+  color: var(--card-title-light) !important;
+  font-weight: 700;
+}
+
+/* Card Dates */
+.craft-card .card-date {
+  color: var(--card-date-dark) !important;
+  font-size: var(--font-size-xs, 0.875rem);
+  opacity: 0.9;
+  margin-bottom: var(--spacing-sm, 1rem);
+}
+
+html:not(.dark) .craft-card .card-date {
+  color: var(--card-date-light) !important;
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* Card Body Content */
+.craft-card .card-body p,
+.craft-card .card-body li,
+.craft-card .card-content p {
+  color: var(--card-content-dark) !important;
+  font-size: var(--font-size-body);
+  line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+html:not(.dark) .craft-card .card-body p,
+html:not(.dark) .craft-card .card-body li,
+html:not(.dark) .craft-card .card-content p {
+  color: var(--card-content-light) !important;
+  font-weight: 500;
+}
+
+/* Card Headings (h1, h2, h3, etc. in content) */
+.craft-card .card-body h1,
+.craft-card .card-body h2,
+.craft-card .card-body h3,
+.craft-card .card-body h4,
+.craft-card .card-body h5,
+.craft-card .card-body h6 {
+  color: var(--card-heading-dark) !important;
+  font-weight: 600;
+  margin: var(--spacing-sm, 1rem) 0 var(--spacing-xs, 0.5rem) 0;
+}
+
+html:not(.dark) .craft-card .card-body h1,
+html:not(.dark) .craft-card .card-body h2,
+html:not(.dark) .craft-card .card-body h3,
+html:not(.dark) .craft-card .card-body h4,
+html:not(.dark) .craft-card .card-body h5,
+html:not(.dark) .craft-card .card-body h6 {
+  color: var(--card-heading-light) !important;
+  font-weight: 700;
+}
+
+/* Respect user motion preferences - disable organic animations if requested for all tag pills */
+@media (prefers-reduced-motion: reduce) {
+
+  .craft-card .tag-pill,
+  .tag-pill {
+    animation: none !important;
+    transform: translateZ(0) !important;
+    border-radius: 12px !important;
+    /* Static rounded corners for reduced motion */
+  }
+}
+
+/* Tag Pills - Organelle-like Floating Components for both overview and content pages */
+.craft-card .tag-pill,
+.tag-pill {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--rainbow-bio) !important;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+
+  /* Harmonized: Infinite-feeling organic morphing + optimized drift animation for all tag pills */
+  animation: pill-morph-organic 43s cubic-bezier(0.4, 0.0, 0.6, 1.0) infinite, pill-drift-a 37s ease-in-out infinite;
+  will-change: transform, border-radius;
+  transform: translateZ(0);
+  transform-origin: center;
+  transition: transform var(--transition-duration-medium) var(--transition-easing-smooth);
+  /* Performance: CSS containment for animation isolation */
+  contain: layout style paint;
+}
+
+
+/* Asymmetric organic morphing - each corner moves independently like living membrane */
+@keyframes pill-morph-organic {
+  0% {
+    border-radius: 12px;
+  }
+
+  6% {
+    border-radius: 14px 10px 16px 11px;
+  }
+
+  12% {
+    border-radius: 9px 17px 13px 15px;
+  }
+
+  18% {
+    border-radius: 16px 12px 9px 18px;
+  }
+
+  24% {
+    border-radius: 11px 15px 17px 8px;
+  }
+
+  30% {
+    border-radius: 18px 9px 14px 16px;
+  }
+
+  36% {
+    border-radius: 10px 16px 11px 13px;
+  }
+
+  42% {
+    border-radius: 15px 11px 18px 10px;
+  }
+
+  48% {
+    border-radius: 13px 18px 12px 17px;
+  }
+
+  54% {
+    border-radius: 17px 10px 15px 12px;
+  }
+
+  60% {
+    border-radius: 9px 14px 16px 18px;
+  }
+
+  66% {
+    border-radius: 16px 13px 10px 15px;
+  }
+
+  72% {
+    border-radius: 12px 17px 14px 9px;
+  }
+
+  78% {
+    border-radius: 18px 11px 13px 16px;
+  }
+
+  84% {
+    border-radius: 10px 15px 17px 12px;
+  }
+
+  90% {
+    border-radius: 15px 12px 11px 17px;
+  }
+
+  96% {
+    border-radius: 13px 16px 15px 10px;
+  }
+
+  100% {
+    border-radius: 12px;
+  }
+}
+
+/* Enhanced organic animation with subtle scale for improved visual appeal */
+@keyframes pill-drift-a {
+  0% {
+    transform: translate3d(0px, 0px, 0) rotate(0deg) scale(1);
+  }
+
+  25% {
+    transform: translate3d(0.6px, -0.6px, 0) rotate(0.2deg) scale(1.02);
+  }
+
+  50% {
+    transform: translate3d(-0.8px, 0.9px, 0) rotate(-0.15deg) scale(0.98);
+  }
+
+  75% {
+    transform: translate3d(1.1px, 1.2px, 0) rotate(0.1deg) scale(1.01);
+  }
+
+  100% {
+    transform: translate3d(0px, 0px, 0) rotate(0deg) scale(1);
+  }
+}
+
+
+/* Harmonized animations for both overview cards and content detail pages */
+/* Each pill gets slightly different timing for more organic randomness */
+
+/* Overview page tag pills inside craft cards */
+.craft-card .tag-pill:nth-child(1) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 41s, 37s;
+  animation-delay: 0s, -7.3s;
+}
+
+/* Content page standalone tag pills - same animations */
+.tag-pill:nth-child(1) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 41s, 37s;
+  animation-delay: 0s, -7.3s;
+}
+
+.craft-card .tag-pill:nth-child(2) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 53s, 47s;
+  animation-delay: -11.7s, -13.2s;
+}
+
+.craft-card .tag-pill:nth-child(3) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 31s, 29s;
+  animation-delay: -19.4s, -8.6s;
+}
+
+.craft-card .tag-pill:nth-child(4) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 67s, 59s;
+  animation-delay: -23.1s, -27.8s;
+}
+
+.craft-card .tag-pill:nth-child(5) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 43s, 37s;
+  animation-delay: -31.6s, -16.4s;
+}
+
+/* Content page standalone tag pills - matching infinite timing */
+.tag-pill:nth-child(2) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 53s, 47s;
+  animation-delay: -11.7s, -13.2s;
+}
+
+.tag-pill:nth-child(3) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 31s, 29s;
+  animation-delay: -19.4s, -8.6s;
+}
+
+.tag-pill:nth-child(4) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 67s, 59s;
+  animation-delay: -23.1s, -27.8s;
+}
+
+.tag-pill:nth-child(5) {
+  animation-name: pill-morph-organic, pill-drift-a;
+  animation-duration: 43s, 37s;
+  animation-delay: -31.6s, -16.4s;
+}
+
+/* Larger size for standalone tag pills on content pages */
+.tag-pill:not(.craft-card .tag-pill) {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Pause animation on hover for better readability - both overview and content pages */
+.craft-card .tag-pill:hover,
+.tag-pill:hover {
+  animation-play-state: paused;
+  transform: scale(1.04);
+}
+
+/* Consolidated reduced motion preference handling */
+
+/* Light mode styling for all tag pills */
+html:not(.dark) .craft-card .tag-pill,
+html:not(.dark) .tag-pill {
+  background-color: rgba(0, 0, 0, 0.07) !important;
+  color: var(--card-description-light) !important;
+  font-weight: 500;
+}
+
+/* Base Card Structure */
+.card-header,
+.card-media,
+.card-body-wrapper {
+  padding-left: var(--spacing-md, 1.5rem);
+  padding-right: var(--spacing-md, 1.5rem);
+}
+
+.card-header {
+  padding-top: var(--spacing-md, 1.5rem);
+}
+
+.card-media {
+  margin-block: var(--spacing-sm, 1rem);
+  border-radius: 12px;
+  overflow: hidden;
+  /* Allow media to determine its own height based on aspect ratio */
+  flex-shrink: 0;
+  position: relative;
+  /* Improve first paint and prevent late content jumps */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 250px;
+}
+
+/* Aspect ratio containers - respect the media's natural proportions */
+.card-media[data-aspect="16/9"] {
+  aspect-ratio: 16/9;
+}
+
+.card-media[data-aspect="4/3"] {
+  aspect-ratio: 4/3;
+}
+
+.card-media[data-aspect="1/1"] {
+  aspect-ratio: 1/1;
+}
+
+.card-media[data-aspect="9/16"] {
+  aspect-ratio: 9/16;
+}
+
+.card-media[data-aspect="3/2"] {
+  aspect-ratio: 3/2;
+}
+
+.card-media img,
+.card-media video {
+  width: 100%;
+  height: 100%;
+  /* Use full height of aspect ratio container */
+  object-fit: cover;
+  /* Changed back to cover for clean aspect ratios */
+  border-radius: 12px;
+  background-color: var(--card-bg-light);
+}
+
+/* Dark mode media background */
+html.dark .card-media img,
+html.dark .card-media video {
+  background-color: var(--card-bg-dark);
+}
+
+/* Body wrapper handles the internal flex layout */
+.card-body-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: var(--spacing-md, 1.5rem);
+  min-height: 0;
+  /* Allow flexbox to shrink properly */
+}
+
+.card-content {
+  flex-grow: 1;
+  overflow-y: hidden;
+  /* Revert to original global feather for consistent, smooth fade */
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+.card-body {
+  font-size: var(--font-size-base, 1rem);
+  line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.card-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer positioning */
+.card-footer {
+  margin-top: var(--spacing-sm, 1rem);
+  flex-shrink: 0;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  /* allow wrapping so pills don't get cut off */
+  gap: var(--spacing-xs, 0.25rem);
+  overflow: visible;
+  /* ensure no clipping */
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tags-container::-webkit-scrollbar {
+  display: none;
+}
+
+.tags-container {
+  /* ensure tags don't clip inside footer */
+  align-items: center;
+}
+
+.tag-more {
+  font-style: italic;
+}
+
+/* ===== RAINBOW THEME UTILITY CLASSES ===== */
+/* Allow easy color customization for specific cards */
+
+/* Color Variant Classes - Override default rainbow colors */
+.craft-card.theme-bio .card-title {
+  color: var(--rainbow-bio) !important;
+}
+
+.craft-card.theme-projects .card-title {
+  color: var(--rainbow-projects) !important;
+}
+
+.craft-card.theme-journey .card-title {
+  color: var(--rainbow-journey) !important;
+}
+
+.craft-card.theme-notes .card-title {
+  color: var(--rainbow-notes) !important;
+}
+
+.craft-card.theme-lab .card-title {
+  color: var(--rainbow-lab) !important;
+}
+
+/* Monochrome Variants - Single color for entire card */
+.craft-card.mono-bio .card-title,
+.craft-card.mono-bio .card-date,
+.craft-card.mono-bio .card-body p,
+.craft-card.mono-bio .card-body h1,
+.craft-card.mono-bio .card-body h2,
+.craft-card.mono-bio .card-body h3 {
+  color: var(--rainbow-bio) !important;
+}
+
+.craft-card.mono-projects .card-title,
+.craft-card.mono-projects .card-date,
+.craft-card.mono-projects .card-body p,
+.craft-card.mono-projects .card-body h1,
+.craft-card.mono-projects .card-body h2,
+.craft-card.mono-projects .card-body h3 {
+  color: var(--rainbow-projects) !important;
+}
+
+.craft-card.mono-journey .card-title,
+.craft-card.mono-journey .card-date,
+.craft-card.mono-journey .card-body p,
+.craft-card.mono-journey .card-body h1,
+.craft-card.mono-journey .card-body h2,
+.craft-card.mono-journey .card-body h3 {
+  color: var(--rainbow-journey) !important;
+}
+
+.craft-card.mono-notes .card-title,
+.craft-card.mono-notes .card-date,
+.craft-card.mono-notes .card-body p,
+.craft-card.mono-notes .card-body h1,
+.craft-card.mono-notes .card-body h2,
+.craft-card.mono-notes .card-body h3 {
+  color: var(--rainbow-notes) !important;
+}
+
+.craft-card.mono-lab .card-title,
+.craft-card.mono-lab .card-date,
+.craft-card.mono-lab .card-body p,
+.craft-card.mono-lab .card-body h1,
+.craft-card.mono-lab .card-body h2,
+.craft-card.mono-lab .card-body h3 {
+  color: var(--rainbow-lab) !important;
+}
+
+/* Light Mode Adjustments for Utility Classes */
+html:not(.dark) .craft-card.theme-bio .card-title {
+  color: #8B1A42 !important;
+}
+
+html:not(.dark) .craft-card.theme-projects .card-title {
+  color: #8B4A00 !important;
+}
+
+html:not(.dark) .craft-card.theme-journey .card-title {
+  color: #1A5C8B !important;
+}
+
+html:not(.dark) .craft-card.theme-notes .card-title {
+  color: #4A1A8B !important;
+}
+
+html:not(.dark) .craft-card.theme-lab .card-title {
+  color: #8B1A5C !important;
+}
+
+/* Enhanced Hover Effects with Rainbow Colors - Optimized with CSS Variables */
+/* Default hover - now with beautiful rainbow glow for all cards */
+.craft-card:hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 177, 80, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 177, 80, var(--hover-shadow-opacity-secondary));
+}
+
+/* Cards without theme classes get rotating rainbow glow based on position */
+.craft-card:nth-child(5n+1):hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 101, 133, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 101, 133, var(--hover-shadow-opacity-secondary));
+  /* Bio */
+}
+
+.craft-card:nth-child(5n+2):hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 177, 80, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 177, 80, var(--hover-shadow-opacity-secondary));
+  /* Projects */
+}
+
+.craft-card:nth-child(5n+3):hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(90, 160, 230, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(90, 160, 230, var(--hover-shadow-opacity-secondary));
+  /* Journey */
+}
+
+.craft-card:nth-child(5n+4):hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(155, 101, 230, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(155, 101, 230, var(--hover-shadow-opacity-secondary));
+  /* Notes */
+}
+
+.craft-card:nth-child(5n+5):hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 90, 160, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 90, 160, var(--hover-shadow-opacity-secondary));
+  /* Lab */
+}
+
+/* Theme-specific hover effects (higher specificity overrides defaults) */
+.craft-card.theme-bio:hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 101, 133, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 101, 133, var(--hover-shadow-opacity-secondary));
+}
+
+.craft-card.theme-projects:hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 177, 80, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 177, 80, var(--hover-shadow-opacity-secondary));
+}
+
+.craft-card.theme-journey:hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(90, 160, 230, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(90, 160, 230, var(--hover-shadow-opacity-secondary));
+}
+
+.craft-card.theme-notes:hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(155, 101, 230, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(155, 101, 230, var(--hover-shadow-opacity-secondary));
+}
+
+.craft-card.theme-lab:hover {
+  box-shadow:
+    var(--hover-shadow-large) rgba(230, 90, 160, var(--hover-shadow-opacity-primary)),
+    var(--hover-shadow-small) rgba(230, 90, 160, var(--hover-shadow-opacity-secondary));
+}
+
+/* Gradient Text Option - Like "I am Prasath" */
+.craft-card .gradient-text {
+  background-image: linear-gradient(to right,
+      var(--rainbow-bio),
+      var(--rainbow-projects),
+      var(--rainbow-journey),
+      var(--rainbow-notes),
+      var(--rainbow-lab),
+      var(--rainbow-bio));
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  /* Fallback for browsers without background-clip support */
+  color: var(--rainbow-projects);
+  color: transparent;
+  animation: gradient-shift 15s linear infinite;
+}
+
+/* Per-card title override: if a card defines --card-title-dark, use it (wins over theme rules) */
+.craft-card[style*="--card-title-dark"] .card-title {
+  color: var(--card-title-dark) !important;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Accessibility: High Contrast Mode Support */
+@media (prefers-contrast: high) {
+
+  .craft-card .card-title,
+  .craft-card .card-date,
+  .craft-card .card-body p,
+  .craft-card .card-body h1,
+  .craft-card .card-body h2,
+  .craft-card .card-body h3 {
+    color: var(--text-primary) !important;
+  }
+
+  html:not(.dark) .craft-card .card-title,
+  html:not(.dark) .craft-card .card-date,
+  html:not(.dark) .craft-card .card-body p,
+  html:not(.dark) .craft-card .card-body h1,
+  html:not(.dark) .craft-card .card-body h2,
+  html:not(.dark) .craft-card .card-body h3 {
+    color: #000000 !important;
+  }
+}
+
+/* Theme-specific card styling for Lab and Notes */
+
+/* Lab Theme - Equipment/Research Aesthetic */
+.craft-grid.theme-lab .craft-card {
+  background: rgba(139, 92, 246, 0.08);
+  border: none;
+}
+
+.craft-grid.theme-lab .craft-card:hover {
+  /* Removed background and border color changes - keep only glow */
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
+  /* Removed transform movement */
+}
+
+.craft-grid.theme-lab .craft-card .tag-pill {
+  background: rgba(139, 92, 246, 0.1);
+  color: rgba(139, 92, 246, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.craft-grid.theme-lab .craft-card .tag-pill:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* Notes Theme - Journal/Paper Aesthetic */
+.craft-grid.theme-notes .craft-card {
+  background: rgba(45, 212, 191, 0.08);
+  border: none;
+  border-radius: 18px;
+  /* Slightly more rounded for paper feel */
+}
+
+.craft-grid.theme-notes .craft-card:hover {
+  background: rgba(45, 212, 191, 0.08);
+  border-color: rgba(45, 212, 191, 0.25);
+  box-shadow: 0 8px 32px rgba(45, 212, 191, 0.1);
+  /* Removed transform movement */
+}
+
+.craft-grid.theme-notes .craft-card .tag-pill {
+  background: rgba(45, 212, 191, 0.1);
+  color: rgba(45, 212, 191, 0.9);
+  border: none;
+  border-radius: 14px;
+  /* Softer corners for organic feel */
+}
+
+.craft-grid.theme-notes .craft-card .tag-pill:hover {
+  background: rgba(45, 212, 191, 0.15);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+/* Projects Theme - Uses existing default styling */
+
+/* Light mode theme adjustments */
+html:not(.dark) .craft-grid.theme-lab .craft-card {
+  background: rgba(139, 92, 246, 0.03);
+}
+
+html:not(.dark) .craft-grid.theme-lab .craft-card .tag-pill {
+  background: rgba(139, 92, 246, 0.08);
+  color: rgba(139, 92, 246, 0.8);
+}
+
+html:not(.dark) .craft-grid.theme-notes .craft-card {
+  background: rgba(45, 212, 191, 0.03);
+}
+
+html:not(.dark) .craft-grid.theme-notes .craft-card:hover {
+  background: rgba(45, 212, 191, 0.06);
+  border-color: rgba(45, 212, 191, 0.2);
+}
+
+html:not(.dark) .craft-grid.theme-notes .craft-card .tag-pill {
+  background: rgba(45, 212, 191, 0.08);
+  color: rgba(45, 212, 191, 0.8);
+}
+
+/* Responsive theme adjustments - Backdrop-filter removed for Safari compatibility */
+
+/* ===== NOTES: VINTAGE-PERFORATED + FOLDED CORNER ===== */
+/*
+    Goal: Unique "Notes" feel without busy patterns.
+    - Left perforation strip (vintage ticket vibe)
+    - Subtle dashed rule on strip edge
+    - Tiny folded corner at top-right
+    - No notebook lines; keep core card styling intact
+  */
+.craft-grid.theme-notes .card-link {
+  position: relative;
+  padding-left: calc(28px + 1rem);
+  /* space for perforation strip */
+  border-radius: 18px;
+  background-image: none;
+}
+
+/* Left perforation strip */
+.craft-grid.theme-notes .card-link::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 28px;
+  border-top-left-radius: 18px;
+  border-bottom-left-radius: 18px;
+  background-image:
+    /* dotted perforations */
+    radial-gradient(circle, rgba(0, 0, 0, 0.12) 2px, transparent 2.5px),
+    linear-gradient(180deg, rgba(45, 212, 191, 0.06), rgba(155, 101, 230, 0.06));
+  background-size:
+    10px 18px,
+    100% 100%;
+  background-repeat:
+    repeat-y,
+    no-repeat;
+  background-position:
+    center top,
+    center;
+  border-right: 1px dashed rgba(155, 101, 230, 0.18);
+  box-shadow: inset -6px 0 12px rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+}
+
+/* Dark mode adjustments for strip */
+html.dark .craft-grid.theme-notes .card-link::before {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.14) 2px, transparent 2.5px),
+    linear-gradient(180deg, rgba(45, 212, 191, 0.10), rgba(155, 101, 230, 0.10));
+  border-right-color: rgba(155, 101, 230, 0.45);
+  box-shadow: inset -6px 0 12px rgba(0, 0, 0, 0.18);
+}
+
+/* Fold removed per request */
+.craft-grid.theme-notes .card-link::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.dark .craft-grid.theme-notes .card-link::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ===== JOURNEY: MEMORY BUBBLES (LEAN OVERRIDES) =====
+    Minimal, scoped styling to evoke soft, reflective "memory" feel.
+    - Only affects Journey grid cards
+    - Keeps existing layout, content, and animations intact
+    - Uses subtle radial overlays and softer rounding
+ */
+.craft-grid.theme-journey .card-link {
+  border-radius: 24px !important;
+  /* Gentle radial overlays (stacked) to suggest depth and reflection */
+  /* Minimal thought-bubble tail (two soft circles) tucked inside bottom-right */
+  background-image:
+    radial-gradient(circle at 96% 94%, rgba(90, 160, 230, 0.14) 0 18%, rgba(90, 160, 230, 0) 28%),
+    radial-gradient(circle at 92% 88%, rgba(90, 160, 230, 0.12) 0 28%, rgba(90, 160, 230, 0) 40%),
+    radial-gradient(120% 120% at 100% 0%, rgba(90, 160, 230, 0.08) 0%, rgba(90, 160, 230, 0) 60%),
+    radial-gradient(140% 140% at 0% 100%, rgba(230, 101, 133, 0.06) 0%, rgba(230, 101, 133, 0) 60%);
+  background-blend-mode: soft-light, normal;
+}
+
+/* Light mode: slightly darker tints for readability on light surfaces */
+html:not(.dark) .craft-grid.theme-journey .card-link {
+  background-image:
+    radial-gradient(circle at 96% 94%, rgba(26, 92, 139, 0.12) 0 18%, rgba(26, 92, 139, 0) 28%),
+    radial-gradient(circle at 92% 88%, rgba(26, 92, 139, 0.10) 0 28%, rgba(26, 92, 139, 0) 40%),
+    radial-gradient(120% 120% at 100% 0%, rgba(26, 92, 139, 0.06) 0%, rgba(26, 92, 139, 0) 60%),
+    radial-gradient(140% 140% at 0% 100%, rgba(139, 26, 92, 0.05) 0%, rgba(139, 26, 92, 0) 60%);
+}
+
+/* Hover: journey-blue glow to match the page tone */
+.craft-grid.theme-journey .card-link:hover {
+  /* Smaller glow on journey cards */
+  box-shadow: 0 6px 14px rgba(90, 160, 230, 0.18), 0 3px 8px rgba(90, 160, 230, 0.12) !important;
+}
+
+/* Harmonize inner media rounding for softer, organic look */
+.craft-grid.theme-journey .card-media {
+  border-radius: 16px !important;
+}
+
+/* ===== GLOBAL SUBTLE LINKS & HIGHLIGHT ===== */
+/* Subtle, always-on glow for links in descriptions and content sections */
+.craft-subtitle a,
+.content-section a {
+  color: inherit;
+  text-decoration: none;
+  text-shadow:
+    0 0 0.7px rgba(230, 177, 80, 0.25),
+    0 0 6px rgba(230, 177, 80, 0.10);
+}
+
+@supports (color: color-mix(in oklab, red, blue)) {
+
+  .craft-subtitle a,
+  .content-section a {
+    text-shadow:
+      0 0 0.7px color-mix(in oklab, currentColor 80%, var(--rainbow-projects) 20%),
+      0 0 6px color-mix(in oklab, currentColor 92%, var(--rainbow-projects) 8%);
+  }
+}
+
+/* Ensure card preview links also get the glow site-wide */
+.card-link .card-body a {
+  color: inherit;
+  text-decoration: none;
+  text-shadow:
+    0 0 0.7px rgba(230, 177, 80, 0.25),
+    0 0 6px rgba(230, 177, 80, 0.10);
+}
+
+@supports (color: color-mix(in oklab, red, blue)) {
+  .card-link .card-body a {
+    text-shadow:
+      0 0 0.7px color-mix(in oklab, currentColor 80%, var(--rainbow-projects) 20%),
+      0 0 6px color-mix(in oklab, currentColor 92%, var(--rainbow-projects) 8%);
+  }
+}
+
+/* Marker-style highlight usable anywhere: <mark class="soft"> */
+mark.soft {
+  color: inherit;
+  background: linear-gradient(to bottom,
+      transparent 8%,
+      rgba(155, 101, 230, 0.16) 8%,
+      rgba(155, 101, 230, 0.16) 92%,
+      transparent 92%);
+  border-radius: .3em;
+  padding: 0 .18em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@supports (color: color-mix(in oklab, red, blue)) {
+  mark.soft {
+    background: linear-gradient(to bottom,
+        transparent 8%,
+        color-mix(in oklab, var(--rainbow-notes) 18%, transparent) 8%,
+        color-mix(in oklab, var(--rainbow-notes) 18%, transparent) 92%,
+        transparent 92%);
+  }
+
+  html:not(.dark) mark.soft {
+    background: linear-gradient(to bottom,
+        transparent 8%,
+        color-mix(in oklab, var(--rainbow-notes) 12%, transparent) 8%,
+        color-mix(in oklab, var(--rainbow-notes) 12%, transparent) 92%,
+        transparent 92%);
+  }
+}
+
+/* Custom media container classes */
+.media-container.compact-video {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.media-container.small-video {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.media-container.medium-video {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.media-container.large-video {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.media-container.full-width {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Responsive adjustments for custom video sizes */
+@media (max-width: 768px) {
+
+  .media-container.compact-video,
+  .media-container.small-video,
+  .media-container.medium-video,
+  .media-container.large-video {
+    max-width: 100%;
+  }
+}

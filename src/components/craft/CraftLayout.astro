@@ -1,0 +1,283 @@
+---
+// Import the main Layout and necessary components
+import Layout from '../../layouts/Layout.astro';
+
+export interface Props {
+  title: string;
+  description?: string;
+  pageName?: string;
+}
+
+const { title, description, pageName } = Astro.props;
+
+// Create props object that matches the Layout component's expectations
+const layoutProps = {
+  title,
+  ...(description !== undefined && { description }),
+  ...(pageName !== undefined && { pageName })
+};
+---
+
+<Layout {...layoutProps}>
+  <!-- Craft layout wrapper with science inspiration -->
+  <div class="craft-container">
+    <!-- Header control panel with top spacing -->
+    <div class="section-top-spacer">
+      <header class="craft-header glass-panel" role="banner">
+        <slot name="header" />
+      </header>
+    </div>
+
+    <!-- Main content area with proper spacing -->
+    <main class="craft-main" role="main">
+      <slot />
+    </main>
+  </div>
+</Layout>
+
+<style>
+  /* CSS Custom Properties - Science Inspired Design System */
+  :root {
+    /* Glass Effect Variables */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-backdrop: blur(20px) saturate(180%);
+    
+    /* Scientific Color Palette - Inspired by cellular imagery */
+    --primary-cellular: rgba(45, 212, 191, 0.1);   /* Teal - cellular vitality */
+    --secondary-neural: rgba(139, 92, 246, 0.08);  /* Purple - neural networks */
+    --accent-energy: rgba(251, 146, 60, 0.05);     /* Orange - energy/ATP */
+    
+    /* Glass effects with biological inspiration */
+    --glass-cellular: rgba(45, 212, 191, 0.08);
+    --glass-neural: rgba(139, 92, 246, 0.06);
+    --glass-membrane: rgba(255, 255, 255, 0.12);
+    
+    /* Shadow System - Soft like microscope illumination */
+    --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 12px 48px rgba(0, 0, 0, 0.15);
+    --shadow-strong: 0 24px 64px rgba(0, 0, 0, 0.2);
+    --shadow-petri: 0 8px 32px rgba(45, 212, 191, 0.1);
+    --shadow-neural: 0 12px 48px rgba(139, 92, 246, 0.08);
+    --shadow-organic: 0 16px 64px rgba(0, 0, 0, 0.05);
+    
+    /* Animation Timing - Physics-based */
+    --timing-fast: 150ms;
+    --timing-medium: 300ms;
+    --timing-slow: 500ms;
+    --spring-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Spacing Scale - Golden ratio based */
+    --space-xs: 8px;
+    --space-sm: 16px;
+    --space-md: 24px;
+    --space-lg: 32px;
+    --space-xl: 48px;
+    --space-2xl: 64px;
+    
+    /* Surface Colors */
+    --surface-primary: rgba(255, 255, 255, 0.08);
+    --surface-secondary: rgba(255, 255, 255, 0.05);
+    --border-subtle: rgba(255, 255, 255, 0.12);
+    --border-medium: rgba(255, 255, 255, 0.2);
+    
+    /* Text Colors - REMOVED conflicting definitions. Will now inherit from global.css */
+    /* --text-primary: rgba(255, 255, 255, 0.9); */
+    /* --text-secondary: rgba(255, 255, 255, 0.6); */
+    /* --text-accent: rgba(45, 212, 191, 0.9); */
+  }
+
+  /* Dark mode adjustments - class-based for theme toggle compatibility */
+  html.dark {
+    --glass-bg: rgba(22, 24, 33, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-backdrop: blur(24px) saturate(200%);
+      --surface-primary: rgba(255, 255, 255, 0.04);
+      --surface-secondary: rgba(255, 255, 255, 0.02);
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-medium: rgba(255, 255, 255, 0.12);
+      
+      /* Enhanced shadows for deeper depth */
+      --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.25);
+      --shadow-medium: 0 12px 48px rgba(0, 0, 0, 0.3);
+      --shadow-strong: 0 24px 64px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Base craft container */
+  .craft-container {
+    min-height: 100vh;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    background: none;
+  }
+
+  /* Section top spacer for consistent menu spacing */
+  .section-top-spacer {
+    margin-top: var(--header-height-mobile, 60px);
+  }
+  @media (min-width: 640px) {
+    .section-top-spacer {
+      margin-top: var(--header-height, 80px);
+    }
+  }
+
+  /* Header control panel */
+  .craft-header {
+    position: sticky;
+    top: var(--space-md);
+    z-index: 100;
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    /* Prevent ONLY the transition artifacts during theme switching */
+    transition: none !important;
+    /* Disable during active theme transitions only */
+    will-change: auto;
+  }
+
+
+
+  /* Main content area - Enhanced for better screen utilization */
+  .craft-main {
+    flex: 1;
+    max-width: 1600px; /* Increased from 1400px for better screen utilization */
+    width: 100%;
+    margin: 0 auto;
+    background: none;
+  }
+
+  /* Glass morphism base class - transparent glass with backdrop blur */
+  .glass-panel {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
+
+  /* Dark mode glass panel - deep transparent glass */
+  html.dark .glass-panel {
+    background: rgba(0, 0, 0, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Light mode glass panel - matches masonry card styling exactly */
+  /* Light mode glass panel - matches masonry card styling exactly */
+  html:not(.dark) .glass-panel {
+    background: var(--card-bg-light) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Glass panel shine effect - diagonal glassy texture at 135deg */
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  html.dark .glass-panel::before {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    ) !important;
+  }
+
+  /* Light mode shine effect - subtle highlight */
+  html:not(.dark) .glass-panel::before {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    ) !important;
+  }
+
+  /* Light mode text colors - matches card text styling */
+  html:not(.dark) .glass-panel .craft-subtitle {
+    color: rgba(0, 0, 0, 0.7) !important;
+  }
+  
+  html:not(.dark) .glass-panel .craft-title {
+    color: rgba(0, 0, 0, 0.9) !important;
+  }
+  
+  /* Override any gradient text in light mode for readability */
+  html:not(.dark) .glass-panel .craft-title,
+  html:not(.dark) .glass-panel .lab-title,
+  html:not(.dark) .glass-panel .notes-title {
+    -webkit-text-fill-color: rgba(0, 0, 0, 0.9) !important;
+    color: rgba(0, 0, 0, 0.9) !important;
+    background: none !important;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .craft-container {
+      padding: var(--space-sm);
+      gap: var(--space-md);
+    }
+
+    .craft-header {
+      position: static;
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    /* Mobile glass panel */
+    .glass-panel {
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(24px) saturate(200%);
+      -webkit-backdrop-filter: blur(24px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    html.dark .glass-panel {
+      background: rgba(0, 0, 0, 0.6) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    html:not(.dark) .glass-panel {
+      background: var(--current-bg-light) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+
+  /* Typography improvements - Ubuntu font */
+  .craft-container {
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Smooth scrolling */
+  .craft-container {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus management for accessibility */
+  .craft-container :focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+</style> 

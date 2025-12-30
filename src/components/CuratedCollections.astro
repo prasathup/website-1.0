@@ -1,0 +1,550 @@
+---
+// CuratedCollections.astro - Carousel-based highlights for curated content
+import { curatedCollectionsData } from '../data/curatedCollections';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Type for a collection item
+interface CollectionItem {
+  title: string;
+  description: string;
+  link?: string;
+  author?: string;
+  creator?: string;
+  host?: string;
+}
+
+// Helper to get items for a category, typed
+const getItemsByCategory = (catId: string): CollectionItem[] => curatedCollectionsData.find(cat => cat.id === catId)?.items ?? [];
+
+// Get the first category as default
+const defaultCategory = curatedCollectionsData[0]?.id ?? '';
+---
+
+<section class={`curated-collections ${className}`} id="curated-collections-root" data-curated-collections={JSON.stringify(curatedCollectionsData)}>
+  {/* Section Header */}
+  <div class="curated-header">
+    <h2 class="curated-title">
+      Curated collections
+      <span class="curated-icon">✨</span>
+    </h2>
+  </div>
+
+  {/* Category Carousel */}
+  <div class="curated-carousel" role="tablist">
+    {curatedCollectionsData.map((category) => (
+      <button
+        class={`carousel-tab ${category.theme}${category.id === defaultCategory ? ' active' : ''}`}
+        role="tab"
+        aria-selected={category.id === defaultCategory}
+        aria-controls={`panel-${category.id}`}
+        id={`tab-${category.id}`}
+        data-category-id={category.id}
+        type="button"
+      >
+        {category.title}
+      </button>
+    ))}
+  </div>
+
+  {/* Items Grid - only render the default category, JS will swap content */}
+  <div class="curated-items-grid" id="curated-items-grid" role="tabpanel" aria-labelledby={`tab-${defaultCategory}`}> 
+    {getItemsByCategory(defaultCategory).map((item, idx) => (
+      <div class="curated-item-card" data-item-idx={idx}>
+        <h4 class="item-title">
+          {item.link ? (
+            <a href={item.link} target="_blank" rel="noopener noreferrer">{item.title}</a>
+          ) : (
+            item.title
+          )}
+        </h4>
+        <p class="item-creator">{item.author || item.creator || item.host}</p>
+        <p class="item-description">{item.description}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* ===== CURATED COLLECTIONS CAROUSEL STYLES ===== */
+  .curated-collections {
+    margin: 0 0 var(--spacing-sm) 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: rgba(22, 24, 33, 0.6);
+    border-radius: 16px;
+    border: none;
+    /* Floating appearance with soft shadow */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    max-width: 100%;
+    transition: box-shadow 0.2s ease, opacity 0.25s ease-in-out;
+    overflow: hidden;
+  }
+  html:not(.dark) .curated-collections {
+    background-color: rgba(248, 245, 239, 0.75);
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .curated-header {
+    text-align: left;
+    margin-bottom: var(--spacing-md);
+  }
+  .curated-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 400;
+    margin-bottom: var(--spacing-sm);
+    color: var(--rainbow-notes);
+  }
+  html:not(.dark) .curated-title {
+    color: var(--card-content-light);
+  }
+  .curated-icon {
+    font-size: 1.2em;
+    animation: gentle-pulse 3s ease-in-out infinite;
+    margin-left: var(--spacing-sm);
+    display: inline-block;
+    background: linear-gradient(135deg, var(--rainbow-notes), var(--rainbow-projects));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  html:not(.dark) .curated-icon {
+    background: linear-gradient(135deg, var(--card-content-light), var(--card-title-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .curated-subtitle {
+    font-size: var(--font-size-base);
+    max-width: 800px;
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+    color: var(--rainbow-journey);
+  }
+  html:not(.dark) .curated-subtitle {
+    color: var(--card-date-light);
+  }
+  /* Carousel styles */
+  .curated-carousel {
+    display: flex;
+    gap: var(--spacing-md);
+    overflow-x: auto;
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    scrollbar-width: thin;
+    scroll-snap-type: x mandatory;
+  }
+  .carousel-tab {
+    flex: 0 0 auto;
+    padding: 0.5em 1.5em;
+    border-radius: 999px;
+    border: none;
+    background-color: rgba(22, 24, 33, 0.15);
+    color: var(--category-theme-color, var(--text-primary));
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    outline: none;
+    scroll-snap-align: start;
+  }
+  .carousel-tab.active {
+    /* Soft colored background for selected tab */
+    background: rgba(120, 180, 255, 0.18); /* Example: soft blue, adjust as needed */
+    color: var(--category-theme-color, var(--text-primary));
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  /* Themed tabs */
+  .carousel-tab.theme-notes { --category-theme-color: var(--rainbow-notes); }
+  .carousel-tab.theme-projects { --category-theme-color: var(--rainbow-projects); }
+  .carousel-tab.theme-journey { --category-theme-color: var(--rainbow-journey); }
+  .carousel-tab.theme-bio { --category-theme-color: var(--rainbow-bio); }
+  .carousel-tab.theme-lab { --category-theme-color: var(--rainbow-lab); }
+  html:not(.dark) .carousel-tab.theme-notes { --category-theme-color: var(--card-content-light); }
+  html:not(.dark) .carousel-tab.theme-projects { --category-theme-color: var(--card-title-light); }
+  html:not(.dark) .carousel-tab.theme-journey { --category-theme-color: var(--card-date-light); }
+  html:not(.dark) .carousel-tab.theme-bio { --category-theme-color: var(--card-description-light); }
+  html:not(.dark) .carousel-tab.theme-lab { --category-theme-color: var(--card-heading-light); }
+  /* Items grid */
+  .curated-items-grid {
+    display: grid;
+    gap: var(--spacing-md);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: var(--spacing-sm);
+  }
+  .curated-items-grid :global(.curated-item-card) {
+    background-color: rgba(22, 24, 33, 0.6);
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    outline: none;
+    border: none;
+  }
+  .curated-items-grid :global(.curated-item-card:hover),
+  .curated-items-grid :global(.curated-item-card:focus) {
+    box-shadow: 0 6px 14px rgba(230, 177, 80, 0.14), 0 3px 8px rgba(0, 0, 0, 0.14);
+  }
+  html:not(.dark) .curated-items-grid :global(.curated-item-card) {
+    background-color: rgba(248, 245, 239, 0.75);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  html:not(.dark) .curated-items-grid :global(.curated-item-card:hover),
+  html:not(.dark) .curated-items-grid :global(.curated-item-card:focus) {
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(230, 177, 80, 0.12);
+  }
+  .curated-items-grid :global(.item-title) {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: #4585c4; /* Consistent with album titles */
+  }
+  html:not(.dark) .curated-items-grid :global(.item-title) {
+    color: #1A5C8B; /* Consistent with album titles */
+  }
+  .curated-items-grid :global(.item-title a) {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+  }
+  .curated-items-grid :global(.item-title a:hover) {
+    color: var(--rainbow-projects);
+    text-decoration: underline;
+  }
+  html:not(.dark) .curated-items-grid :global(.item-title a:hover) {
+    color: var(--card-title-light);
+  }
+  .curated-items-grid :global(.item-creator) {
+    font-size: var(--font-size-sm);
+    color: var(--rainbow-journey); /* Consistent with album subtitles */
+    margin: 0 0 var(--spacing-xs) 0;
+    font-style: italic;
+    line-height: var(--line-height-normal);
+  }
+  html:not(.dark) .curated-items-grid :global(.item-creator) {
+    color: var(--card-date-light); /* Consistent with album subtitles */
+  }
+  .curated-items-grid :global(.item-description) {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: var(--line-height-normal);
+  }
+
+  /* --- Global styles for dynamically-generated music content --- */
+  :global(.curated-items-grid.music-active) {
+    display: block; /* Override grid layout */
+  }
+  :global(.artist-hashtags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+  }
+  :global(.artist-hashtag) {
+    display: inline-block;
+    padding: 0.5em 1.5em;
+    border-radius: 999px;
+    background: rgba(var(--bg-opacity-dark), 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+  :global(.artist-hashtag:hover) {
+    background: rgba(var(--bg-opacity-dark), 0.5);
+    color: var(--rainbow-projects);
+    transform: translateY(-2px);
+  }
+  :global(html:not(.dark) .artist-hashtag) {
+    background: rgba(var(--bg-opacity-light), 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    color: var(--card-date-light);
+  }
+  :global(html:not(.dark) .artist-hashtag:hover) {
+    background: rgba(var(--bg-opacity-light), 1);
+    color: var(--card-title-light);
+  }
+
+  :global(.albums-by-year-container) {
+    margin-top: var(--spacing-xl);
+  }
+
+  :global(.album-year-group) {
+    position: relative;
+    /* No timeline-specific styles needed now */
+  }
+
+  :global(.album-year-group:not(:last-child)) {
+    padding-bottom: var(--spacing-xl);
+  }
+
+  :global(.album-year-heading) {
+    font-size: var(--font-size-2xl);
+    font-weight: 200;
+    color: var(--text-secondary);
+    position: sticky;
+    top: 80px;
+    background: var(--bg-primary);
+    z-index: 10;
+    padding: var(--spacing-sm) 0;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  :global(.albums-timeline) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-md);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  :global(.album-entry) {
+    list-style: none;
+    height: 100%;
+  }
+
+  :global(.album-card) {
+    background: rgba(var(--bg-opacity-dark), 0.6);
+    border: none;
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    transition: box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global(.album-card:hover) {
+    box-shadow: 0 6px 14px rgba(230, 177, 80, 0.14), 0 3px 8px rgba(0, 0, 0, 0.14);
+  }
+
+  :global(html:not(.dark) .album-card) {
+    background: rgba(var(--bg-opacity-light), 0.75);
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(html:not(.dark) .album-card:hover) {
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(230, 177, 80, 0.12);
+  }
+  
+  :global(.album-title) {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: #4585c4; /* Journey - darker sky */
+    text-decoration: none;
+    transition: color 0.2s;
+    display: block;
+    flex-grow: 1; /* Allow title to fill space */
+    margin-bottom: var(--spacing-sm);
+  }
+
+  :global(html:not(.dark) .album-title) {
+    color: #1A5C8B; /* Dark sky blue for light mode readability */
+  }
+
+  :global(.album-title:hover) {
+    color: var(--rainbow-notes);
+  }
+  
+  :global(.album-meta) {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+  }
+  
+  :global(.album-artist) {
+    font-weight: 500;
+    color: inherit;
+  }
+
+  :global(.album-release-date) {
+    color: var(--rainbow-journey);
+  }
+
+  :global(html:not(.dark) .album-release-date) {
+    color: var(--card-date-light);
+  }
+
+  :global(.album-release-month) {
+    color: inherit;
+  }
+
+  @keyframes gentle-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+</style>
+
+<script is:inline>
+// --- CuratedCollections Carousel Logic ---
+// This script enables tab switching for categories.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const root = document.getElementById('curated-collections-root');
+  if (!root) return;
+
+  const curatedCollectionsData = JSON.parse(root.dataset.curatedCollections);
+
+  // --- Tab switching logic ---
+  const tabs = Array.from(root.querySelectorAll('.carousel-tab'));
+  const itemsGrid = root.querySelector('#curated-items-grid');
+
+  // Store all items for each category in JS for fast switching
+  const allItems = {};
+  curatedCollectionsData.forEach((cat) => {
+    allItems[cat.id] = cat.items;
+  });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      // Remove active from all tabs
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      // Update items grid
+      const catId = tab.getAttribute('data-category-id');
+      const items = allItems[catId] || [];
+      itemsGrid.setAttribute('aria-labelledby', `tab-${catId}`);
+
+      // Special rendering for music category
+      if (catId === 'music') {
+        itemsGrid.classList.add('music-active');
+        const artists = items.filter(i => i.type === 'artist');
+        const albums = items
+          .filter(i => i.type === 'album')
+          .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+
+        // Clear existing content safely
+        while (itemsGrid.firstChild) itemsGrid.removeChild(itemsGrid.firstChild);
+
+        // Build artists hashtag list
+        const artistsWrap = document.createElement('div');
+        artistsWrap.className = 'artist-hashtags';
+        artists.forEach(artist => {
+          const a = document.createElement('a');
+          a.className = 'artist-hashtag';
+          a.href = artist.link || '#';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = `#${artist.title}`;
+          artistsWrap.appendChild(a);
+        });
+        itemsGrid.appendChild(artistsWrap);
+
+        // Group albums by year
+        const albumsByYear = albums.reduce((acc, album) => {
+          const year = (album.releaseDate || '').split('-')[0];
+          if (!acc[year]) acc[year] = [];
+          acc[year].push(album);
+          return acc;
+        }, {});
+
+        const albumsContainer = document.createElement('div');
+        albumsContainer.className = 'albums-by-year-container';
+
+        // Sort years in descending order
+        Object.keys(albumsByYear)
+          .sort((a, b) => parseInt(b) - parseInt(a))
+          .forEach(year => {
+            const yearGroup = document.createElement('div');
+            yearGroup.className = 'album-year-group';
+
+            const yearHeading = document.createElement('h4');
+            yearHeading.className = 'album-year-heading';
+            yearHeading.textContent = year;
+            yearGroup.appendChild(yearHeading);
+
+            const list = document.createElement('ul');
+            list.className = 'albums-timeline';
+
+            albumsByYear[year].forEach(album => {
+              const li = document.createElement('li');
+              li.className = 'album-entry';
+
+              const card = document.createElement('div');
+              card.className = 'album-card';
+
+              const titleLink = document.createElement('a');
+              titleLink.className = 'album-title';
+              titleLink.href = album.link || '#';
+              titleLink.target = '_blank';
+              titleLink.rel = 'noopener noreferrer';
+              titleLink.textContent = album.title || '';
+
+              const meta = document.createElement('p');
+              meta.className = 'album-meta';
+
+              const artistSpan = document.createElement('span');
+              artistSpan.className = 'album-artist';
+              artistSpan.textContent = album.artist || '';
+
+              const monthSpan = document.createElement('span');
+              monthSpan.className = 'album-release-month';
+              const releaseMonth = new Date((album.releaseDate || '') + '-01T12:00:00Z').toLocaleString('en-US', { month: 'long' });
+              monthSpan.textContent = `• ${releaseMonth}`;
+
+              meta.appendChild(artistSpan);
+              meta.appendChild(monthSpan);
+
+              card.appendChild(titleLink);
+              card.appendChild(meta);
+              li.appendChild(card);
+              list.appendChild(li);
+            });
+
+            yearGroup.appendChild(list);
+            albumsContainer.appendChild(yearGroup);
+          });
+
+        itemsGrid.appendChild(albumsContainer);
+
+      } else {
+        itemsGrid.classList.remove('music-active');
+        // Clear existing content safely
+        while (itemsGrid.firstChild) itemsGrid.removeChild(itemsGrid.firstChild);
+
+        items.forEach((item, idx) => {
+          const card = document.createElement('div');
+          card.className = 'curated-item-card';
+          card.setAttribute('data-item-idx', String(idx));
+
+          const titleEl = document.createElement('h4');
+          titleEl.className = 'item-title';
+          if (item.link) {
+            const a = document.createElement('a');
+            a.href = item.link;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = item.title || '';
+            titleEl.appendChild(a);
+          } else {
+            titleEl.textContent = item.title || '';
+          }
+
+          const creatorEl = document.createElement('p');
+          creatorEl.className = 'item-creator';
+          creatorEl.textContent = (item.author || item.creator || item.host || '');
+
+          const descEl = document.createElement('p');
+          descEl.className = 'item-description';
+          descEl.textContent = item.description || '';
+
+          card.appendChild(titleEl);
+          card.appendChild(creatorEl);
+          card.appendChild(descEl);
+          itemsGrid.appendChild(card);
+        });
+      }
+    });
+  });
+});
+</script>

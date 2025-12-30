@@ -1,0 +1,1271 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EndosomeBackground from '../components/EndosomeBackground.astro';
+import EndosomeSketch from '../components/EndosomeSketchWebGPU.astro';
+import { Image } from 'astro:assets';
+import profilePic from '../assets/Profile_pic.jpg';
+---
+
+<Layout title="Prasathup" pageName="home">
+	<!-- The .main-content class in Layout.astro now handles the safe area -->
+    <div class="content-wrapper">
+        <!-- Scroll Proxy for CSS Snap and Layout -->
+        <div class="scroll-proxy">
+            <div class="snap-section" data-index="1"></div>
+            <div class="snap-section" data-index="2"></div>
+            <div class="snap-section" data-index="3"></div>
+            <div class="snap-section" data-index="4"></div>
+            <div class="snap-section" data-index="5"></div>
+            <div class="snap-section" data-index="6"></div>
+        </div>
+
+		<!-- Background Endosomes (Outside the wobble container) -->
+		<EndosomeBackground />
+		
+        <!-- MAIN ENDOSOME SKETCH: Placed at root to ensure full-screen fixed positioning works correctly -->
+		<EndosomeSketch />
+
+		<div class="wave-bubble-container" data-active="1">
+            <div id="section-1" class="content-section active">
+				<div class="bio-content flex flex-col items-center w-full">
+					{/* Title with animated gradient and properly aligned underline */}
+					<div class="name-container">
+						<div class="title-wrapper">
+							<div class="hi-svg-container">
+								<img src="/HeartStopperSVG/Hi.svg" alt="" class="hi-svg" />
+							</div>
+							<h1 class="name-title">
+								<span class="animated-gradient">I am Prasath</span>
+							</h1>
+							<div class="title-underline"></div>
+						</div>
+					</div>
+					
+					{/* Paragraphs with proper sizing and centering - optimized width for better appearance */}
+					<div class="w-full max-w-3xl text-center">
+						<p class="bio-paragraph">
+							A cell biologist working to improve peoples lives by contributing in early-stage research and developing treatments for genetic diseases for which currently no treatment available. In my free time, I explore my curiosity on the intersection of technology, design, art, music and bring some of them to life.
+						</p>
+					</div>
+				</div>
+			</div>
+            <div id="section-2" class="content-section">
+				<div class="bio-content flex flex-col items-center w-full">
+					<div class="name-container">
+						<div class="title-wrapper">
+							<h1 class="name-title">
+								<span class="animated-gradient">Career Path</span>
+							</h1>
+							<div class="title-underline"></div>
+						</div>
+					</div>
+					<div class="w-full max-w-3xl text-center">
+						<p class="bio-paragraph"> Over 12 years, I have been at the frontier of biologics, first as a doctoral and postdoctoral researcher at the Max Planck Institute, and now as a senior scientist at Silence Therapeutics. I studied intracellular trafficking, and built high-throughput pipelines. Now advancing siRNA science toward therapies for unmet medical needs.</p>
+					</div>
+				</div>
+			</div>
+            <div id="section-3" class="content-section">
+                <div class="bio-content flex flex-col md:flex-row items-center w-full gap-8">
+                    <div class="text-content text-center md:text-left">
+                        <div class="name-container">
+                            <div class="title-wrapper">
+                                <h1 class="name-title">
+                                    <span class="animated-gradient">Farpoint</span>
+                                </h1>
+                                <div class="title-underline"></div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <p class="bio-paragraph">In a small village, surrounded by trees and songs of birds by day, stars and sounds of insects by night, I grew up reading science and stories of scientists. That early spark eventually led me to Germany, where I built my life and became a citizen. With gratitude, I am stepping into the unfolding future with curiosity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="section-4" class="content-section">
+                <div class="bio-content flex flex-col items-center w-full">
+                    <div class="name-container">
+                        <div class="title-wrapper">
+                            <h1 class="name-title">
+                                <span class="animated-gradient">Wandering mind</span>
+                            </h1>
+                            <div class="title-underline"></div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-3xl text-center">
+                        <p class="bio-paragraph">I listen to lots of music, podcasts, submerge myself into random topics I find fascinating, read books rarely than I hope to, and sometimes be just silly and give space for ideas to shape. </p>
+                    </div>
+                </div>
+            </div>
+            <div id="section-5" class="content-section">
+                <div class="bio-content flex flex-col md:flex-row items-center w-full gap-4">
+                    <div class="profile-image-container">
+                        <Image src={profilePic} alt="A photo of Prasath" class="profile-image" width={440} quality="max" format="avif" />
+                    </div>
+                    <div class="text-content text-center md:text-left">
+                        <div class="name-container">
+                            <div class="title-wrapper">
+                                <h1 class="name-title">
+                                    <span class="animated-gradient">Becoming</span>
+                                </h1>
+                                <div class="title-underline"></div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <p class="bio-paragraph">As a student of life, I find myself imperfect, and continue working to become a better version of myself than yesterday. I may come across eccentric but interesting. I think ...							</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="section-6" class="content-section">
+                <div class="bio-content flex flex-col items-center w-full">
+                    <div class="name-container">
+                        <div class="title-wrapper">
+                            <h1 class="name-title">
+                                <span class="animated-gradient">What now?</span>
+                            </h1>
+                            <div class="title-underline"></div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-3xl text-center">
+                        <p class="bio-paragraph">If you have come this far and would like to connect, these are the platforms I am hoping to be on every now and then.</p>
+                        <div class="social-links">
+                            <div class="social-group">
+                                <a href="https://www.youtube.com/@Andersein.Berlin" aria-label="YouTube" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.7 3.5 12 3.5 12 3.5s-7.7 0-9.4.6A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.7.6 9.4.6 9.4.6s7.7 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"></path></svg>
+                                </a>
+                                <a href="https://www.instagram.com/prassiva/" aria-label="Instagram" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.5a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"></path></svg>
+                                </a>
+                                <a href="https://github.com/prasathup" aria-label="GitHub" target="_blank" rel="noreferrer noopener">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.4.7-4.1-1.6-4.1-1.6-.6-1.5-1.5-1.9-1.5-1.9-1.2-.8.1-.8.1-.8 1.3.1 2 .1 2 .1 1.2 2 3 1.4 3.7 1.1.1-.9.5-1.4.9-1.7-2.7-.3-5.5-1.4-5.5-6.1 0-1.4.5-2.5 1.3-3.4-.1-.3-.6-1.7.1-3.6 0 0 1.1-.4 3.5 1.3a12.1 12.1 0 0 1 6.3 0c2.4-1.7 3.5-1.3 3.5-1.3.7 1.9.2 3.3.1 3.6.8.9 1.3 2 1.3 3.4 0 4.7-2.8 5.8-5.5 6.1.5.4 1 1.2 1 2.5v3.7c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"></path></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+		</div>
+	</div>
+</Layout>
+
+<script is:inline>
+  // ROBUST MOBILE DETECTION
+  // We want to apply the special "Inner Scroll" mobile layout ONLY to actual mobile/tablet devices
+  // and NOT to resized desktop windows.
+  (function() {
+      const checkMobile = () => {
+          const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+          // Check for mobile user agents
+          const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+          // Check for touch capability combined with screen size (to support touch laptops as desktop)
+          // If it's touch-only (hover: none) it's likely mobile/tablet.
+          const isTouchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+          
+          // STRICT DEFINITION: It's "Mobile Layout" if it's a mobile UA OR (Touch Only AND small screen)
+          const isMobile = isMobileUA || (isTouchDevice && window.innerWidth <= 1024);
+          
+          if (isMobile) {
+              document.body.classList.add('is-mobile');
+              document.body.classList.remove('is-desktop');
+          } else {
+              document.body.classList.add('is-desktop');
+              document.body.classList.remove('is-mobile');
+          }
+      };
+      
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+  })();
+</script>
+
+<style>
+    /* HYBRID SCROLL STRATEGY: 
+       Desktop (Unchanged) -> Uses standard html/body scrolling.
+       Mobile (Stabilized) -> Uses locked root + inner scroller to stop address bar jumps.
+       SCOPED TO HOME PAGE ONLY - prevents affecting other pages like bio
+    */
+    /* Scope all styles to home page only to prevent affecting other pages */
+    /* Scope all styles to home page only to prevent affecting other pages */
+    /* MOBILE SCROLL STRATEGY: ONLY for actual mobile devices */
+    @media (max-width: 900px) {
+        body.page-home.is-mobile {
+            overflow: hidden !important;
+            height: 100% !important;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        /* DESKTOP NARROW FIX: Ensure standard scrolling works */
+        body.page-home.is-desktop {
+            overflow-y: auto !important;
+            height: auto !important;
+            scroll-snap-type: y mandatory; /* Keep snapping if desired, or remove for free scroll */
+        }
+    }
+
+    /* Desktop original snapping behavior - scoped to home page only */
+    @media (min-width: 901px) {
+        /* Apply scroll-snap to html when body has page-home class */
+        body.page-home ~ *,
+        html:has(body.page-home) {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+    }
+
+	/* Wrapper for entire content area - Scroller on mobile, layout-only on desktop */
+    .content-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+    @media (max-width: 900px) {
+        /* MOBILE DEVICE: Inner container scrolling with hidden bars */
+        body.page-home.is-mobile .content-wrapper {
+            height: 100dvh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            /* Restore native snapping and smooth scroll on this container */
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            /* Enable momentum scrolling on iOS */
+            -webkit-overflow-scrolling: touch;
+            /* Allow vertical scrolling only */
+            touch-action: pan-y;
+            /* Prevent pull-to-refresh on this inner scroller */
+            overscroll-behavior-y: contain;
+
+            /* HIDE SCROLLBARS to maintain layout design */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body.page-home.is-mobile .content-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* DESKTOP NARROW: Standard flow, visible scrollbars */
+        body.page-home.is-desktop .content-wrapper {
+            height: 600vh; /* FORCE Height to generate scrollbar */
+            min-height: 100vh;
+            overflow: visible;
+            /* Ensure scrollbar visibility */
+            -ms-overflow-style: auto;
+            scrollbar-width: auto;
+        }
+    }
+
+    @media (min-width: 901px) {
+        body.page-home .content-wrapper {
+            /* Total height for 6 sections on desktop root scroll */
+            height: 600vh;
+        }
+    }
+    
+    .scroll-proxy {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+    }
+
+    @media (max-width: 900px) {
+        /* Mobile Proxy for Scroll triggering */
+        body.is-mobile .scroll-proxy {
+            height: 600dvh; /* Driven by d-units on mobile */
+        }
+        /* Desktop Narrow Proxy: MUST be visible to force page height */
+        body.is-desktop .scroll-proxy {
+            height: 100%; /* Inherits 600vh from parent wrapper */
+            display: flex; /* Restore display */
+        }
+    }
+
+    @media (min-width: 901px) {
+        .scroll-proxy {
+            height: 100%; /* Total 600vh from parent wrapper */
+        }
+    }
+    
+    .snap-section {
+        height: 100vh;
+        width: 100%;
+        scroll-snap-align: start;
+        /* Desktop: Hard stop for intentional focusing */
+        scroll-snap-stop: always;
+    }
+
+    @media (max-width: 900px) {
+        .snap-section {
+            /* Mobile: "Flywheel" feel - allow flicking past multiple sections */
+            scroll-snap-stop: normal;
+        }
+        
+        /* Desktop Narrow: Remove fixed height snap points to allow better content distribution */
+        body.is-desktop .snap-section {
+           height: auto;
+           min-height: 100vh; /* Ensure full screen at least */
+           scroll-snap-stop: always; /* Keep specific snapping */
+           padding: 4rem 0; /* Add padding for breathability */
+        }
+    }
+
+    /* Container for the bio content - spacing handled by CSS variables */
+    .bio-content {
+        gap: var(--spacing-md); /* Reduced from lg for tighter spacing */
+        transform: translateY(-3vh); /* Nudge content up to visually center it (original behavior) */
+    }
+	
+	/* Container for title and gradient border */
+	.name-container {
+		position: relative;
+		text-align: center;
+		width: 100%;
+	}
+	
+	/* Wrapper to contain title and its underline together */
+	.title-wrapper {
+		display: inline-block;
+		position: relative;
+		margin: 0 auto;
+		z-index: 2;
+		cursor: default;
+	}
+
+	/* Hi SVG container and styling */
+	.hi-svg-container {
+		position: absolute;
+		left: -48px;
+		top: -16px;
+		width: 45px;
+		height: 45px;
+		transform: rotate(-7deg);
+		animation: wave 6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+		transform-origin: 70% 70%;
+		z-index: 3;
+	}
+	
+	/* Animation for subtle waving effect */
+	@keyframes wave {
+		0%, 100% { transform: rotate(-7deg); }
+		50% { transform: rotate(0deg); }
+	}
+	
+	.hi-svg {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		transition: filter 0.3s ease;
+	}
+	
+	/* Dark mode adjustment for SVG */
+	.dark .hi-svg {
+		filter: brightness(0.9);
+	}
+
+	/* Clean title styling - fluid and responsive */
+	.name-title {
+		font-family: var(--font-family-mono);
+		/* Revert to previous title size */
+		font-size: var(--font-size-3xl);
+		font-weight: 800;
+		line-height: var(--line-height-tight);
+		margin: 0;
+		text-shadow: none;
+	}
+	
+	/* Animated gradient text matching menu colors */
+	.animated-gradient {
+		background-image: linear-gradient(
+			to right,
+			#d98cac, /* Bio - richer rose */
+			#d9b88c, /* Projects - richer amber */
+			#8cb2d9, /* Journey - richer sky */
+			#ad8cd9, /* Notes - richer lavender */
+			#d98cbb, /* Lab - richer pink */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		display: inline-block;
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+	
+	/* Underline with same animation - exactly matching title width */
+	.title-underline {
+		height: 0px;
+		width: 100%;
+		background-image: linear-gradient(
+			to right,
+			#d98cac, /* Bio - richer rose */
+			#d9b88c, /* Projects - richer amber */
+			#8cb2d9, /* Journey - richer sky */
+			#ad8cd9, /* Notes - richer lavender */
+			#d98cbb, /* Lab - richer pink */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+
+	/* Animation for the gradient */
+	@keyframes gradient-shift {
+		0% { background-position: 0% 50%; }
+		100% { background-position: 100% 50%; }
+	}
+
+	/* Paragraph styling - slightly larger than before, but not oversized */
+	.bio-paragraph {
+		font-size: var(--font-size-body);
+		line-height: var(--line-height-relaxed);
+		font-weight: 400; /* Normal weight, not bold */
+		color: #4A1A8B; /* Dark lavender for light mode, from --card-content-light */
+		text-align: center; /* Reverted from justify to center */
+		width: 100%;
+		max-width: 65ch; /* Optimal reading width */
+		margin-left: auto;
+		margin-right: auto;
+		margin-bottom: 0; /* Remove bottom margin for tighter spacing */
+	}
+	
+	/* Add a specific override for the bio paragraph in dark mode to ensure visibility */
+	html.dark .bio-paragraph {
+		color: #a5a7a278 !important;
+	}
+
+	/* Dark mode adjustments - keep the same gradient for name title */
+	.dark .animated-gradient {
+		background-image: linear-gradient(
+			to right,
+			#d98cac, /* Bio - same as light mode */
+			#d9b88c, /* Projects - same as light mode */
+			#8cb2d9, /* Journey - same as light mode */
+			#ad8cd9, /* Notes - same as light mode */
+			#d98cbb, /* Lab - same as light mode */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+	
+	.dark .title-underline {
+		background-image: linear-gradient(
+			to right, 
+			#d98cac, /* Bio - same as light mode */
+			#d9b88c, /* Projects - same as light mode */
+			#8cb2d9, /* Journey - same as light mode */
+			#ad8cd9, /* Notes - same as light mode */
+			#d98cbb, /* Lab - same as light mode */
+			#d98cac  /* Back to start for seamless loop */
+		);
+		background-size: 200% 100%; /* Performance: Reduced GPU load */
+		animation: gradient-shift 20s linear infinite; /* Performance: Slower animation */
+	}
+	
+	/* Simple dark mode text styling - using a more specific selector to win the specificity war */
+	.dark .content-wrapper .bio-paragraph {
+		text-shadow: none; /* Remove glow effect to match card styles */
+		opacity: 1 !important; /* Force full opacity */
+	}
+	
+	/* Remove margin from last paragraph */
+	.mb-0 {
+		margin-bottom: 0;
+	}
+	
+	/* Clean responsive adjustments */
+	.name-container {
+		/* margin-bottom is handled by the parent's gap property */
+	}
+	
+	/* Hi SVG positioning - fluid scaling */
+	.hi-svg-container {
+		left: clamp(-30px, -2.5vw, -20px);
+		top: clamp(-10px, -1vw, -6px);
+		width: clamp(25px, 2.5vw, 35px);
+		height: clamp(25px, 2.5vw, 35px);
+	}
+
+	/* The wave bubble container - premium fixed gravitational lens */
+	/* ========================================
+	   LENS VISUALS are now handled by EndosomeSketch.astro (WebGL)
+	   We keep the container for layout and clipping.
+	   ======================================== */
+
+    .wave-bubble-container {
+        position: fixed; /* Keep the bubble in place */
+        /* Offset from header so it doesn't visually overlap menu */
+        top: calc(50% + var(--header-height) * 0.25);
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /* MOBILE SAFE: Width adapts to screen, max limit for desktop. No hard min-width > screen. */
+        width: min(85vw, 800px);
+        height: min(75vh, 700px); 
+        padding: 6vw; /* Responsive padding */
+		overflow: visible;
+
+		z-index: 1;
+        isolation: isolate; /* Ensure new stacking context for children */
+		
+		border-radius: 50%; /* Just to match the general feel if WebGL fails or clips */
+		
+		background-color: transparent;
+
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		
+		/* Premium performance optimizations */
+		transform: translate(-50%, -50%) translateZ(0); /* Hardware acceleration */
+		backface-visibility: hidden; /* Prevent flicker */
+		will-change: transform; /* Optimize for animations */
+		
+		/* 3D perspective for lens focus depth effect */
+		perspective: 1200px;
+		perspective-origin: center center;
+		transform-style: preserve-3d;
+
+        /* GESTURE PASSTHROUGH: Let swipes reach the content-wrapper behind the bubble */
+        pointer-events: none;
+	}
+    
+    /* Ensure content sits ABOVE the endosome sketch (which is z-index: 0) */
+    .wave-bubble-container > .content-section {
+        z-index: 2;
+    }
+
+    /* Content section styling - ANALOG LENS FOCUS (No transitions) */
+    .content-section {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none; /* Managed by JS/CSS */
+        visibility: visible;
+        
+        /* Initial state defined by JS, but set safe default */
+        opacity: 0;
+        
+        /* NO DEFAULT TRANSITION for analog control (except reduced motion) */
+        /* transition: opacity 0.5s ... REMOVED for physics control */
+        
+        /* GPU optimization */
+        will-change: transform, opacity, filter;
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+        
+        /* ISOLATION: Prevent section interference */
+        contain: layout style paint;
+    }
+    
+    /* Initial state: First section should be visible and sharp on load */
+    #section-1.active {
+        opacity: 1;
+        transform: scale(1) translateZ(0);
+        filter: blur(0px);
+        pointer-events: auto;
+    }
+	
+	/* Staggered content - minimal transition for entrance only */
+	.content-section .name-container,
+	.content-section .bio-paragraph,
+	.content-section .text-content,
+	.content-section .profile-image-container,
+	.content-section .social-links {
+		/* We might want JS to drive this too, or keep minimal ease */
+		/* For analog feel, we remove delay and let opacity drive it */
+		transition: opacity 0.1s linear; 
+	}
+
+    /* Active mapping via data attribute (1-indexed) - LENS FOCUSED state */
+    .wave-bubble-container[data-active="1"] #section-1,
+    .wave-bubble-container[data-active="2"] #section-2,
+    .wave-bubble-container[data-active="3"] #section-3,
+    .wave-bubble-container[data-active="4"] #section-4,
+    .wave-bubble-container[data-active="5"] #section-5,
+    .wave-bubble-container[data-active="6"] #section-6 {
+        /* LENS FOCUS: At focal plane - sharp and clear */
+        opacity: 1;
+        transform: scale(1) translateZ(0);
+        filter: blur(0px);
+        pointer-events: auto;
+    }
+	
+	/* Staggered elements become visible when section is active */
+	.wave-bubble-container[data-active="1"] #section-1 .name-container,
+	.wave-bubble-container[data-active="2"] #section-2 .name-container,
+	.wave-bubble-container[data-active="3"] #section-3 .name-container,
+	.wave-bubble-container[data-active="4"] #section-4 .name-container,
+	.wave-bubble-container[data-active="5"] #section-5 .name-container,
+	.wave-bubble-container[data-active="6"] #section-6 .name-container {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		filter: blur(0px);
+	}
+	
+	.wave-bubble-container[data-active="1"] #section-1 .bio-paragraph,
+	.wave-bubble-container[data-active="1"] #section-1 .w-full.max-w-3xl,
+	.wave-bubble-container[data-active="1"] #section-1 .text-content,
+	.wave-bubble-container[data-active="2"] #section-2 .bio-paragraph,
+	.wave-bubble-container[data-active="2"] #section-2 .w-full.max-w-3xl,
+	.wave-bubble-container[data-active="2"] #section-2 .text-content,
+	.wave-bubble-container[data-active="3"] #section-3 .bio-paragraph,
+	.wave-bubble-container[data-active="3"] #section-3 .w-full.max-w-3xl,
+	.wave-bubble-container[data-active="3"] #section-3 .text-content,
+	.wave-bubble-container[data-active="4"] #section-4 .bio-paragraph,
+	.wave-bubble-container[data-active="4"] #section-4 .w-full.max-w-3xl,
+	.wave-bubble-container[data-active="4"] #section-4 .text-content,
+	.wave-bubble-container[data-active="5"] #section-5 .bio-paragraph,
+	.wave-bubble-container[data-active="5"] #section-5 .w-full.max-w-3xl,
+	.wave-bubble-container[data-active="5"] #section-5 .text-content,
+	.wave-bubble-container[data-active="6"] #section-6 .bio-paragraph,
+	.wave-bubble-container[data-active="6"] #section-6 .w-full.max-w-3xl,
+	.wave-bubble-container[data-active="6"] #section-6 .text-content {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		filter: blur(0px);
+	}
+	
+	.wave-bubble-container[data-active="5"] #section-5 .profile-image-container {
+		opacity: 1;
+		transform: scale(1);
+		filter: blur(0px);
+	}
+	
+	.wave-bubble-container[data-active="6"] #section-6 .social-links {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	
+	/* ========================================
+	   DEPTH OF FIELD - Receding section effect
+	   Content moving "backward" into depth
+	   ======================================== */
+	.content-section.lens-receding {
+		opacity: 0;
+		transform: scale(0.88) translateZ(-60px);
+		filter: blur(10px);
+		transition: 
+			opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			filter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	
+	/* Forward approaching section - emerges from "in front" */
+	.content-section.lens-approaching {
+		opacity: 0;
+		transform: scale(1.06) translateZ(40px);
+		filter: blur(8px);
+	}
+	
+	/* ========================================
+	   REDUCED MOTION - Accessibility fallback
+	   ======================================== */
+	@media (prefers-reduced-motion: reduce) {
+		html { scroll-snap-type: none; }
+		
+		.content-section {
+			transition: opacity 0.5s ease !important;
+			opacity: 0;
+		}
+		
+		/* Restore simple class-based toggling for reduced motion js fallback */
+		.content-section.active-simple {
+			opacity: 1;
+			pointer-events: auto;
+		}
+		
+		.wave-bubble-container::before {
+			display: none;
+		}
+	}
+
+    /* ISOLATION: Farpoint section specific isolation to prevent interference */
+    #section-3 {
+        contain: layout style; /* CSS containment for this section only */
+        isolation: isolate; /* Create new stacking context */
+    }
+
+    #section-3 .bio-content {
+        contain: layout; /* Additional containment for bio content */
+    }
+
+    /* Remove unused scroll-sentinel styles (kept empty intentionally) */
+
+	.placeholder-content {
+		text-align: center;
+		color: var(--text-primary);
+		max-width: 65ch;
+	}
+	html.dark .placeholder-content {
+		color: #a5a7a2;
+	}
+	.placeholder-title {
+		font-size: var(--font-size-2xl);
+		font-weight: 700;
+		margin-bottom: var(--spacing-md);
+	}
+	.placeholder-paragraph {
+		font-size: var(--font-size-lg);
+		line-height: var(--line-height-normal);
+		margin-bottom: var(--spacing-sm);
+	}
+	html.dark .placeholder-paragraph {
+		color: #a5a7a278;
+	}
+
+	/* Keyframes deleted as morphing is now WebGL based */
+
+    /* FIX FOR DESKTOP NARROW:
+       Apply oval distribution adjustments, but keep SIZES reasonable for desktop.
+    */
+    @media (max-width: 900px) {
+        /* Common Layout Adjustments (keep for both) */
+        .wave-bubble-container {
+            /* MOBILE: Center precisely in viewport */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* Fill most of viewport with small padding */
+            width: calc(100vw - 12px);
+            height: calc(100dvh - 100px); /* Account for header */
+            padding: 0.5rem; /* Reduced from 1rem to give more space */
+            /* Allow vertical scroll (swipe) but prevent horizontal/zoom */
+            touch-action: pan-y;
+        }
+        
+        /* RESTRICT layout hacks that break Desktop Narrow */
+        /* Only apply the tightest mobile constraints to actual mobile */
+        
+        .bio-content {
+            transform: none; /* Remove desktop nudge */
+            gap: 0.5rem; /* Tighter gap for mobile */
+        }
+
+        /* OVAL TEXT DISTRIBUTION: Bigger font, wider lines */
+        .bio-paragraph {
+            font-size: 0.95rem; /* Increased size */
+            line-height: 1.5;
+            max-width: 96%; /* Allow text to fill the oval */
+            margin: 0 auto;
+        }
+        
+        /* DESKTOP OVERRIDE for Sizes */
+        body.is-desktop .bio-paragraph {
+             font-size: 1.25rem !important; /* Larger text as requested */
+             max-width: 85% !important; /* Use more horizontal space */
+             line-height: 1.6;
+        }
+        
+        body.is-desktop .wave-bubble-container {
+             /* Add more breathing room on desktop portrait */
+             width: min(90vw, 600px); /* Constraint width */
+             height: min(85vh, 800px);
+             padding: 2rem; 
+        }
+
+        /* Tighter name title on mobile */
+        .name-title {
+            font-size: 1.5rem;
+        }
+        body.is-desktop .name-title {
+            font-size: 2rem; /* Keep title punchy on desktop */
+        }
+
+        /* BECOMING SECTION: Smaller profile, tighter layout */
+        /* BECOMING SECTION: Cleaner layout */
+        #section-5 .bio-content {
+            gap: 0.75rem !important;
+            padding: 0.5rem !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            width: 100% !important;
+        }
+
+        #section-5 .profile-image-container {
+            margin-bottom: 0.5rem !important;
+        }
+
+        #section-5 .profile-image {
+            width: 120px !important;
+            height: auto !important;
+        }
+        
+        /* Desktop override for profile image */
+        body.is-desktop #section-5 .profile-image {
+             width: 140px !important; /* Slightly smaller to fit in oval */
+        }
+        
+        body.is-desktop #section-5 .bio-content {
+             gap: 0.5rem !important; /* Reduced gap to save vertical space */
+        }
+
+        #section-5 .text-content {
+            margin-top: 0 !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+
+        #section-5 .bio-paragraph {
+            font-size: 0.925rem !important;
+            max-width: 90% !important;
+            text-align: center !important;
+            margin: 0 auto !important;
+        }
+        
+        body.is-desktop #section-5 .bio-paragraph {
+            font-size: 1.25rem !important;
+        }
+
+        /* Fix Farpoint section mobile alignment */
+        /* Fix Farpoint section mobile alignment */
+        #section-3 .bio-content {
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            transform: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            gap: 1rem !important;
+            width: 100% !important;
+        }
+
+        #section-3 .text-content {
+            text-align: center !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        #section-3 .name-container {
+            width: 100% !important;
+            text-align: center !important;
+            margin: 0 !important;
+        }
+
+        #section-3 .bio-paragraph {
+            text-align: center !important;
+            margin: 0 auto !important;
+            max-width: 90% !important;
+            font-size: 0.95rem !important; /* Bigger font */
+        }
+        
+        body.is-desktop #section-3 .bio-paragraph {
+            font-size: 1.25rem !important;
+        }
+
+        /* All sections: oval text distribution and bigger font */
+        .content-section .bio-paragraph {
+            text-align: center !important;
+            font-size: 0.95rem !important; /* Bigger font */
+            line-height: 1.6;
+            padding: 0 0.5rem;
+        }
+        
+        body.is-desktop .content-section .bio-paragraph {
+             font-size: 1.25rem !important;
+        }
+    }
+
+    /* Additional responsive breakpoint for very small screens */
+    /* Additional responsive breakpoint for very small screens */
+    @media (max-width: 480px) {
+        .wave-bubble-container {
+            width: calc(100vw - 8px);
+            height: calc(100dvh - 80px);
+            padding: 0.75rem;
+        }
+
+        .bio-paragraph {
+            font-size: 0.9rem !important; /* Increased from 0.8rem */
+            line-height: 1.55 !important;
+            padding: 0 0.25rem;
+        }
+
+        .name-title {
+            font-size: 1.5rem !important;
+        }
+
+        /* Extra tight layout for smallest screens */
+        #section-5 .profile-image {
+            width: 100px !important; /* Keep it visible */
+        }
+
+        #section-5 .bio-paragraph {
+            font-size: 0.85rem !important; /* Minimum readable size */
+        }
+    }
+
+	.profile-image-container {
+		flex-shrink: 0;
+		position: relative;
+	}
+	.profile-image {
+		/* Smaller and uncropped so full head is visible */
+		width: clamp(180px, 28vw, 210px) !important;
+		height: auto !important;
+		object-fit: contain !important;
+		object-position: top center !important;
+		/* Simple rectangular feather: fade on all four edges, intersected */
+		-webkit-mask-image:
+			linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 12%, black 88%, transparent 100%);
+		mask-image:
+			linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 12%, black 88%, transparent 100%);
+		/* Intersect the two masks so only the middle stays fully opaque */
+		-webkit-mask-composite: source-in;
+		mask-composite: intersect;
+		border: none !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+	}
+	
+	html.dark .profile-image {
+		/* Slightly stronger feathering in dark mode */
+		-webkit-mask-image:
+			linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 16%, black 84%, transparent 100%);
+		mask-image:
+			linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%),
+			linear-gradient(to right,  transparent 0%, black 16%, black 84%, transparent 100%);
+		-webkit-mask-composite: source-in;
+		mask-composite: intersect;
+		border: none !important;
+		box-shadow: none !important;
+	}
+
+	.text-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+    /* Keep text away from morphing edges without changing bubble behavior */
+    .wave-bubble-container .bio-content { padding-block: clamp(0.5rem, 2vh, 1rem); }
+    .wave-bubble-container .w-full.max-w-3xl,
+    .wave-bubble-container .text-content { padding-inline: clamp(0.75rem, 2.2vw, 1.25rem); }
+
+    /* Desktop/laptop spacing and readability adjustments */
+    @media (min-width: 1024px) {
+        .wave-bubble-container {
+            padding-top: 4.5rem;
+            padding-bottom: 4.5rem;
+        }
+        .bio-paragraph {
+            /* Make desktop text only slightly smaller than original var(--font-size-2xl) */
+            font-size: calc(var(--font-size-2xl) * 0.95);
+        }
+        /* Reduce gap specifically for the Becoming section on desktop */
+        #section-5 .bio-content {
+            gap: 0.5rem !important;
+        }
+        #section-5 .text-content {
+            padding-left: 0.5rem !important;
+        }
+    }
+
+    /* Social links styling for final page */
+    .social-links {
+        display: flex;
+        gap: 0.875rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 2rem; /* Increased spacing to avoid cross-interaction with content above */
+    }
+    
+    /* Social groups for visual separation */
+    .social-group {
+        display: flex;
+        gap: 0.875rem;
+        align-items: center;
+    }
+    
+    /* Subtle vertical separator between social media and transactional platforms */
+    .social-separator {
+        width: 1px;
+        height: 32px;
+        background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(0, 0, 0, 0.1) 20%,
+            rgba(0, 0, 0, 0.2) 50%,
+            rgba(0, 0, 0, 0.1) 80%,
+            transparent 100%
+        );
+        margin: 0 0.5rem;
+    }
+    
+    /* Dark mode separator */
+    html.dark .social-separator {
+        background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(255, 255, 255, 0.1) 20%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.1) 80%,
+            transparent 100%
+        );
+    }
+    .social-links a {
+        display: inline-flex;
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.06);
+        color: #4A1A8B;
+        transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+	html.dark .social-links a {
+		background: rgba(255,255,255,0.08);
+		color: rgba(220,230,245,0.9);
+		border: 1px solid rgba(255,255,255,0.07);
+		box-shadow: inset 0 1px 1px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.35);
+		/* Safari-compatible: replaced backdrop-filter with increased opacity */
+	}
+    .social-links a:hover {
+        /* Removed transform to prevent jiggling - only background color change */
+        background: rgba(0,0,0,0.1);
+    }
+	html.dark .social-links a:hover {
+		background: rgba(255,255,255,0.08);
+		color: rgba(235,242,252,0.9);
+		/* Removed transform to prevent jiggling - only background and color changes */
+	}
+	.social-links svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+        display: block;
+    }
+	html.dark .social-links svg { opacity: 0.9; }
+
+    .wave-bubble-container #section-5 .bio-content { 
+        transform: translate(2vw, -4.5vh) !important; /* Shift right (2vw) to better center within oval */
+    }
+    
+    @media (max-width: 900px) {
+        /* Move profile section higher on mobile for better bubble fit - OVERRIDE mobile bio-content transform */
+        .wave-bubble-container #section-5 .bio-content { 
+            /* MOVED UP FURTHER to center align better (-8vh from -4vh) */
+            transform: translateY(-8vh) !important; 
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Fine-tune profile section positioning on very small screens - OVERRIDE all other transforms */
+        .wave-bubble-container #section-5 .bio-content { 
+            transform: translateY(-5vh) !important; /* Keep small screen adjustment */
+        }
+    }
+</style>
+
+<script is:inline>
+    // CONTINUOUS SCROLL-LINKED LENS ENGINE
+    // "Analog" focus control driven by native scroll physics
+    
+    // Config
+    const TOTAL_SECTIONS = 6;
+    let sections = [];
+    let bubbleEl = null;
+    let scrollerEl = null;
+    let rafId = null;
+    
+    // State
+    const mediaQueryWarning = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let isReducedMotion = mediaQueryWarning.matches;
+    
+    let isMobileMode = false;
+    
+    function initLens() {
+        bubbleEl = document.querySelector('.wave-bubble-container');
+        scrollerEl = document.querySelector('.content-wrapper');
+        sections = Array.from(document.querySelectorAll('.content-section'));
+        
+        // Detect scroller mode initially and on resize
+        // Detect scroller mode initially and on resize
+        const updateMode = () => {
+            // CRITICAL FIX: Sync with CSS Scroll Strategy
+            // If body has .is-desktop class, we use Window Scroll (even if narrow)
+            // If body has .is-mobile class, we use Inner Container Scroll
+            isMobileMode = document.body.classList.contains('is-mobile');
+        };
+        updateMode();
+        window.addEventListener('resize', updateMode);
+        
+        // Ensure initial state: Set data-active to 1 on load if at top
+        if (bubbleEl && !bubbleEl.getAttribute('data-active')) {
+            bubbleEl.setAttribute('data-active', '1');
+        }
+        
+        // Listen for preference changes
+        mediaQueryWarning.addEventListener('change', (e) => {
+            isReducedMotion = e.matches;
+        });
+        
+        // Start the engine
+        if (rafId) cancelAnimationFrame(rafId);
+        // Run immediately to set initial state
+        tick();
+    }
+    
+    function tick() {
+        rafId = requestAnimationFrame(tick);
+        if (!scrollerEl) return;
+        
+        // HYBRID SYNC:
+        // On mobile, scrollerEl has overflow: auto and we read .scrollTop
+        // On desktop, scrollerEl is just a wrapper and we read window.scrollY
+        const scrollY = isMobileMode ? scrollerEl.scrollTop : window.scrollY;
+        const viewportH = isMobileMode ? (scrollerEl.clientHeight || window.innerHeight) : window.innerHeight;
+        
+        // Optimize: If reduced motion, just do simple class switching
+        if (isReducedMotion) {
+            handleReducedMotion(scrollY, viewportH);
+            return;
+        }
+        
+        const totalHeight = document.documentElement.scrollHeight - viewportH;
+        
+        // VIGNETTE: Intensity based on movement speed or position?
+        // For continuous feel, maybe just keep it subtle or link to "between" states
+        // Strategy: Vignette opacity peaks when we are between sections (e.g. x.5)
+        const globalProgress = scrollY / viewportH;
+        const decimalPart = Math.abs(globalProgress % 1);
+        const transitionIntensity = 1 - (2 * Math.abs(decimalPart - 0.5)); // 0 at integer, 1 at 0.5
+        // Smoother curve
+        const vignetteOpacity = Math.sin(decimalPart * Math.PI);
+        
+        if (bubbleEl) {
+             // Use CSS variable or style for vignette if we want dynamic update
+             // The CSS ::before uses opacity transition, but we can override if needed
+             // For now, let's toggle a class if we are "moving" significantly?
+             // actually, exact analog control of vignette might be too heavy.
+             // Let's stick to the class-based trigger if moving fast, or just mapped to position.
+             
+             // Simple approach: Map opacity to how "far" we are from a snap point
+             bubbleEl.style.setProperty('--vignette-opacity', vignetteOpacity.toFixed(2));
+        }
+        
+        // UPDATE SECTIONS
+        sections.forEach((section, index) => {
+             // Section index is 0..5
+             // Section 'perfect' position is index * viewportH
+             const centerY = index * viewportH;
+             const dist = scrollY - centerY;
+             const normDist = dist / viewportH; // 0 = centered, 1 = one screen away (up), -1 = one screen away (down)
+             
+             // OPTIMIZATION: If far off screen, hide completely
+             if (Math.abs(normDist) > 1.2) {
+                 section.style.opacity = '0';
+                 section.style.visibility = 'hidden';
+                 return;
+             }
+             
+             section.style.visibility = 'visible';
+             
+             // 1. OPACITY
+             // Peak at 0, fade out to +/- 0.6
+             // Curve: Cosine bell or simple linear?
+             // Let's use a bell curve for smooth "passing through"
+             // 1 at 0, 0 at 0.7
+             let opacity = 1 - Math.pow(Math.abs(normDist) / 0.65, 2);
+             opacity = Math.max(0, Math.min(1, opacity));
+             
+             // 2. BLUR
+             // 0 at center, max 20px at edges
+             const blurVal = Math.abs(normDist) * 20;
+             
+             // 3. SCALE & DEPTH (Z)
+             // When normDist > 0 (scrolled past it, it goes up/recedes): Scale down, Z down
+             // When normDist < 0 (approaching it from bottom): Scale up slightly (coming from front), Z up
+             
+             let scale = 1;
+             let translateZ = 0;
+             let translateY = 0;
+             
+             if (normDist > 0) {
+                 // RECEDING (going to background)
+                 // Scale: 1 -> 0.85
+                 scale = 1 - (normDist * 0.15);
+                 // Z: 0 -> -100px
+                 translateZ = -(normDist * 100);
+                 // Y: slight parallax?
+                 translateY = -(normDist * 20); // Move up slightly faster?
+             } else {
+                 // APPROACHING (coming from foreground)
+                 // Scale: 1.05 -> 1
+                 scale = 1 + (Math.abs(normDist) * 0.05);
+                 // Z: 50 -> 0
+                 translateZ = Math.abs(normDist) * 50;
+                 // Y: 
+                 translateY = -(normDist * 20);
+             }
+             
+             // Apply styles
+             section.style.opacity = opacity.toFixed(3);
+             section.style.filter = `blur(${blurVal.toFixed(1)}px)`;
+             section.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, ${translateZ.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+             
+             // Staggered children? 
+             // We can apply a slight multiplier to children for parallax within the section
+             // But for performance, manipulating the parent is safest and smoothest.
+        });
+        
+        // Update bubble active attribute for any CSS reliance
+        const activeIdx = Math.round(scrollY / viewportH) + 1;
+        if (bubbleEl.getAttribute('data-active') !== String(activeIdx)) {
+            bubbleEl.setAttribute('data-active', String(activeIdx));
+        }
+    }
+    
+    function handleReducedMotion(scrollY, viewportH) {
+         sections.forEach((section, index) => {
+             const centerY = index * viewportH;
+             const dist = Math.abs(scrollY - centerY);
+             // Simple switching
+             if (dist < viewportH / 2) {
+                 section.classList.add('active-simple');
+                 section.style.opacity = ''; // Clear inline
+             } else {
+                 section.classList.remove('active-simple');
+                 section.style.opacity = '';
+             }
+             section.style.transform = '';
+             section.style.filter = '';
+         });
+    }
+
+    // Init
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLens);
+    } else {
+        initLens();
+    }
+    document.addEventListener('astro:page-load', initLens);
+    
+    // Cleanup on navigation
+    document.addEventListener('astro:before-swap', () => {
+        if (rafId) cancelAnimationFrame(rafId);
+    });
+    
+</script>

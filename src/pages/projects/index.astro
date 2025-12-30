@@ -1,0 +1,180 @@
+---
+import { getCollection } from 'astro:content';
+import CraftLayout from '../../components/craft/CraftLayout.astro';
+import ContentGrid from '../../components/craft/ContentGrid.astro';
+import MediaCard from '../../components/craft/MediaCard.astro';
+import GhostSearch from '../../components/craft/GhostSearch.astro';
+
+// Build-time data fetching (static generation)
+const projects = await getCollection('projects', ({ data }: any) => {
+	return data.draft !== true; // Only published content
+});
+
+// Sort by date, featured first
+const sortedProjects = projects.sort((a: any, b: any) => {
+	if (a.data.featured && !b.data.featured) return -1;
+	if (!a.data.featured && b.data.featured) return 1;
+	return new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime();
+});
+
+// Simple & robust sizing: Build sizes sequentially to avoid any adjacent duplicates
+const enhancedProjects: any[] = [];
+const allSizes = ['standard', 'short', 'tall', 'wide', 'hero'];
+
+for (let i = 0; i < sortedProjects.length; i++) {
+	const project = sortedProjects[i];
+	
+	// Get the previous card's actual size (if any)
+	const previousSize = enhancedProjects[i - 1]?.adaptiveSize || '';
+	
+	// Available sizes (exclude previous to prevent adjacent duplicates)
+	const availableSizes = previousSize ? allSizes.filter(size => size !== previousSize) : allSizes;
+	
+	let adaptiveSize: string;
+	
+	if (project.data.featured) {
+		// Featured cards prefer larger sizes but still get variety
+		const featuredSizes = availableSizes.filter(size => ['hero', 'tall', 'wide'].includes(size));
+		const finalSizes = featuredSizes.length > 0 ? featuredSizes : availableSizes;
+		
+		// Use featured cards count for deterministic but varied selection
+		const featuredCount = enhancedProjects.filter(p => p.data.featured).length;
+		adaptiveSize = finalSizes[featuredCount % finalSizes.length] || 'hero';
+	} else {
+		// Non-featured cards get full variety
+		const nonFeaturedCount = enhancedProjects.filter(p => !p.data.featured).length;
+		
+		// Use golden ratio and prime numbers for natural variation
+		const sizeIndex = Math.floor((nonFeaturedCount * 1.618 + nonFeaturedCount * 7) % availableSizes.length);
+		adaptiveSize = availableSizes[sizeIndex] || 'standard';
+	}
+	
+	// Add to enhanced array with assigned size
+	enhancedProjects.push({ ...project, adaptiveSize });
+}
+---
+
+<CraftLayout title="Prasathup - Projects" pageName="projects">
+	<!-- Header control panel with ghost search -->
+	<div slot="header" class="header-container">
+		<h1 class="craft-title">Projects</h1>
+		<p class="craft-subtitle">
+			Collection of projects that shaped my skills and journey. While this space mostly features some of my past professional projects at the moment, it will grow as I add passion driven personal projects and learnings.
+		</p>
+		
+		<!-- Ghost Search positioned relative to title -->
+		<GhostSearch searchType="projects" />
+	</div>
+
+		<!-- CSS-only masonry grid with projects theme -->
+	<ContentGrid columns={3} theme="projects">
+		{enhancedProjects.map((project: any, idx: number) => {
+			const palette = ['var(--rainbow-projects)','var(--rainbow-bio)','var(--rainbow-journey)','var(--rainbow-notes)','var(--rainbow-lab)'];
+			const prev = idx > 0 ? palette[(idx - 1) % palette.length] : '';
+			let color = palette[idx % palette.length];
+			if (color === prev) color = palette[(idx + 2) % palette.length];
+			return (
+				<MediaCard 
+					entry={project}
+					adaptiveSize={project.adaptiveSize}
+					class="craft-card"
+					titleColorVar={color}
+					priority={idx < 9}
+				/>
+			);
+		})}
+	</ContentGrid>
+
+	<!-- Empty state if no projects -->
+	{sortedProjects.length === 0 && (
+		<div class="empty-state glass-panel">
+			<h2>No projects found</h2>
+			<p>Check back soon for new content!</p>
+		</div>
+	)}
+</CraftLayout>
+
+<style>
+	/* Header container for relative positioning */
+	.header-container {
+		position: relative;
+	}
+
+	/* Header styling for scientific elegance with Ubuntu font */
+	.craft-title {
+		font-size: clamp(2rem, 5vw, 3.5rem);
+		font-weight: 500;
+		line-height: 1.2;
+		color: var(--text-primary, rgba(255, 255, 255, 0.9));
+		margin: 0 0 var(--space-sm, 0.5rem) 0;
+		font-family: 'Ubuntu', system-ui, sans-serif;
+		background: linear-gradient(135deg, 
+			rgba(45, 212, 191, 0.9), 
+			rgba(139, 92, 246, 0.8)
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	/* Light mode projects title - solid dark text (no gradient) */
+	html:not(.dark) .craft-title {
+		background: none !important;
+		-webkit-background-clip: unset !important;
+		-webkit-text-fill-color: #8B4A00 !important;
+		background-clip: unset !important;
+		color: #8B4A00 !important;
+	}
+
+	.craft-subtitle {
+		font-size: clamp(1rem, 2vw, 1.25rem);
+		line-height: 1.6;
+		color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+		margin: 0 0 var(--space-lg, 2rem) 0;
+		max-width: 2000px;
+		font-family: 'Ubuntu', system-ui, sans-serif;
+		font-weight: 300;
+	}
+
+	/* Light mode subtitle text */
+	html:not(.dark) .craft-subtitle {
+		color: rgba(0, 0, 0, 0.7) !important;
+	}
+
+	/* Empty state styling */
+	.empty-state {
+		padding: var(--space-2xl, 4rem);
+		text-align: center;
+		max-width: 400px;
+		margin: var(--space-2xl, 4rem) auto;
+	}
+
+	.empty-state h2 {
+		font-size: 1.5rem;
+		color: var(--text-primary, rgba(255, 255, 255, 0.9));
+		margin: 0 0 var(--space-md, 1rem) 0;
+	}
+
+	.empty-state p {
+		color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+		margin: 0;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.craft-title {
+			font-size: clamp(1.75rem, 8vw, 2.5rem);
+		}
+		
+		.craft-subtitle {
+			font-size: 1rem;
+		}
+	}
+
+	/* Focus management for accessibility */
+	.craft-controls:focus-within {
+		outline: 2px solid var(--text-accent, rgba(45, 212, 191, 0.9));
+		outline-offset: 4px;
+		border-radius: 8px;
+	}
+</style> 

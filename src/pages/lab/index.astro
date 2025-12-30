@@ -1,0 +1,383 @@
+---
+import { getCollection } from 'astro:content';
+import CraftLayout from '../../components/craft/CraftLayout.astro';
+import ContentGrid from '../../components/craft/ContentGrid.astro';
+import MediaCard from '../../components/craft/MediaCard.astro';
+import GhostSearch from '../../components/craft/GhostSearch.astro';
+
+// Build-time data fetching for lab content
+const labItems = await getCollection('lab', ({ data }: any) => {
+	return data.draft !== true; // Only published content
+});
+
+// Sort by date, featured first
+const sortedLabItems = labItems.sort((a: any, b: any) => {
+	if (a.data.featured && !b.data.featured) return -1;
+	if (!a.data.featured && b.data.featured) return 1;
+	return new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime();
+});
+
+// Enhanced lab items with adaptive sizing for 2-column layout
+const enhancedLabItems: any[] = [];
+// Add a special shallow rectangle variant: 'tile' (wide + short)
+const allSizes = ['standard', 'short', 'tall', 'wide', 'hero', 'tile'];
+
+for (let i = 0; i < sortedLabItems.length; i++) {
+	const labItem = sortedLabItems[i];
+	
+	// Get the previous card's actual size (if any)
+	const previousSize = enhancedLabItems[i - 1]?.adaptiveSize || '';
+	
+	// Available sizes (exclude previous to prevent adjacent duplicates)
+	const availableSizes = previousSize ? allSizes.filter(size => size !== previousSize) : allSizes;
+	
+	let adaptiveSize: string;
+	
+	if (labItem.data.featured) {
+		// Featured lab items prefer larger sizes
+		const featuredSizes = availableSizes.filter(size => ['tall', 'wide', 'tile'].includes(size));
+		const finalSizes = featuredSizes.length > 0 ? featuredSizes : availableSizes;
+		
+		const featuredCount = enhancedLabItems.filter(p => p.data.featured).length;
+		adaptiveSize = finalSizes[featuredCount % finalSizes.length] || 'hero';
+	} else {
+		// Regular lab items get balanced variety with some rectangulars
+		const regularCount = enhancedLabItems.filter(p => !p.data.featured).length;
+		
+		// Weighted choices to include 'tile' more often
+		const weighted = ['standard','short','tall','tile','tile','standard','short','tile'];
+		const pool = availableSizes.filter(s => weighted.includes(s));
+		const idx = Math.floor((regularCount * 1.618 + regularCount * 3) % pool.length);
+		adaptiveSize = pool[idx] || 'standard';
+
+		// Ensure every third regular card is a shallow rectangle tile
+		if (adaptiveSize !== 'tile' && (regularCount + 1) % 3 === 0) {
+			adaptiveSize = 'tile';
+		}
+	}
+	
+	// Add to enhanced array with assigned size
+	enhancedLabItems.push({ ...labItem, adaptiveSize });
+}
+---
+
+<CraftLayout title="Prasathup - Lab" pageName="lab">
+	<!-- Header control panel with ghost search -->
+	<div slot="header" class="header-container">
+		<h1 class="craft-title lab-title">Lab</h1>
+		<p class="craft-subtitle">
+			Here I post everything that didn't make into <a href="/projects">Projects</a>. The contents may be less polished. The learning journey where I failed, abandoned, or successful… and everything in between.
+		</p>
+		
+		<!-- Ghost Search positioned relative to title -->
+		<GhostSearch searchType="lab" />
+	</div>
+
+	<!-- Masonry grid with lab theme and 3-column layout -->
+    <ContentGrid columns={3} theme="lab">
+        {enhancedLabItems.map((labItem: any, idx: number) => {
+            // Rotate through rainbow colors to diversify adjacent titles in dark mode
+            const palette = ['var(--rainbow-bio)','var(--rainbow-projects)','var(--rainbow-journey)','var(--rainbow-notes)','var(--rainbow-lab)'];
+            // Choose based on index, but prevent same-as-previous
+            const prevColor = idx > 0 ? palette[(idx - 1) % palette.length] : '';
+            let color = palette[idx % palette.length];
+            if (color === prevColor) {
+                color = palette[(idx + 2) % palette.length];
+            }
+            return (
+                <MediaCard 
+                    entry={labItem}
+                    adaptiveSize={labItem.adaptiveSize}
+                    class="craft-card lab-card"
+                    animationDelay={`${idx * 150}ms`}
+                    titleColorVar={color}
+                    priority={idx < 9}
+                />
+            );
+        })}
+    </ContentGrid>
+
+	<!-- Empty state if no lab items -->
+	{sortedLabItems.length === 0 && (
+		<div class="empty-state glass-panel">
+			<h2>No lab equipment found</h2>
+			<p>Check back soon for new lab content!</p>
+		</div>
+	)}
+</CraftLayout>
+
+<style>
+	/* Header container for relative positioning */
+	.header-container {
+		position: relative;
+	}
+
+	/* Lab-specific title styling with equipment/research aesthetic */
+	.lab-title {
+		font-size: clamp(2rem, 5vw, 3.5rem);
+		font-weight: 500;
+		line-height: 1.2;
+		color: var(--text-primary, rgba(255, 255, 255, 0.9));
+		margin: 0 0 var(--space-sm, 0.5rem) 0;
+		font-family: 'Ubuntu', system-ui, sans-serif;
+		background: linear-gradient(135deg, 
+			rgba(139, 92, 246, 0.9),  /* Purple - neural networks */
+			rgba(251, 146, 60, 0.8)   /* Orange - energy/ATP */
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	/* Light mode lab title - solid dark text (no gradient) */
+	html:not(.dark) .lab-title {
+		background: none !important;
+		-webkit-background-clip: unset !important;
+		-webkit-text-fill-color: #8B1A5C !important;
+		background-clip: unset !important;
+		color: #8B1A5C !important;
+	}
+
+	.craft-subtitle {
+		font-size: clamp(1rem, 2vw, 1.25rem);
+		line-height: 1.6;
+		color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+		margin: 0 0 var(--space-lg, 2rem) 0;
+		max-width: 2000px;
+		font-family: 'Ubuntu', system-ui, sans-serif;
+		font-weight: 300;
+	}
+
+	.craft-subtitle a {
+		color: var(--rainbow-lab);
+		text-decoration: none;
+		text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+		transition: text-shadow 0.3s ease, color 0.3s ease;
+	}
+
+	.craft-subtitle a:hover {
+		color: var(--rainbow-projects);
+		text-shadow: 0 0 16px rgba(251, 146, 60, 0.7);
+	}
+
+	/* Light mode subtitle text */
+	html:not(.dark) .craft-subtitle {
+		color: rgba(0, 0, 0, 0.7) !important;
+	}
+
+	/* Empty state styling */
+	.empty-state {
+		padding: var(--space-2xl, 4rem);
+		text-align: center;
+		max-width: 400px;
+		margin: var(--space-2xl, 4rem) auto;
+	}
+
+	.empty-state h2 {
+		font-size: 1.5rem;
+		color: var(--text-primary, rgba(255, 255, 255, 0.9));
+		margin: 0 0 var(--space-md, 1rem) 0;
+	}
+
+	.empty-state p {
+		color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+		margin: 0;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.lab-title {
+			font-size: clamp(1.75rem, 8vw, 2.5rem);
+		}
+		
+		.craft-subtitle {
+			font-size: 1rem;
+		}
+	}
+
+	/* Focus management for accessibility */
+	.craft-controls:focus-within {
+		outline: 2px solid var(--text-accent, rgba(139, 92, 246, 0.9));
+		outline-offset: 4px;
+		border-radius: 8px;
+	}
+
+	.media-card {
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		opacity: 1;
+		transform: translateY(0);
+	}
+</style> 
+
+<script is:inline>
+document.addEventListener('DOMContentLoaded', () => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) return;
+  
+  // Safari-specific performance optimization
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const PERFORMANCE_MODE = isSafari; // Reduce animation complexity on Safari
+
+  const grid = document.querySelector('.craft-grid.theme-lab');
+  if (!grid) return;
+
+  // Matrix-like title character shuffle: viewport-only, low frequency
+  // Use Katakana + numerics for the effect.
+  const KATAKANA = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+  const DIGITS = '0123456789';
+  const CHARSET = KATAKANA + DIGITS;
+
+  const shuffleOnce = (el) => {
+    const original = el.__originalText ?? (el.textContent || '');
+    if (!el.__originalText) el.__originalText = original;
+    const length = original.length;
+    if (length === 0) return;
+    // Mutate 1 or 2 positions, independently and slightly staggered
+    const count = Math.random() < 0.7 ? 1 : 2;
+    const used = new Set();
+    for (let n = 0; n < count; n++) {
+      let idx = Math.floor(Math.random() * length);
+      // avoid spaces and duplicates
+      let guard = 0;
+      while ((original[idx] === ' ' || used.has(idx)) && guard++ < 10) {
+        idx = Math.floor(Math.random() * length);
+      }
+      used.add(idx);
+      const replaceDelay = Math.floor(250 + Math.random() * 50); // 250–300ms stagger
+      const restoreDelay = Math.floor(600 + Math.random() * 300); // 600–900ms visible
+      setTimeout(() => {
+        const current = el.textContent || original;
+        if (idx >= current.length) return; // safety
+        const arr = current.split('');
+        arr[idx] = CHARSET[Math.floor(Math.random() * CHARSET.length)];
+        el.textContent = arr.join('');
+        setTimeout(() => {
+          const cur2 = el.textContent || original;
+          if (idx >= cur2.length) return;
+          const arr2 = cur2.split('');
+          arr2[idx] = original[idx];
+          el.textContent = arr2.join('');
+        }, restoreDelay);
+      }, replaceDelay);
+    }
+  };
+
+  const schedule = (el) => {
+    const idleMs = 2500 + Math.random() * 2500; // 2.5–5s between shuffles
+    el.__shuffleTimeout && clearTimeout(el.__shuffleTimeout);
+    el.__shuffleTimeout = setTimeout(() => {
+      shuffleOnce(el);
+      schedule(el);
+    }, idleMs);
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const title = /** @type {HTMLElement & { __shuffleTimeout?: number, __originalText?: string }} */ (entry.target);
+      if (entry.isIntersecting) {
+        schedule(title);
+      } else {
+        title.__shuffleTimeout && clearTimeout(title.__shuffleTimeout);
+        title.__shuffleTimeout = undefined;
+        if (title.__originalText) title.textContent = title.__originalText;
+      }
+    }
+  }, { root: null, rootMargin: '0px', threshold: 0.7 });
+
+  const titles = grid.querySelectorAll('.card-link[data-collection="lab"] .card-title');
+  titles.forEach((el) => observer.observe(el));
+
+  // ------------------------------------------------------------
+  // Smooth floating motion for entire cards (non-overlapping)
+  // ------------------------------------------------------------
+  const cardEls = Array.from(grid.querySelectorAll('.card-link[data-collection="lab"]'));
+  if (cardEls.length > 0) {
+    const visible = new Set();
+    const states = new Map();
+
+    // Derive a safe amplitude from grid gap so cards never overlap
+    const gs = getComputedStyle(grid);
+    const parsePx = (v) => {
+      if (!v) return 20;
+      const n = parseFloat(v.split(' ')[0]);
+      return Number.isNaN(n) ? 20 : n;
+    };
+    const gap = parsePx(gs.gap || gs.rowGap || '20px');
+    const SAFE = Math.max(6, Math.min(12, Math.floor(gap / 2) - 2)); // 6..12 px, still non-overlapping
+
+    for (let i = 0; i < cardEls.length; i++) {
+      const el = /** @type {HTMLElement} */ (cardEls[i]);
+      
+      // Performance: Only set will-change when needed and use CSS containment
+      el.style.contain = 'layout style paint';
+      
+      states.set(el, {
+        ax: SAFE * (0.85 + Math.random() * 0.35),
+        ay: SAFE * (0.85 + Math.random() * 0.35),
+        // Slightly increased speed for better visual appeal
+        sx: PERFORMANCE_MODE ? 0.12 + Math.random() * 0.16 : 0.18 + Math.random() * 0.26,
+        sy: PERFORMANCE_MODE ? 0.10 + Math.random() * 0.14 : 0.16 + Math.random() * 0.22,
+        px: Math.random() * Math.PI * 2,
+        py: Math.random() * Math.PI * 2,
+      });
+    }
+
+    const ioCards = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const el = /** @type {HTMLElement} */ (entry.target);
+        if (entry.isIntersecting) {
+          visible.add(el);
+          // Set will-change only when visible and animating
+          el.style.willChange = 'transform';
+        } else {
+          visible.delete(el);
+          el.style.transform = '';
+          // Clean up will-change for better memory usage
+          el.style.willChange = 'auto';
+        }
+      }
+    }, { threshold: 0.05 });
+    cardEls.forEach(el => ioCards.observe(el));
+
+    // Soft limiter avoids hard clamping which can cause visible snapping at bounds
+    const softLimit = (v, limit) => limit * Math.tanh(v / limit);
+
+    // Optimized animation loop with reduced frequency for Safari
+    let last = performance.now();
+    let frameCount = 0;
+    const tick = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000);
+      last = now;
+      frameCount++;
+      
+      // Performance: Skip frames on Safari for smoother experience
+      if (PERFORMANCE_MODE && frameCount % 2 !== 0) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      
+      const t = now / 1000;
+      if (visible.size > 0) {
+        visible.forEach((el) => {
+          const s = states.get(el);
+          if (!s) return;
+          
+          // Simplified calculations for better performance
+          const dx = Math.sin(t * s.sx + s.px) * s.ax;
+          const dy = Math.cos(t * s.sy + s.py) * s.ay;
+          const tx = softLimit(dx, SAFE);
+          const ty = softLimit(dy, SAFE);
+          
+          // Reduced rotation calculation for performance
+          const rot = PERFORMANCE_MODE ? 0 : (tx + ty) * 0.008;
+          
+          // Use transform3d for better GPU acceleration
+          el.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)${rot ? ` rotate(${rot.toFixed(3)}deg)` : ''}`;
+        });
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+});
+</script>

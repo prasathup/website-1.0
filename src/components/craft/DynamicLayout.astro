@@ -1,0 +1,374 @@
+---
+// DynamicLayout component for switching between different layout variants
+import type { CollectionEntry } from 'astro:content';
+import CraftLayout from './CraftLayout.astro';
+import MemorySpheresLayout from '../layouts/MemorySpheresLayout.astro';
+
+export interface Props {
+  entry: CollectionEntry<'journey'>;
+  layoutVariant?: string;
+  layoutConfig?: any;
+}
+
+const { entry, layoutVariant = 'default' } = Astro.props;
+const { title, description, publishDate, tags } = entry.data;
+
+// Format the date for display
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+
+// Render the full markdown content
+const { Content } = await entry.render();
+---
+
+{layoutVariant === 'memory-spheres' || layoutVariant === 'floating-bubbles' ? (
+  <MemorySpheresLayout entry={entry}>
+    <Content />
+  </MemorySpheresLayout>
+) : (
+  <CraftLayout title={`${title} - Prasathup`} pageName="journey">
+    <!-- Journey header with consistent styling -->
+    <div slot="header" class="journey-header">
+      <nav class="breadcrumb">
+        <a href="/journey" data-breadcrumb-link>← Back to Journey</a>
+      </nav>
+      
+      <h1 class="craft-title">{title}</h1>
+      <p class="craft-subtitle" set:html={description}></p>
+      
+      <div class="journey-meta">
+        <time class="journey-date" datetime={publishDate.toISOString()}>
+          {formattedDate}
+        </time>
+        <div class="journey-tags">
+          {tags.map((tag: string) => (
+            <span class="tag-pill">{tag}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered modular content layout -->
+    <div class="content-container">
+      <div class="content-flow">
+        <Content />
+      </div>
+    </div>
+  </CraftLayout>
+)}
+
+<style is:global>
+  /* Header styling matches main journey page exactly */
+  .journey-header {
+    position: relative;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 0.25rem auto;
+  }
+
+  .breadcrumb {
+    margin-bottom: var(--space-lg);
+  }
+
+  .breadcrumb a {
+    color: var(--rainbow-journey);
+    text-decoration: none;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    transition: all 0.3s ease;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: rgba(220, 140, 90, 0.1);
+    border: 1px solid rgba(220, 140, 90, 0.2);
+  }
+
+  .breadcrumb a:hover {
+    background: rgba(220, 140, 90, 0.2);
+    transform: translateX(-4px);
+  }
+
+  html:not(.dark) .breadcrumb a {
+    color: #A0440C;
+    background: rgba(160, 68, 12, 0.1);
+    border-color: rgba(160, 68, 12, 0.2);
+  }
+
+  html:not(.dark) .breadcrumb a:hover {
+    background: rgba(160, 68, 12, 0.2);
+  }
+
+  /* Harmonized title/subtitle styling */
+  .craft-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm, 0.5rem) 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    background: linear-gradient(135deg,
+      var(--rainbow-projects),
+      var(--rainbow-lab),
+      var(--rainbow-notes)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  html:not(.dark) .craft-title {
+    background: linear-gradient(135deg, #8B4A00, #8B1A5C, #4A1A8B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+  }
+
+  .craft-subtitle {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    line-height: 1.75;
+    color: var(--rainbow-bio);
+    margin: 0 auto var(--space-lg, 2rem) auto;
+    max-width: 800px;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    font-weight: 300;
+  }
+
+  html:not(.dark) .craft-subtitle {
+    color: #8B1A42;
+  }
+
+  .journey-meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-lg);
+  }
+
+  .journey-date {
+    color: var(--rainbow-journey);
+    font-size: 1rem;
+    font-weight: 400;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.4rem 1rem;
+    background: rgba(220, 140, 90, 0.1);
+    border-radius: 2rem;
+    border: 1px solid rgba(220, 140, 90, 0.2);
+  }
+
+  html:not(.dark) .journey-date {
+    color: #A0440C;
+    background: rgba(160, 68, 12, 0.1);
+    border-color: rgba(160, 68, 12, 0.2);
+  }
+
+  .journey-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Content container and flow styling */
+  .content-container {
+    max-width: 1200px;
+    margin: var(--space-xl) auto 0 auto; /* Reduce gap between header and first section */
+    padding: var(--space-lg) var(--space-md);
+    position: relative;
+  }
+
+  .content-flow {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    align-items: center;
+    position: relative;
+  }
+
+  /* Remove all list styling and bullet points */
+  .content-flow ul,
+  .content-flow ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .content-flow li {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Content Sections - Card-style containers */
+  .content-section {
+    border-radius: 20px;
+    position: relative;
+    padding: var(--space-lg) var(--space-xl);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    border: none !important;
+    box-sizing: border-box;
+    contain: layout style;
+    display: block;
+  }
+
+  /* Dark mode content sections */
+  .content-section {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode content sections */
+  html:not(.dark) .content-section {
+    background: rgba(248, 245, 239, 0.95) !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .content-section:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  html:not(.dark) .content-section:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Typography for content sections */
+  .content-section h2 {
+    font-size: clamp(2rem, 4.5vw, 2.8rem);
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(220, 140, 90, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.2;
+    text-align: center;
+    padding-bottom: 0.75rem;
+    position: relative;
+  }
+
+  /* Subtle shadow underline for H2 headers */
+  .content-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(220, 140, 90, 0.3) 20%, 
+      rgba(220, 140, 90, 0.6) 50%, 
+      rgba(220, 140, 90, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(220, 140, 90, 0.2);
+  }
+
+  html:not(.dark) .content-section h2 {
+    color: #A0440C;
+  }
+
+  html:not(.dark) .content-section h2::after {
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(160, 68, 12, 0.3) 20%, 
+      rgba(160, 68, 12, 0.6) 50%, 
+      rgba(160, 68, 12, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(160, 68, 12, 0.2);
+  }
+
+  .content-section h3 {
+    font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+    font-weight: 500;
+    margin: 2rem 0 1rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(230, 90, 160, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .content-section h3:first-of-type {
+    margin-top: 0;
+  }
+
+  html:not(.dark) .content-section h3 {
+    color: #8B1A5C;
+  }
+
+  .content-section p {
+    line-height: 1.95;
+    font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    margin: 0 0 1rem 0;
+    color: rgba(155, 101, 230, 0.8);
+    transition: color 0.2s ease;
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  .content-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  html:not(.dark) .content-section p {
+    color: #4A1A8B;
+  }
+
+  .content-section ul,
+  .content-section ol {
+    color: rgba(155, 101, 230, 0.8);
+    margin: var(--space-md) 0;
+    padding-left: var(--space-lg);
+  }
+
+  html:not(.dark) .content-section ul,
+  html:not(.dark) .content-section ol {
+    color: #4A1A8B;
+  }
+
+  .content-section li {
+    margin-bottom: var(--space-sm);
+    line-height: 1.8;
+    font-size: clamp(1.15rem, 1.8vw, 1.3rem);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .journey-header {
+      padding: 0 var(--space-md);
+    }
+
+    .journey-meta {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .content-container {
+      padding: var(--space-md) var(--space-sm, 1rem); /* Give phone view a bit more width */
+    }
+
+    .content-flow {
+      gap: var(--space-lg);
+    }
+  }
+</style>

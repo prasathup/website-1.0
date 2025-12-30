@@ -1,0 +1,781 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import CraftLayout from '../../components/craft/CraftLayout.astro';
+
+// Generate static paths for all lab items at build time
+import { Image } from 'astro:assets';
+export async function getStaticPaths() {
+  const labItems = await getCollection('lab', ({ data }: any) => {
+    return data.draft !== true; // Only published lab items
+  });
+
+  // Return empty array if no lab items exist
+  if (labItems.length === 0) {
+    return [];
+  }
+
+  return labItems.map((labItem: any) => ({
+    params: { slug: labItem.slug },
+    props: { labItem },
+  }));
+}
+
+// Get the lab item data from props
+const { labItem }: { labItem: CollectionEntry<'lab'> } = Astro.props;
+const { title, description, publishDate, tags, media, mediaGallery, additionalMedia, layoutConfig } = labItem.data;
+
+// Format the date for display
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+
+// Render the full markdown content
+const { Content } = await labItem.render();
+
+// Combine primary media with gallery for manual placement control
+const allMedia: any[] = [];
+if (media?.src || media?.publicUrl) allMedia.push({ ...media, caption: media.alt !== undefined ? media.alt : title, __originalIndex: -1 });
+if (mediaGallery || additionalMedia) {
+  const galleryItems = additionalMedia || mediaGallery || [];
+  galleryItems.forEach((m: any, idx: number) => allMedia.push({ ...m, caption: m.caption || m.alt || '', __originalIndex: idx }));
+}
+const positionedMedia = allMedia.slice().sort((a: any, b: any) => {
+  const ap = typeof a.position === 'number' ? a.position : Number.POSITIVE_INFINITY;
+  const bp = typeof b.position === 'number' ? b.position : Number.POSITIVE_INFINITY;
+  if (ap !== bp) return ap - bp;
+  return (a.__originalIndex ?? 0) - (b.__originalIndex ?? 0);
+});
+---
+
+<CraftLayout title={`${title} - Prasathup`} pageName="lab">
+  <!-- Lab header with consistent styling -->
+  <div slot="header" class="lab-header">
+    <nav class="breadcrumb">
+      <a href="/lab" data-breadcrumb-link>← Back to Lab</a>
+    </nav>
+    
+    <h1 class="craft-title">{title}</h1>
+    <p class="craft-subtitle" set:html={description}></p>
+    
+    <div class="lab-meta">
+      <time class="lab-date" datetime={publishDate.toISOString()}>
+        {formattedDate}
+      </time>
+      <div class="lab-tags">
+        {tags.map((tag: string) => (
+          <span class="tag-pill">{tag}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden media source for strategic placement -->
+  <div id="media-gallery-source" style="display: none;">
+    {positionedMedia.map((item, index) => (
+      <div class="media-card" data-media-index={index} data-media-type={item.type} data-media-position={typeof item.position === 'number' ? item.position : undefined} data-insert-after-h2={item.insertAfterH2} data-insert-before-h2={item.insertBeforeH2} data-insert-after-h3={item.insertAfterH3} data-insert-before-h3={item.insertBeforeH3} data-insert-at={item.insertAt}>
+        <div class={`media-container ${item.cssClass || ''}`} style={item.type === 'video' && item.aspectRatio ? `aspect-ratio: ${item.aspectRatio};` : undefined}>
+          {item.type === 'image' && (
+            (typeof item.src === 'object') ? (
+              <Image 
+                src={item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-image"
+                loading="lazy"
+                quality="mid"
+              />
+            ) : (
+              <img 
+                src={item.publicUrl || item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-image"
+                loading="lazy"
+              />
+            )
+          )}
+          {item.type === 'video' && (
+            <video 
+              src={item.publicUrl || item.src}
+              poster={item.poster}
+              class="media-video"
+              controls
+              preload="metadata"
+            />
+          )}
+          {item.type === 'gif' && (
+            (typeof item.src === 'object') ? (
+               <Image 
+                src={item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-gif"
+                loading="lazy"
+              />
+            ) : (
+               <img 
+                src={item.publicUrl || item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-gif"
+                loading="lazy"
+              />
+            )
+          )}
+        </div>
+        {item.caption && (
+          <div class="media-caption">
+            <p>{item.caption}</p>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+
+  {layoutConfig?.mediaLayout === 'gallery' ? (
+    <div class="content-container">
+      <div class="content-flow">
+        <Content />
+        <section class={layoutConfig?.galleryStyle === 'collage' ? 'media-collage-grid' : 'media-gallery-grid'} style={`--gallery-columns: ${layoutConfig?.galleryColumns || 3};`}>
+          {positionedMedia.map((item, index) => (
+            <figure class={`media-card ${layoutConfig?.galleryStyle === 'collage' ? 'collage-item' : ''}`} data-media-index={index} data-media-type={item.type}>
+              <div class={`media-container ${item.cssClass || ''}`} style={item.type === 'video' && item.aspectRatio ? `aspect-ratio: ${item.aspectRatio};` : undefined}> 
+                {item.type === 'image' && (
+                  (typeof item.src === 'object') ? <Image src={item.src} alt={item.alt || `${title} media ${index + 1}`} class="media-image" loading="lazy" quality="mid" /> : <img src={item.publicUrl || item.src} alt={item.alt || `${title} media ${index + 1}`} class="media-image" loading="lazy" />
+                )}
+                {item.type === 'video' && <video src={item.publicUrl || item.src} poster={item.poster} class="media-video" controls preload="metadata" />}
+                {item.type === 'gif' && (
+                   (typeof item.src === 'object') ? <Image src={item.src} alt={item.alt || `${title} media ${index + 1}`} class="media-gif" loading="lazy" /> : <img src={item.publicUrl || item.src} alt={item.alt || `${title} media ${index + 1}`} class="media-gif" loading="lazy" />
+                )}
+              </div>
+              {item.caption && <figcaption class="media-caption"><p>{item.caption}</p></figcaption>}
+            </figure>
+          ))}
+        </section>
+      </div>
+    </div>
+  ) : (
+    <div class="content-container">
+      <div class="content-flow">
+        <Content />
+      </div>
+    </div>
+  )}
+
+</CraftLayout>
+
+<style is:global>
+  /* Header styling matches main lab page exactly */
+  .lab-header {
+    position: relative;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 0.25rem auto;
+  }
+
+  .breadcrumb {
+    margin-bottom: var(--space-lg);
+  }
+
+  .breadcrumb a {
+    color: var(--rainbow-lab);
+    text-decoration: none;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    transition: all 0.3s ease;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: rgba(180, 90, 200, 0.1);
+    border: 1px solid rgba(180, 90, 200, 0.2);
+  }
+
+  .breadcrumb a:hover {
+    background: rgba(180, 90, 200, 0.2);
+    transform: translateX(-4px);
+  }
+
+  html:not(.dark) .breadcrumb a {
+    color: #7A2D8F;
+    background: rgba(122, 45, 143, 0.1);
+    border-color: rgba(122, 45, 143, 0.2);
+  }
+
+  html:not(.dark) .breadcrumb a:hover {
+    background: rgba(122, 45, 143, 0.2);
+  }
+
+  /* Harmonized title/subtitle styling (same as notes/projects) */
+  .craft-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm, 0.5rem) 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    background: linear-gradient(135deg,
+      var(--rainbow-projects),
+      var(--rainbow-lab),
+      var(--rainbow-notes)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  html:not(.dark) .craft-title {
+    background: linear-gradient(135deg, #8B4A00, #8B1A5C, #4A1A8B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+  }
+
+  .craft-subtitle {
+    font-size: clamp(1.28rem, 2.2vw, 1.55rem);
+    line-height: 2.0;
+    color: var(--rainbow-bio);
+    margin: 0 auto var(--space-lg, 2rem) auto;
+    max-width: 800px;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    font-weight: 300;
+  }
+
+  html:not(.dark) .craft-subtitle {
+    color: #8B1A42;
+  }
+
+  .lab-meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-lg);
+  }
+
+  .lab-date {
+    color: var(--rainbow-lab);
+    font-size: 1rem;
+    font-weight: 400;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.4rem 1rem;
+    background: rgba(180, 90, 200, 0.1);
+    border-radius: 2rem;
+    border: 1px solid rgba(180, 90, 200, 0.2);
+  }
+
+  html:not(.dark) .lab-date {
+    color: #7A2D8F;
+    background: rgba(122, 45, 143, 0.1);
+    border-color: rgba(122, 45, 143, 0.2);
+  }
+
+  .lab-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Tag pills fully inherit styling and animations from global.css */
+
+  /* Content container and flow styling */
+  .content-container {
+    max-width: 1200px;
+    margin: var(--space-xl) auto 0 auto; /* Bring body closer to header */
+    padding: var(--space-lg) var(--space-md);
+    position: relative;
+  }
+
+  .content-flow {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    align-items: center;
+    position: relative;
+  }
+
+  /* Remove all list styling and bullet points */
+  .content-flow ul,
+  .content-flow ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .content-flow li {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Content Sections - Card-style containers */
+  .content-section {
+    border-radius: 20px;
+    position: relative;
+    padding: var(--space-lg) var(--space-xl);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    border: none !important;
+    box-sizing: border-box;
+    contain: layout style;
+    display: block;
+  }
+
+  /* Dark mode content sections */
+  .content-section {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode content sections */
+  html:not(.dark) .content-section {
+    background: rgba(248, 245, 239, 0.95) !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Removed entrance animation to avoid flash */
+
+  /* Removed hover effects for content sections */
+  .content-section:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  html:not(.dark) .content-section:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Typography for content sections */
+  .content-section h2 {
+    font-size: clamp(2rem, 4.5vw, 2.8rem);
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(180, 90, 200, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.2;
+    text-align: center;
+    padding-bottom: 0.75rem;
+    position: relative;
+  }
+
+  /* Subtle shadow underline for H2 headers */
+  .content-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(180, 90, 200, 0.3) 20%, 
+      rgba(180, 90, 200, 0.6) 50%, 
+      rgba(180, 90, 200, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(180, 90, 200, 0.2);
+  }
+
+  html:not(.dark) .content-section h2 {
+    color: #7A2D8F;
+  }
+
+  html:not(.dark) .content-section h2::after {
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(122, 45, 143, 0.3) 20%, 
+      rgba(122, 45, 143, 0.6) 50%, 
+      rgba(122, 45, 143, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(122, 45, 143, 0.2);
+  }
+
+  .content-section h3 {
+    font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+    font-weight: 500;
+    margin: 2rem 0 1rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    color: rgba(230, 90, 160, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .content-section h3:first-of-type {
+    margin-top: 0;
+  }
+
+  html:not(.dark) .content-section h3 {
+    color: #8B1A5C;
+  }
+
+  .content-section p {
+    line-height: 2.0;
+    font-size: clamp(1.28rem, 2.2vw, 1.55rem);
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    margin: 0 0 1rem 0;
+    color: rgba(155, 101, 230, 0.8);
+    transition: color 0.2s ease;
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  .content-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  html:not(.dark) .content-section p {
+    color: #4A1A8B;
+  }
+
+  .content-section ul,
+  .content-section ol {
+    color: rgba(155, 101, 230, 0.8);
+    margin: var(--space-md) 0;
+    padding-left: var(--space-lg);
+  }
+
+  html:not(.dark) .content-section ul,
+  html:not(.dark) .content-section ol {
+    color: #4A1A8B;
+  }
+
+  .content-section li {
+    margin-bottom: var(--space-sm);
+    line-height: 1.85;
+    font-size: clamp(1.18rem, 1.9vw, 1.35rem);
+  }
+
+  /* Media card styling */
+  .media-card {
+    border-radius: 16px;
+    padding: var(--space-md);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 0 auto;
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 600px;
+    width: 100%;
+    border: none !important;
+    box-sizing: border-box;
+    contain: layout style;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Override for gallery mode - reset to block for grid items */
+  .media-gallery-grid .media-card,
+  .media-collage-grid .media-card {
+    display: block !important;
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Dark mode media cards */
+  .media-card {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode media cards */
+  html:not(.dark) .media-card {
+    background: rgba(248, 245, 239, 0.9) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .media-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  html:not(.dark) .media-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .media-container {
+    border-radius: 12px;
+    overflow: hidden;
+    background: transparent;
+    border: none;
+    width: 100%;
+  }
+
+  /* Clean media display - container handles rounded edges */
+  .media-image,
+  .media-gif {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .media-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #000;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .media-caption {
+    padding: var(--space-md);
+    background: var(--surface-elevated);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .media-caption p {
+    margin: 0;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 1.1rem;
+  }
+
+  .media-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--gallery-columns, 3), minmax(0, 1fr));
+    gap: var(--space-lg);
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .media-collage-grid {
+    display: grid;
+    grid-auto-flow: dense;
+    grid-template-columns: repeat(var(--gallery-columns, 3), minmax(0, 1fr));
+    gap: var(--space-md);
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .media-collage-grid .collage-item:nth-child(12n+1) { grid-column: span 2; grid-row: span 2; }
+  .media-collage-grid .collage-item:nth-child(12n+4) { grid-column: span 1; grid-row: span 2; }
+  .media-collage-grid .collage-item:nth-child(12n+7) { grid-column: span 2; grid-row: span 1; }
+  .media-collage-grid .collage-item:nth-child(12n+10){ grid-column: span 1; grid-row: span 1; }
+  .media-collage-grid .collage-item[data-media-type="video"] { grid-row: span 1 !important; }
+  .media-collage-grid .media-container { width: 100%; height: auto; }
+
+
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .lab-header {
+      padding: 0 var(--space-md);
+    }
+
+    .lab-meta {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .content-container {
+      padding: var(--space-md) var(--space-sm, 1rem); /* Slightly wider cards on phones */
+    }
+    
+    .content-section,
+    .media-card {
+      max-width: 100% !important;
+      /* Mobile-optimized padding */
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    .content-flow {
+      gap: var(--space-lg);
+    }
+
+    /* Mobile typography adjustments to match other pages */
+    .content-section h2 {
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+    }
+
+    .content-section h2::after {
+      width: 80%;
+    }
+    
+    .content-section h3 {
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      margin: 1.5rem 0 0.75rem 0;
+    }
+    
+    .content-section h3:first-of-type {
+      margin-top: 0;
+    }
+    
+    /* Header subtitle - match content paragraph sizing */
+    .craft-subtitle {
+      font-size: clamp(1.18rem, 4.5vw, 1.4rem);
+      line-height: 1.9;
+    }
+    
+    .content-section p {
+      margin: 0 0 1rem 0;
+      font-size: clamp(1.18rem, 4.5vw, 1.4rem);
+      line-height: 1.9;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+
+    .content-section li {
+      font-size: clamp(1.12rem, 4.2vw, 1.32rem);
+      line-height: 1.85;
+      margin-bottom: 0.6rem;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+  }
+
+  /* Small mobile devices (iPhone SE, etc) */
+  @media (max-width: 390px) {
+    .content-container {
+      padding: var(--space-sm) 0.75rem;
+    }
+
+    .content-section,
+    .media-card {
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .craft-subtitle {
+      font-size: 1.15rem;
+      line-height: 1.85;
+    }
+
+    .content-section p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+    }
+
+    .content-section li {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+  }
+</style>
+
+<script>
+  function normalizeHeading(text: string | null | undefined): string { return (text || '').trim().toLowerCase(); }
+
+  function setupContentSections() {
+    const container = document.querySelector('.content-container') as HTMLElement | null;
+    const contentFlow = (container ? (container.querySelector('.content-flow') as HTMLElement | null) : null);
+    const mediaSource = document.getElementById('media-gallery-source');
+    if (!contentFlow || !mediaSource) return;
+
+    const prevVisibility = (contentFlow as HTMLElement).style.visibility;
+    (contentFlow as HTMLElement).style.visibility = 'hidden';
+
+    const mediaElements = Array.from(mediaSource.children) as HTMLElement[];
+    const contentNodes = Array.from((contentFlow as HTMLElement).children);
+    const sections = [] as HTMLElement[];
+    let currentSection: HTMLElement | null = null;
+
+    contentNodes.forEach((node: any) => {
+      if (node.tagName === 'H2') {
+        if (currentSection) sections.push(currentSection);
+        currentSection = document.createElement('div');
+        currentSection.className = 'content-section';
+        currentSection.appendChild(node.cloneNode(true));
+      } else if (currentSection && (node.tagName === 'H3' || node.tagName === 'P' || node.tagName === 'UL' || node.tagName === 'OL')) {
+        currentSection.appendChild(node.cloneNode(true));
+      } else if (!currentSection && (node.tagName === 'H3' || node.tagName === 'P' || node.tagName === 'UL' || node.tagName === 'OL')) {
+        const standalone = document.createElement('div');
+        standalone.className = 'content-section';
+        standalone.appendChild(node.cloneNode(true));
+        sections.push(standalone);
+      }
+    });
+    if (currentSection) sections.push(currentSection);
+
+    const headingToIndex: Record<string, number> = {};
+    sections.forEach((sec, idx) => {
+      const h2 = sec.querySelector('h2');
+      if (h2) headingToIndex[normalizeHeading(h2.textContent || '')] = idx;
+    });
+
+    const insertBefore: Record<number, HTMLElement[]> = {};
+    const insertAfter: Record<number, HTMLElement[]> = {};
+    const insertInsideTop: Record<number, HTMLElement[]> = {};
+    const insertInsideBottom: Record<number, HTMLElement[]> = {};
+    const fallbackQueue: HTMLElement[] = [];
+
+    function pushBucket(map: Record<number, HTMLElement[]>, idx: number, el: HTMLElement) {
+      if (!map[idx]) map[idx] = [];
+      map[idx].push(el);
+    }
+
+    mediaElements.forEach((el) => {
+      const posAttr = el.getAttribute('data-media-position');
+      const afterH2 = el.getAttribute('data-insert-after-h2');
+      const beforeH2 = el.getAttribute('data-insert-before-h2');
+      const insertAt = (el.getAttribute('data-insert-at') || '').toLowerCase();
+
+      if (afterH2) {
+        const idx = headingToIndex[normalizeHeading(afterH2)];
+        if (typeof idx === 'number') {
+          if (insertAt === 'inside-top') pushBucket(insertInsideTop, idx, el as HTMLElement);
+          else if (insertAt === 'inside-bottom') pushBucket(insertInsideBottom, idx, el as HTMLElement);
+          else pushBucket(insertAfter, idx, el as HTMLElement);
+          return;
+        }
+      }
+      if (beforeH2) {
+        const idx = headingToIndex[normalizeHeading(beforeH2)];
+        if (typeof idx === 'number') { pushBucket(insertBefore, idx, el as HTMLElement); return; }
+      }
+      if (posAttr) {
+        const pos = parseInt(posAttr, 10);
+        if (!Number.isNaN(pos)) { const target = Math.min(Math.max(pos - 1, 0), sections.length - 1); pushBucket(insertAfter, target, el as HTMLElement); return; }
+      }
+      fallbackQueue.push(el as HTMLElement);
+    });
+
+    const frag = document.createDocumentFragment();
+    let fallbackIndex = 0;
+    sections.forEach((section, index) => {
+      (insertBefore[index] || []).forEach((el) => { const c = el.cloneNode(true) as HTMLElement; c.style.animationDelay = `${index * 150}ms`; frag.appendChild(c); });
+      (insertInsideTop[index] || []).forEach((el) => { const c = el.cloneNode(true) as HTMLElement; const h2 = section.querySelector('h2'); if (h2) section.insertBefore(c, h2.nextSibling); else section.insertBefore(c, section.firstChild); });
+      section.style.animationDelay = `${index * 150}ms`;
+      frag.appendChild(section);
+      (insertInsideBottom[index] || []).forEach((el) => { const c = el.cloneNode(true) as HTMLElement; section.appendChild(c); });
+      (insertAfter[index] || []).forEach((el) => { const c = el.cloneNode(true) as HTMLElement; c.style.animationDelay = `${(index + 1) * 150}ms`; frag.appendChild(c); });
+      if (fallbackIndex < fallbackQueue.length && (index + 1) % 2 === 0) { const e = fallbackQueue[fallbackIndex++]; const c = (e ? e.cloneNode(true) : document.createElement('div')) as HTMLElement; c.style.animationDelay = `${(index + 1) * 150}ms`; frag.appendChild(c); }
+    });
+    while (fallbackIndex < fallbackQueue.length) { const e = fallbackQueue[fallbackIndex++]; const c = (e ? e.cloneNode(true) : document.createElement('div')) as HTMLElement; c.style.animationDelay = `${(sections.length + fallbackIndex) * 150}ms`; frag.appendChild(c); }
+
+    (contentFlow as HTMLElement).replaceChildren(); // Safe replacement for innerHTML = ''
+    (contentFlow as HTMLElement).appendChild(frag);
+    (contentFlow as HTMLElement).style.visibility = prevVisibility || '';
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupContentSections, { once: true });
+  } else {
+    setupContentSections();
+  }
+  document.addEventListener('astro:page-load', setupContentSections);
+</script>

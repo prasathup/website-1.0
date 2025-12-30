@@ -1,0 +1,955 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import CraftLayout from '../../components/craft/CraftLayout.astro';
+
+// Generate static paths for all projects at build time
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }: any) => {
+    return data.draft !== true; // Only published projects
+  });
+
+  return projects.map((project: any) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+// Get the project data from props
+const { project }: { project: CollectionEntry<'projects'> } = Astro.props;
+const { title, description, publishDate, tags, media, mediaGallery, additionalMedia, layoutConfig } = project.data;
+
+// Format the date for display
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+
+// Render the full markdown content
+const { Content } = await project.render();
+
+// Combine primary media with gallery for manual placement control
+// - Captions fallback to alt or title
+// - Sort by optional position; items without position keep original order after those with positions
+const allMedia: any[] = [];
+if (media?.src || media?.publicUrl) {
+  allMedia.push({ ...media, caption: media.alt !== undefined ? media.alt : title, __originalIndex: -1 });
+}
+if (mediaGallery || additionalMedia) {
+  const galleryItems = additionalMedia || mediaGallery || [];
+  galleryItems.forEach((m: any, idx: number) => allMedia.push({ ...m, caption: m.caption || m.alt || '', __originalIndex: idx }));
+}
+
+const positionedMedia = allMedia
+  .slice()
+  .sort((a: any, b: any) => {
+    const ap = typeof a.position === 'number' ? a.position : Number.POSITIVE_INFINITY;
+    const bp = typeof b.position === 'number' ? b.position : Number.POSITIVE_INFINITY;
+    if (ap !== bp) return ap - bp;
+    return (a.__originalIndex ?? 0) - (b.__originalIndex ?? 0);
+  });
+---
+
+<CraftLayout title={`${title} - Prasathup`} pageName="projects">
+  
+  <!-- Project header with consistent styling -->
+  <div slot="header" class="project-header">
+    <nav class="breadcrumb">
+      <a href="/projects" data-breadcrumb-link>← Back to Projects</a>
+    </nav>
+    
+    <h1 class="craft-title">{title}</h1>
+    <p class="craft-subtitle" set:html={description}></p>
+    
+    <div class="project-meta">
+      <time class="project-date" datetime={publishDate.toISOString()}>
+        {formattedDate}
+      </time>
+      <div class="project-tags">
+        {tags.map((tag: string) => (
+          <span class="tag-pill">{tag}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden media source for strategic placement -->
+  <div id="media-gallery-source" style="display: none;">
+    {positionedMedia.map((item, index) => (
+      <div class="media-card" data-media-index={index} data-media-type={item.type} data-media-position={typeof item.position === 'number' ? item.position : undefined} data-insert-after-h2={item.insertAfterH2} data-insert-before-h2={item.insertBeforeH2} data-insert-after-h3={item.insertAfterH3} data-insert-before-h3={item.insertBeforeH3} data-insert-at={item.insertAt}>
+        <div class={`media-container ${item.cssClass || ''}`} style={item.type === 'video' && item.aspectRatio ? `aspect-ratio: ${item.aspectRatio};` : undefined}>
+          {item.type === 'image' && (
+            (typeof item.src === 'object') ? ( 
+              <Image 
+                src={item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-image"
+                quality="max"
+              />
+            ) : ( 
+              <img 
+                src={item.publicUrl || item.src} 
+                alt={item.alt || `${title} media ${index + 1}`}
+                class="media-image"
+                loading="lazy"
+              />
+            )
+          )}
+          {item.type === 'video' && (
+            <video 
+              src={item.publicUrl || item.src}
+              poster={item.poster}
+              class="media-video"
+              controls
+              preload="metadata"
+            />
+          )}
+          {item.type === 'gif' && (
+            <img 
+              src={item.src} 
+              alt={item.alt || `${title} media ${index + 1}`}
+              class="media-gif"
+              loading="lazy"
+            />
+          )}
+        </div>
+        {item.caption && (
+          <div class="media-caption">
+            <p>{item.caption}</p>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+
+  <!-- Content rendering: inline (interleaved/positioned) or gallery mode -->
+  {layoutConfig?.mediaLayout === 'gallery' ? (
+    <div class="content-container">
+      <div class="content-flow">
+        <Content />
+        <section class={layoutConfig?.galleryStyle === 'collage' ? 'media-collage-grid' : 'media-gallery-grid'} style={`--gallery-columns: ${layoutConfig?.galleryColumns || 3};`}>
+          {positionedMedia.map((item, index) => (
+            <figure class={`media-card ${layoutConfig?.galleryStyle === 'collage' ? 'collage-item' : ''}`} data-media-index={index} data-media-type={item.type}>
+              <div class={`media-container ${item.cssClass || ''}`} style={item.type === 'video' && item.aspectRatio ? `aspect-ratio: ${item.aspectRatio};` : undefined}>
+                {item.type === 'image' && (
+                  typeof item.src === 'object' ? (
+                    <Image 
+                      src={item.src} 
+                      alt={item.alt || `${title} media ${index + 1}`}
+                      class="media-image"
+                      loading="eager"
+                      quality="max"
+                    />
+                  ) : (
+                    <img 
+                      src={item.src} 
+                      alt={item.alt || `${title} media ${index + 1}`}
+                      class="media-image"
+                      loading="eager"
+                    />
+                  )
+                )}
+                {item.type === 'video' && (
+                  <video src={item.src} poster={item.poster} class="media-video" controls preload="metadata" />
+                )}
+                {item.type === 'gif' && (
+                  <img src={item.src} alt={item.alt || `${title} media ${index + 1}`} class="media-gif" loading="lazy" />
+                )}
+              </div>
+              {item.caption && <figcaption class="media-caption"><p>{item.caption}</p></figcaption>}
+            </figure>
+          ))}
+        </section>
+      </div>
+    </div>
+  ) : (
+    <div class="content-container">
+      <div class="content-flow">
+        <Content />
+      </div>
+    </div>
+  )}
+
+</CraftLayout>
+
+<style is:global>
+  /* Header styling matches main projects page exactly */
+  .project-header {
+    position: relative;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 0.25rem auto;
+  }
+
+  .breadcrumb {
+    margin-bottom: var(--space-lg);
+  }
+
+  .breadcrumb a {
+    color: var(--rainbow-journey);
+    text-decoration: none;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    transition: all 0.3s ease;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: rgba(90, 160, 230, 0.1);
+    border: 1px solid rgba(90, 160, 230, 0.2);
+  }
+
+  .breadcrumb a:hover {
+    background: rgba(90, 160, 230, 0.2);
+    transform: translateX(-4px);
+  }
+
+  html:not(.dark) .breadcrumb a {
+    color: #1A5C8B;
+    background: rgba(26, 92, 139, 0.1);
+    border-color: rgba(26, 92, 139, 0.2);
+  }
+
+  html:not(.dark) .breadcrumb a:hover {
+    background: rgba(26, 92, 139, 0.2);
+  }
+
+  .craft-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm, 0.5rem) 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    background: linear-gradient(135deg, 
+      var(--rainbow-projects), 
+      var(--rainbow-lab),
+      var(--rainbow-notes)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  html:not(.dark) .craft-title {
+    background: linear-gradient(135deg, #8B4A00, #8B1A5C, #4A1A8B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+  }
+
+  .craft-subtitle {
+    font-size: clamp(1.28rem, 2.2vw, 1.55rem);
+    line-height: 2.0;
+    color: var(--rainbow-bio);
+    margin: 0 auto var(--space-lg, 2rem) auto;
+    max-width: 800px;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    font-weight: 300;
+  }
+
+  html:not(.dark) .craft-subtitle {
+    color: #8B1A42;
+  }
+
+  /* Subtle link styling moved to global.css */
+
+  .project-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg, 2rem);
+    flex-wrap: wrap;
+    margin-top: var(--space-md, 1rem);
+  }
+  
+  .project-date {
+    color: var(--rainbow-journey);
+    font-size: 1rem;
+    font-weight: 400;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.4rem 1rem;
+    background: rgba(90, 160, 230, 0.1);
+    border-radius: 2rem;
+    border: 1px solid rgba(90, 160, 230, 0.2);
+  }
+
+  html:not(.dark) .project-date {
+    color: #1A5C8B;
+    background: rgba(26, 92, 139, 0.1);
+    border-color: rgba(26, 92, 139, 0.2);
+  }
+
+  .project-tags {
+    display: flex;
+    gap: var(--space-xs, 0.5rem);
+    flex-wrap: wrap;
+  }
+
+  /* Tag pills fully inherit styling and animations from global.css */
+
+  /* Content Container - Centered Layout matching Overview Page */
+  .content-container {
+    max-width: 1200px;
+    margin: var(--space-xl) auto 0 auto; /* Tighter gap below header */
+    padding: var(--space-lg) var(--space-md);
+    position: relative;
+    /* Prevent layout shift during theme transitions */
+    will-change: auto;
+  }
+
+  .content-flow {
+    display: flex;
+    flex-direction: column;
+    /* Better spacing between content sections */
+    gap: var(--space-lg);
+    align-items: center;
+    position: relative;
+  }
+
+  /* Remove all list styling and bullet points */
+  .content-flow ul,
+  .content-flow ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .content-flow li {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Content Sections - Logical content grouping for better readability */
+  .content-section {
+    /* Optimized styling for content sections */
+    border-radius: 20px;
+    position: relative;
+    /* Comfortable padding for content sections */
+    padding: var(--space-lg) var(--space-xl);
+    /* Hover transitions only */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Stable first paint */
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    /* NO BORDERS in any mode for clean look */
+    border: none !important;
+    /* Prevent box model issues during theme transitions */
+    box-sizing: border-box;
+    contain: layout style;
+    /* Natural content flow */
+    display: block;
+  }
+
+  /* Dark mode content sections - washed out colors, no borders */
+  .content-section {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode content sections - enhanced for readability */
+  html:not(.dark) .content-section {
+    background: rgba(248, 245, 239, 0.95) !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Removed entrance slide/fade to avoid flash on first paint */
+
+  /* Removed hover effects for content sections */
+  .content-section:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  html:not(.dark) .content-section:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Media card styling */
+  .media-card {
+    border-radius: 16px;
+    padding: var(--space-md);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 0 auto;
+    opacity: 1;
+    transform: translateY(0);
+    max-width: 600px;
+    width: 100%;
+    border: none !important;
+    box-sizing: border-box;
+    contain: layout style;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Override for gallery mode - reset to block for grid items */
+  .media-gallery-grid .media-card,
+  .media-collage-grid .media-card {
+    display: block;
+    max-width: none;
+    margin: 0;
+    width: 100%;
+  }
+
+  /* Dark mode media cards - washed out */
+  .media-card {
+    background: rgba(22, 24, 33, 0.4) !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Light mode media cards */
+  html:not(.dark) .media-card {
+    background: rgba(248, 245, 239, 0.9) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .media-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  html:not(.dark) .media-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Typography for content sections - natural reading flow */
+  .content-section h2 {
+    font-size: clamp(2rem, 4.5vw, 2.8rem);
+    font-weight: 600;
+    /* Section heading spacing */
+    margin: 0 0 1.5rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    /* Washed out amber for dark mode */
+    color: rgba(230, 177, 80, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.2;
+    text-align: center;
+    /* Make section headers stand out with subtle shadow underline */
+    padding-bottom: 0.75rem;
+    position: relative;
+  }
+
+  /* Subtle shadow underline for H2 headers */
+  .content-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(230, 177, 80, 0.3) 20%, 
+      rgba(230, 177, 80, 0.6) 50%, 
+      rgba(230, 177, 80, 0.3) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(230, 177, 80, 0.2);
+  }
+
+  .content-section h3 {
+    font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+    font-weight: 500;
+    /* Subheading spacing within sections */
+    margin: 2rem 0 1rem 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    /* Washed out pink for dark mode */
+    color: rgba(230, 90, 160, 0.9);
+    transition: color 0.2s ease;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  /* First h3 in section - reduced top margin */
+  .content-section h3:first-of-type {
+    margin-top: 0;
+  }
+
+  .content-section p {
+    line-height: 2.0;
+    font-size: clamp(1.28rem, 2.2vw, 1.55rem);
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    /* Better paragraph spacing */
+    margin: 0 0 1rem 0;
+    /* Washed out lavender for dark mode */
+    color: rgba(155, 101, 230, 0.8);
+    transition: color 0.2s ease;
+    /* Justified text for better readability */
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  /* Content link styling moved to global.css */
+
+  /* Soft highlight for emphasized phrases (marker band) */
+  /* Highlight styling moved to global.css */
+
+  /* Remove last paragraph margin */
+  .content-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  .content-section li {
+    line-height: 1.85;
+    font-size: clamp(1.18rem, 1.9vw, 1.35rem);
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    /* Standard list spacing */
+    margin-bottom: var(--space-sm);
+    padding-left: 1rem;
+    position: relative;
+    /* Washed out rose for dark mode */
+    color: rgba(230, 101, 133, 0.8);
+    transition: color 0.2s ease;
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  /* Lists container with proper spacing */
+  .content-section ul,
+  .content-section ol {
+    margin: 1rem 0 1.5rem 0;
+    padding-left: 0;
+  }
+
+  /* Remove margin from last list */
+  .content-section ul:last-child,
+  .content-section ol:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Custom list indicators using washed out journey color */
+  .content-section li::before {
+    content: '◦';
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    /* Washed out sky blue for dark mode */
+    color: rgba(90, 160, 230, 0.8);
+    transition: color 0.2s ease;
+  }
+
+  /* Light mode colors - enhanced readability */
+  html:not(.dark) .content-section h2 { 
+    color: #8B4A00;
+  }
+
+  /* Light mode subtle underline */
+  html:not(.dark) .content-section h2::after {
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(139, 74, 0, 0.4) 20%, 
+      rgba(139, 74, 0, 0.7) 50%, 
+      rgba(139, 74, 0, 0.4) 80%, 
+      transparent 100%
+    );
+    box-shadow: 0 1px 3px rgba(139, 74, 0, 0.25);
+  }
+  html:not(.dark) .content-section h3 { 
+    color: #8B1A5C; 
+  }
+  html:not(.dark) .content-section p { 
+    color: #4A1A8B; 
+  }
+  html:not(.dark) .content-section li { 
+    color: #8B1A42; 
+  }
+  html:not(.dark) .content-section li::before { 
+    color: #1A5C8B; 
+  }
+
+  /* Media caption styling - snug and centered */
+  .media-caption {
+    /* Snug spacing around captions */
+    padding: var(--space-sm) 0 0 0;
+  }
+
+  .media-caption p {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin: 0;
+    font-style: italic;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    text-align: center;
+    /* Washed out sky blue for dark mode */
+    color: rgba(90, 160, 230, 0.8);
+    transition: color 0.2s ease;
+  }
+
+  html:not(.dark) .media-caption p { 
+    color: #1A5C8B; 
+  }
+
+  /* Media styling - clean and simple */
+  .media-container {
+    border-radius: 12px;
+    overflow: hidden;
+    background: transparent;
+    border: none;
+    width: 100%;
+  }
+
+  /* Simple gallery grid */
+  .media-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--gallery-columns, 3), minmax(0, 1fr));
+    gap: var(--space-lg);
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* Collage grid */
+  .media-collage-grid {
+    display: grid;
+    grid-auto-flow: dense;
+    grid-template-columns: repeat(var(--gallery-columns, 3), minmax(0, 1fr));
+    gap: var(--space-md);
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  /* Heuristics for collage spans based on index; adapts to any count */
+  .media-collage-grid .collage-item:nth-child(12n+1) { grid-column: span 2; grid-row: span 2; }
+  .media-collage-grid .collage-item:nth-child(12n+4) { grid-column: span 1; grid-row: span 2; }
+  .media-collage-grid .collage-item:nth-child(12n+7) { grid-column: span 2; grid-row: span 1; }
+  .media-collage-grid .collage-item:nth-child(12n+10){ grid-column: span 1; grid-row: span 1; }
+  /* Make videos avoid awkward tall spans */
+  .media-collage-grid .collage-item[data-media-type="video"] { grid-row: span 1 !important; }
+  /* Ensure aspect ratio boxes fill spans nicely */
+  .media-collage-grid .media-container { width: 100%; height: auto; }
+
+  /* Clean media display - container handles rounded edges */
+  .media-image,
+  .media-gif {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .media-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #000; /* mimic player background */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  /* Responsive design - optimized for mobile reading */
+  @media (max-width: 768px) {
+    .content-container {
+      padding: var(--space-md) var(--space-sm, 1rem); /* More reading width on phones */
+    }
+    
+    .content-section,
+    .media-card {
+      max-width: 100% !important;
+      /* Mobile-optimized padding */
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    .content-flow {
+      /* Better mobile spacing */
+      gap: var(--space-lg);
+    }
+
+    /* Mobile typography adjustments */
+    .content-section h2 {
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Adjust underline for mobile */
+    .content-section h2::after {
+      width: 80%;
+    }
+    
+    .content-section h3 {
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      margin: 1.5rem 0 0.75rem 0;
+    }
+    
+    .content-section h3:first-of-type {
+      margin-top: 0;
+    }
+    
+    /* Header subtitle - match content paragraph sizing */
+    .craft-subtitle {
+      font-size: clamp(1.18rem, 4.5vw, 1.4rem);
+      line-height: 1.9;
+    }
+    
+    .content-section p {
+      margin: 0 0 1rem 0;
+      font-size: clamp(1.18rem, 4.5vw, 1.4rem);
+      line-height: 1.9;
+      /* Keep justification on mobile for consistency */
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+
+    .content-section li {
+      font-size: clamp(1.12rem, 4.2vw, 1.32rem);
+      line-height: 1.85;
+      margin-bottom: 0.6rem;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+  }
+
+  /* Small mobile devices (iPhone SE, etc) */
+  @media (max-width: 390px) {
+    .content-container {
+      padding: var(--space-sm) 0.75rem;
+    }
+
+    .content-section,
+    .media-card {
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .craft-subtitle {
+      font-size: 1.15rem;
+      line-height: 1.85;
+    }
+
+    .content-section p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+    }
+
+    .content-section li {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+  }
+
+  /* Background enhancement removed for edge-to-edge layout */
+  .content-container::before {
+    display: none;
+  }
+
+  /* Copy exact working transitions from Layout.astro */
+  /*
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.2s;
+      animation-timing-function: ease-out;
+      animation-fill-mode: both;
+    }
+    ::view-transition-old(root) {
+      animation-name: simple-fade-out;
+    }
+    ::view-transition-new(root) {
+      animation-name: simple-fade-in;
+    }
+  }
+  @keyframes simple-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  @keyframes simple-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  */
+</style>
+
+<script>
+  function normalizeHeading(text: string | null | undefined): string {
+    return (text || '').trim().toLowerCase();
+  }
+
+  function setupContentSections() {
+    const container = document.querySelector('.content-container') as HTMLElement | null;
+    const contentFlow = (container ? (container.querySelector('.content-flow') as HTMLElement | null) : null);
+    const mediaSource = document.getElementById('media-gallery-source');
+    if (!contentFlow || !mediaSource) return;
+
+    // Hide during construction to avoid mid-frame flashes
+    const prevVisibility = (contentFlow as HTMLElement).style.visibility;
+    (contentFlow as HTMLElement).style.visibility = 'hidden';
+
+    // Collect media and content
+    const mediaElements = Array.from(mediaSource.children) as HTMLElement[];
+    const contentNodes = Array.from((contentFlow as HTMLElement).children);
+    const sections = [] as HTMLElement[];
+    let currentSection: HTMLElement | null = null;
+
+    contentNodes.forEach((node: any) => {
+      if (node.tagName === 'H2') {
+        if (currentSection) sections.push(currentSection);
+        currentSection = document.createElement('div');
+        currentSection.className = 'content-section';
+        currentSection.appendChild(node.cloneNode(true));
+      } else if (currentSection && (node.tagName === 'H3' || node.tagName === 'P' || node.tagName === 'UL' || node.tagName === 'OL')) {
+        currentSection.appendChild(node.cloneNode(true));
+      } else if (!currentSection && (node.tagName === 'H3' || node.tagName === 'P' || node.tagName === 'UL' || node.tagName === 'OL')) {
+        const standalone = document.createElement('div');
+        standalone.className = 'content-section';
+        standalone.appendChild(node.cloneNode(true));
+        sections.push(standalone);
+      }
+    });
+    if (currentSection) sections.push(currentSection);
+
+    // Index H2 headings
+    const headingToIndex: Record<string, number> = {};
+    const subheadingToIndices: Record<string, number[]> = {};
+    sections.forEach((sec, idx) => {
+      const h2 = sec.querySelector('h2');
+      if (h2) headingToIndex[normalizeHeading(h2.textContent || '')] = idx;
+      const h3s = Array.from(sec.querySelectorAll('h3'));
+      h3s.forEach((h3) => {
+        const key = normalizeHeading(h3.textContent || '');
+        if (!subheadingToIndices[key]) subheadingToIndices[key] = [];
+        subheadingToIndices[key].push(idx);
+      });
+    });
+
+    // Prepare insertion buckets
+    const insertBefore: Record<number, HTMLElement[]> = {};
+    const insertAfter: Record<number, HTMLElement[]> = {};
+    const insertInsideTop: Record<number, HTMLElement[]> = {};
+    const insertInsideBottom: Record<number, HTMLElement[]> = {};
+    const fallbackQueue: HTMLElement[] = [];
+
+    function pushBucket(map: Record<number, HTMLElement[]>, idx: number, el: HTMLElement) {
+      if (!map[idx]) map[idx] = [];
+      map[idx].push(el);
+    }
+
+    mediaElements.forEach((el) => {
+      const posAttr = el.getAttribute('data-media-position');
+      const afterH2 = el.getAttribute('data-insert-after-h2');
+      const beforeH2 = el.getAttribute('data-insert-before-h2');
+      const afterH3 = el.getAttribute('data-insert-after-h3');
+      const beforeH3 = el.getAttribute('data-insert-before-h3');
+      const insertAt = (el.getAttribute('data-insert-at') || '').toLowerCase();
+
+      if (afterH2) {
+        const idx = headingToIndex[normalizeHeading(afterH2)];
+        if (typeof idx === 'number') {
+          if (insertAt === 'inside-top') pushBucket(insertInsideTop, idx, el as HTMLElement);
+          else if (insertAt === 'inside-bottom') pushBucket(insertInsideBottom, idx, el as HTMLElement);
+          else pushBucket(insertAfter, idx, el as HTMLElement);
+          return;
+        }
+      }
+      if (afterH3) {
+        const indices = subheadingToIndices[normalizeHeading(afterH3)] || [];
+        if (indices.length > 0) { const i = indices[0] as number; pushBucket(insertAfter, i, el as HTMLElement); return; }
+      }
+      if (beforeH2) {
+        const idx = headingToIndex[normalizeHeading(beforeH2)];
+        if (typeof idx === 'number') { pushBucket(insertBefore, idx, el as HTMLElement); return; }
+      }
+      if (beforeH3) {
+        const indices = subheadingToIndices[normalizeHeading(beforeH3)] || [];
+        if (indices.length > 0) { const i = indices[0] as number; pushBucket(insertBefore, i, el as HTMLElement); return; }
+      }
+      if (posAttr) {
+        const pos = parseInt(posAttr, 10);
+        if (!Number.isNaN(pos)) {
+          const target = Math.min(Math.max(pos - 1, 0), sections.length - 1);
+          pushBucket(insertAfter, target, el as HTMLElement);
+          return;
+        }
+      }
+      fallbackQueue.push(el as HTMLElement);
+    });
+
+    // Build off-DOM
+    const frag = document.createDocumentFragment();
+    let fallbackIndex = 0;
+    sections.forEach((section, index) => {
+      // Before section
+      (insertBefore[index] || []).forEach((el) => {
+        const clone = el.cloneNode(true) as HTMLElement;
+        clone.style.animationDelay = `${index * 150}ms`;
+        frag.appendChild(clone);
+      });
+
+      // Inside-top
+      (insertInsideTop[index] || []).forEach((el) => {
+        const clone = el.cloneNode(true) as HTMLElement;
+        const h2 = section.querySelector('h2');
+        if (h2) {
+          const ref = h2.nextSibling as Node | null;
+          section.insertBefore(clone, ref);
+        } else {
+          section.insertBefore(clone, section.firstChild);
+        }
+      });
+
+      section.style.animationDelay = `${index * 150}ms`;
+      frag.appendChild(section);
+
+      // Inside-bottom
+      (insertInsideBottom[index] || []).forEach((el) => {
+        const clone = el.cloneNode(true) as HTMLElement;
+        section.appendChild(clone);
+      });
+
+      // After section explicit
+      (insertAfter[index] || []).forEach((el) => {
+        const clone = el.cloneNode(true) as HTMLElement;
+        clone.style.animationDelay = `${(index + 1) * 150}ms`;
+        frag.appendChild(clone);
+      });
+
+      // Fallback every 2 sections
+      if (fallbackIndex < fallbackQueue.length && (index + 1) % 2 === 0) {
+      const el = fallbackQueue[fallbackIndex++];
+      const clone = (el ? el.cloneNode(true) : document.createElement('div')) as HTMLElement;
+        clone.style.animationDelay = `${(index + 1) * 150}ms`;
+        frag.appendChild(clone);
+      }
+    });
+
+    // Append any remaining fallback
+    while (fallbackIndex < fallbackQueue.length) {
+    const el = fallbackQueue[fallbackIndex++];
+    const clone = (el ? el.cloneNode(true) : document.createElement('div')) as HTMLElement;
+      clone.style.animationDelay = `${(sections.length + fallbackIndex) * 150}ms`;
+      frag.appendChild(clone);
+    }
+
+    // Swap content in one operation
+    (contentFlow as HTMLElement).replaceChildren(); // Safe replacement for innerHTML = ''
+    (contentFlow as HTMLElement).appendChild(frag);
+    // Reveal
+    (contentFlow as HTMLElement).style.visibility = prevVisibility || '';
+  }
+
+  // Run on both hard loads and client navigations
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupContentSections, { once: true });
+  } else {
+    setupContentSections();
+  }
+  document.addEventListener('astro:page-load', setupContentSections);
+</script>

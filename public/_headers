@@ -1,0 +1,60 @@
+# Cloudflare Pages Custom HTTP Headers
+# These headers are applied at the CDN level for enhanced security
+
+# Though all of them are not neccssary for a personal website, it is included as a part of learning exercise.
+
+# Reference: https://developers.cloudflare.com/pages/configuration/headers/
+
+# Default security headers for all pages
+/*
+  # Prevent clickjacking attacks
+  X-Frame-Options: DENY
+  
+  # Prevent MIME type sniffing
+  X-Content-Type-Options: nosniff
+  
+  # Additional XSS protection (legacy but still useful)
+  X-XSS-Protection: 1; mode=block
+  
+  # Control referrer information
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Restrict browser features to prevent privacy/security issues
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()
+  
+  # Force HTTPS and enable HSTS preload
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # Content Security Policy (reinforcing the one in Layout.astro)
+  # Note: This works together with meta CSP - CDN level is preferred
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+
+# Aggressive caching for hashed static assets (Astro automatically adds hashes)
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Long-term caching for media files (images, videos)
+/media/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Long-term caching for SVG files
+/HeartStopperSVG/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Shorter cache for root HTML files (allow updates)
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# No cache for robots.txt (may change for SEO)
+/robots.txt
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Force no-cache for favicon files to prevent Google/YouTube aggressive caching
+# This ensures crawlers always fetch the latest icon instead of cached versions
+/icon-v2025-01*.png
+  Cache-Control: public, max-age=0, must-revalidate, no-cache
+/icon-v2025-01*.ico
+  Cache-Control: public, max-age=0, must-revalidate, no-cache
+/site.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate, no-cache
+

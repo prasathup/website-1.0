@@ -1,0 +1,891 @@
+---
+// Import global styles for Tailwind
+import '../styles/global.css'; 
+// Import the Menu component
+import Menu from '../components/Menu.astro';
+// Import the ClientRouter component (ViewTransitions was renamed in Astro 5.0)
+// Removed ClientRouter to avoid SPA overhead; use native navigation
+// Import BackgroundImages component
+import BackgroundImages from "../components/BackgroundImages.astro";
+// Import Footer component - REMOVED
+// import Footer from "../components/Footer.astro";
+
+export interface Props {
+	title: string;
+	description?: string;
+	pageName?: string;
+	hideMenu?: boolean;
+}
+
+const { title, description = "A personal website ", pageName = "index", hideMenu: propHideMenu } = Astro.props;
+// Avoid SSR cookie access to keep pages fully prerenderable; client applies theme
+const initialHtmlClass = '';
+
+// Normalize trailing slash to match prod (main branch behavior)
+function normalizePath(path: string) {
+	if (path !== "/" && path.endsWith("/")) return path.slice(0, -1);
+	return path;
+}
+
+function getActiveMenuIndex(path: string) {
+	const p = normalizePath(path);
+	switch (p) {
+		case "/": return 0;
+		case "/projects": return 1;
+		case "/journey": return 2;
+		case "/notes": return 3;
+		case "/lab": return 4;
+		// Handle 404 and other pages by returning -1 (no active menu item)
+		case "/404": return -1;
+		case "/bio": return -1;
+		case "/maintenance": return -1;
+		default: return -1;
+	}
+}
+
+
+
+const activeMenuIndex = getActiveMenuIndex(Astro.url.pathname);
+
+// Get path for menu display logic and theme control
+const path = Astro.url.pathname;
+const isHomePage = path === '/';
+const isBioPage = path === '/bio';
+const showBackgroundArt = isHomePage || isBioPage;
+const hideMenu = propHideMenu ?? isBioPage; // Use prop if provided, else default to bio page logic
+
+// Note: Development mode can be checked with import.meta.env.DEV if needed
+// Fix canonicalURL construction by ensuring the base URL is valid
+const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : null;
+---
+<!doctype html>
+<html lang="en" class={initialHtmlClass}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		
+		<!-- iOS Safari Status Bar: Single dynamic meta (no media query) - blocking script sets initial value -->
+		<meta name="theme-color" content="#fbf4e8" id="theme-color-meta">
+		<!-- Status bar style: black-translucent (never 'default' - forces white background) -->
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="status-bar-style-meta">
+		
+		<!-- Blocking style: Set shim color before paint (runs during HTML parsing) -->
+		<style is:inline>
+			#status-bar-shim { background-color: #fbf4e8; }
+			@media (prefers-color-scheme: dark) {
+				#status-bar-shim { background-color: #0b0d14; }
+			}
+		</style>
+		
+		<!-- Update meta tag synchronously in head to prevent white status bar flash -->
+		<script is:inline>
+			(function() {
+				try {
+					// Inline utilities for blocking script (runs before main script)
+					// SYNC: Matches global.css --current-bg-light and --current-bg-dark
+					var THEME_COLORS = { light: '#fbf4e8', dark: '#0b0d14' };
+					function getThemePreference() {
+						var saved = localStorage.getItem('theme');
+						if (saved === 'dark') return true;
+						if (saved !== 'light') {
+							return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+						}
+						return false;
+					}
+					function updateMetaTagSafari(metaId, content) {
+						var meta = document.getElementById(metaId);
+						if (!meta) return;
+						meta.setAttribute('content', content);
+						var clone = meta.cloneNode(true);
+						clone.setAttribute('content', content);
+						meta.parentNode.replaceChild(clone, meta);
+					}
+					
+					var isDark = getThemePreference();
+					var color = isDark ? THEME_COLORS.dark : THEME_COLORS.light;
+					// CRITICAL: Safari reads meta during navigation - must set before paint
+					updateMetaTagSafari('theme-color-meta', color);
+					updateMetaTagSafari('status-bar-style-meta', 'black-translucent');
+				} catch(e) {}
+			})();
+		</script>
+		
+		<!-- Prevent search engines from indexing this site -->
+		<meta name="robots" content="noindex, nofollow" />
+		<meta name="description" content={description || "Prasathup - personal website"} />
+		<meta name="keywords" content="cell biology, personal website" />
+		<meta name="author" content="Prasathup" />
+		
+		
+		<!-- Canonical URL for SEO -->
+		{canonicalURL && <link rel="canonical" href={canonicalURL} />}
+		
+		<!-- Open Graph meta tags for social media link previews (Perplexity, etc.) -->
+		<!-- Even with noindex, these help platforms show correct icons in link previews -->
+		{canonicalURL && (
+			<>
+				<meta property="og:url" content={canonicalURL.toString()} />
+				<meta property="og:type" content="website" />
+				<meta property="og:title" content={title} />
+				<meta property="og:description" content={description || "A personal website"} />
+				<meta property="og:image" content={new URL("/Icon-PP-2-512x512.png?v=2025-01", canonicalURL).toString()} />
+				<meta property="og:image:width" content="512" />
+				<meta property="og:image:height" content="512" />
+				<meta property="og:image:type" content="image/png" />
+				<!-- Twitter Card tags for better Twitter/X previews -->
+				<meta name="twitter:card" content="summary" />
+				<meta name="twitter:title" content={title} />
+				<meta name="twitter:description" content={description || "A personal website"} />
+				<meta name="twitter:image" content={new URL("/Icon-PP-2-512x512.png?v=2025-01", canonicalURL).toString()} />
+			</>
+		)}
+		
+		<!-- Favicon set with versioned filenames and query params to force Google/YouTube cache refresh -->
+		<!-- Renamed files to break aggressive caching by search engines and social platforms -->
+		<link rel="icon" type="image/png" sizes="32x32" href="/Icon-PP-2-32x32.png?v=2025-01" />
+		<link rel="icon" type="image/png" sizes="192x192" href="/Icon-PP-2-192x192.png?v=2025-01" />
+		<link rel="icon" type="image/png" sizes="512x512" href="/Icon-PP-2-512x512.png?v=2025-01" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/Icon-PP-2-apple-180x180.png?v=2025-01" />
+		<link rel="shortcut icon" type="image/x-icon" href="/Icon-PP-2.ico?v=2025-01" />
+		<!-- Web manifest for better icon recognition by crawlers -->
+		<link rel="manifest" href="/site.webmanifest?v=2025-01" />
+		<!-- Unicode-range font loads with integrity checks - only load the characters we need for snappy performance -->
+		<link rel="preload" as="font" href="https://fonts.gstatic.com/s/ubuntu/v20/4iCv6KVjbNBYlgoC1CzTtw.woff2" type="font/woff2" crossorigin="anonymous" integrity="sha512-ATZvCRGCDtv1Y4gpDIXsS+wfFeFuLwVxyUBSLawjgXK2tRE6fnsQEkE4csQQYWlBlsFztRzCnBvWVfcae/1qxQ==">
+		<!-- Material Icons for menu with integrity check -->
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0">
+		
+		<title>{title}</title>
+		
+		<!-- Prevent theme flash: SSR sets initial class; sync cookie/localStorage on client -->
+		<script is:inline>
+		(function() {
+			// Shared utility functions - exposed on window for cross-script access
+			// Updated to match global.css variables exactly
+			var THEME_COLORS = { light: '#fbf4e8', dark: '#0b0d14' };
+			var PAGE_COLORS = {
+				'page-bio': { light: '#e0d8c5', dark: '#0d0f1c' },
+				'page-projects': { light: '#e6e0d0', dark: '#1f1e36' },
+				'page-journey': { light: '#dde4e6', dark: '#1a2530' },
+				'page-notes': { light: '#e6e0e6', dark: '#251a30' },
+				'page-lab': { light: '#e6dde0', dark: '#301a25' }
+			};
+			
+			function getThemePreference() {
+				var saved = localStorage.getItem('theme');
+				if (saved === 'dark') return true;
+				if (saved === 'light') return false;
+				return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			}
+			
+			// Safari workaround: tag replacement (not just attribute update)
+			function updateMetaTagSafari(metaId, content) {
+				var meta = document.getElementById(metaId);
+				if (!meta || !meta.parentNode) return; // Protected parentNode
+				meta.setAttribute('content', content);
+				var clone = meta.cloneNode(true);
+				clone.setAttribute('content', content);
+				meta.parentNode.replaceChild(clone, meta);
+			}
+			
+			function applyTheme(isDark) {
+				var html = document.documentElement;
+				var body = document.body;
+				if (!html || !body) return; // Added null check
+				html.classList.toggle('dark', isDark);
+				html.style.colorScheme = isDark ? 'dark' : 'light';
+				body.classList.toggle('dark-mode', isDark);
+				body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+			}
+
+			// Update iOS Safari status bar - handles both top and bottom safe areas
+			function updateThemeColorMeta(isDark) {
+				var shimTop = document.getElementById('status-bar-shim');
+				var shimBottom = document.getElementById('status-bar-shim-bottom');
+				var html = document.documentElement;
+				var body = document.body;
+				
+				var actualIsDark = html.classList.contains('dark');
+				if (isDark !== actualIsDark) isDark = actualIsDark;
+				
+				// Determine correct color based on page class
+				var color = isDark ? THEME_COLORS.dark : THEME_COLORS.light;
+				
+				// Check for page-specific override
+				for (var cls in PAGE_COLORS) {
+					if (body.classList.contains(cls)) {
+						color = isDark ? PAGE_COLORS[cls].dark : PAGE_COLORS[cls].light;
+						break;
+					}
+				}
+
+				// Priority: Theme color meta first (Safari reads during navigation)
+				updateMetaTagSafari('theme-color-meta', color);
+				
+				// Update shims if they exist
+				if (shimTop) shimTop.style.backgroundColor = color;
+				if (shimBottom) shimBottom.style.backgroundColor = color;
+				
+				// Status bar style: always black-translucent (never 'default')
+				updateMetaTagSafari('status-bar-style-meta', 'black-translucent');
+				
+				// Simple repaint nudge
+				requestAnimationFrame(function() {
+					void body.offsetHeight;
+				});
+			}
+			
+			// Expose utilities globally for cross-script access
+			window.updateThemeColorMeta = updateThemeColorMeta;
+			window.getThemePreference = getThemePreference;
+			window.updateMetaTagSafari = updateMetaTagSafari;
+			window.applyTheme = applyTheme;
+			window.THEME_COLORS = THEME_COLORS;
+			window.PAGE_COLORS = PAGE_COLORS;
+			
+			try {
+				var html = document.documentElement;
+				var initialDark = html.classList.contains('dark');
+				var useDark = getThemePreference();
+				// If no saved preference, check initial class state
+				if (!localStorage.getItem('theme') && initialDark) {
+					useDark = true;
+				}
+				
+				// Apply theme using shared function
+				applyTheme(useDark);
+				
+				// Set cookie for persistence
+				document.cookie = 'theme=' + (useDark ? 'dark' : 'light') + '; Path=/; SameSite=Lax; Max-Age=31536000';
+				// Update status bar immediately (setTimeout ensures body/shim exists)
+				setTimeout(function() {
+					updateThemeColorMeta(useDark);
+				}, 0);
+				
+				// Consolidated event listeners - unified handler for theme meta updates
+				// NOTE: Theme changes are handled by theme toggle button, not here
+				function handleThemeMetaUpdate(event) {
+					var isDarkNow = html.classList.contains('dark');
+					
+					if (event && event.type === 'pageshow') {
+						// bfcache navigation - force repaint
+						if (event.persisted || !document.hidden) {
+							updateThemeColorMeta(isDarkNow);
+							setTimeout(function() { updateThemeColorMeta(isDarkNow); }, 10);
+						}
+						return;
+					}
+					if (event && event.type === 'visibilitychange') {
+						if (!document.hidden) updateThemeColorMeta(isDarkNow);
+						return;
+					}
+					// Default: DOMContentLoaded, orientationchange, etc.
+					updateThemeColorMeta(isDarkNow);
+				}
+				
+				// Register event listeners - removed click listener to prevent status bar jumping
+				// Theme changes are handled by theme toggle button handler
+				document.addEventListener('DOMContentLoaded', handleThemeMetaUpdate);
+				window.addEventListener('pageshow', handleThemeMetaUpdate);
+				document.addEventListener('visibilitychange', handleThemeMetaUpdate);
+				window.addEventListener('orientationchange', handleThemeMetaUpdate);
+				// Touch device detection for mobile CSS
+				if (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+					document.body.classList.add('touch-device');
+				}
+				
+				// iOS device detection for strict CSS gating
+				// Prevents Chrome/Android from seeing iOS-specific shims
+				var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
+					(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+				if (isIOS) {
+					document.body.classList.add('ios-device');
+				}
+			} catch (_) {}
+		})();
+		</script>
+		
+		<!-- Enhanced content security headers for improved security -->
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+		<meta http-equiv="X-Content-Type-Options" content="nosniff">
+		<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+		<meta http-equiv="X-XSS-Protection" content="1; mode=block">
+		<meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+		
+		<!-- Native navigation: no client router -->
+	</head>
+	<body class={`text-[var(--text-primary)] font-ubuntu page-${pageName}`} data-page={pageName}>
+		{/* Physical shims to force safe-area colors - top (status bar) and bottom (home indicator) */}
+		{/* Removed hardcoded background-color to prevent flashes; handled by script/CSS */}
+		<div id="status-bar-shim"></div>
+		<div id="status-bar-shim-bottom"></div>
+		{/* Blur layer above menu for content scrolling into status bar area - outside isolated context */}
+		<div id="menu-status-bar-blur"></div>
+		<script is:inline>
+			// Update both shims and meta tag immediately after DOM parse
+			(function() {
+				try {
+					if (!window.THEME_COLORS || !window.getThemePreference || !window.updateMetaTagSafari || !window.applyTheme) {
+						return;
+					}
+					
+					var isDark = window.getThemePreference();
+					var color = isDark ? window.THEME_COLORS.dark : window.THEME_COLORS.light;
+					// Update both shims
+					var shimTop = document.getElementById('status-bar-shim');
+					var shimBottom = document.getElementById('status-bar-shim-bottom');
+					if (shimTop) shimTop.style.backgroundColor = color;
+					if (shimBottom) shimBottom.style.backgroundColor = color;
+					window.updateMetaTagSafari('theme-color-meta', color);
+					window.updateMetaTagSafari('status-bar-style-meta', 'black-translucent');
+					window.applyTheme(isDark);
+				} catch(e) {}
+			})();
+		</script>
+		
+		{/* Background images visible on both home and bio pages */}
+		{showBackgroundArt && <BackgroundImages pageName={pageName} />}
+
+		{/* Theme switcher button - positioned with CSS for clean responsiveness */}
+		<button 
+			id="theme-toggle" 
+			class="fixed z-[var(--z-toggle)] flex items-center justify-center rounded-full transition-all duration-150 ease-out"
+			style="-webkit-tap-highlight-color: transparent;"
+			transition:persist
+			aria-label="Toggle theme"
+		>
+			{/* Single SVG with properly controlled icon visibility */}
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+				class="w-5 h-5 text-gray-700 dark:text-gray-300 transition-transform duration-150">
+				{/* Sun icon - visible in light mode, hidden in dark mode */}
+				<path class="sun-icon opacity-100 dark:opacity-0 transition-opacity duration-150" stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+				{/* Moon icon - hidden in light mode, visible in dark mode -> Refined "Moon with Rays" to match Sun aesthetic */}
+				{/* Moon icon - filled, soft yellow, no rays */}
+				<path class="moon-icon opacity-0 dark:opacity-100 transition-opacity duration-150" 
+					fill="#e6db74" 
+					fill-opacity="0.6"
+					stroke="none" 
+					d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" 
+				/>
+			</svg>
+		</button>
+    
+    {/* Header section with fixed height containing the menu - hide only on bio page, not on homepage */}
+    <header class="header-container fixed top-0 left-0 right-0" id="header-container">
+      {!hideMenu && <Menu activeItem={activeMenuIndex} />}
+    </header>
+
+    {/* Main content with proper spacing and scrolling behavior */}
+		<main class="main-content">
+			<slot />
+		</main>
+		
+		{/* Add Footer with proper spacing - REMOVED */}
+		{/*
+		<div class="footer-wrapper">
+			<Footer />
+		</div>
+		*/}
+		
+		{/* Theme switcher script */}
+		<script is:inline define:vars={{ pageName, isBioPage, isHomePage }}>
+			(function() {
+				function initializeTheme() {
+					const themeToggle = document.getElementById('theme-toggle');
+					const html = document.documentElement;
+					
+					// Use window utilities (exposed by main script)
+					const isDark = window.getThemePreference();
+					window.applyTheme(isDark);
+					
+					const savedTheme = localStorage.getItem('theme');
+					if (!savedTheme) {
+						localStorage.setItem('theme', isDark ? 'dark' : 'light');
+					}
+					
+					if (window.updateThemeColorMeta) {
+						window.updateThemeColorMeta(isDark);
+					}
+					
+					if (themeToggle && !themeToggle.hasAttribute('data-initialized')) {
+						themeToggle.setAttribute('data-initialized', 'true');
+						
+						themeToggle.addEventListener('click', function(e) {
+							if (e.currentTarget === themeToggle && (e.target === themeToggle || themeToggle.contains(e.target))) {
+								e.preventDefault();
+								e.stopImmediatePropagation();
+								
+							const html = document.documentElement;
+							const body = document.body;
+							
+							// Find the actual scroller (window or mobile scroller)
+							const scroller = (function() {
+								const wrapper = document.querySelector('.content-wrapper');
+								if (wrapper && window.getComputedStyle(wrapper).overflowY !== 'visible' && 
+									window.getComputedStyle(wrapper).overflowY !== 'hidden' &&
+									wrapper.scrollHeight > wrapper.clientHeight) {
+									return wrapper;
+								}
+								return window;
+							})();
+
+							const getScrollPos = () => {
+								if (scroller === window) {
+									return { x: window.scrollX || window.pageXOffset || 0, y: window.scrollY || window.pageYOffset || 0 };
+								}
+								return { x: scroller.scrollLeft, y: scroller.scrollTop };
+							};
+
+							const restoreScroll = (pos) => {
+								if (scroller === window) {
+									window.scrollTo({ left: pos.x, top: pos.y, behavior: 'instant' });
+								} else {
+									scroller.scrollLeft = pos.x;
+									scroller.scrollTop = pos.y;
+								}
+							};
+
+							const scrollPos = getScrollPos();
+							
+							const applyThemeChanges = () => {
+								const isDarkNow = html.classList.toggle('dark');
+								const newTheme = isDarkNow ? 'dark' : 'light';
+								html.style.colorScheme = isDarkNow ? 'dark' : 'light';
+								
+								if (isDarkNow) {
+									body.classList.add('dark-mode');
+									body.setAttribute('data-theme', 'dark');
+								} else {
+									body.classList.remove('dark-mode');
+									body.setAttribute('data-theme', 'light');
+								}
+								localStorage.setItem('theme', newTheme);
+								
+								// Immediate scroll restore
+								restoreScroll(scrollPos);
+								
+								if (window.updateThemeColorMeta) {
+									window.updateThemeColorMeta(isDarkNow);
+								}
+							};
+
+							// View Transitions API
+							if (document.startViewTransition) {
+								html.classList.add('theme-flipping');
+								const transition = document.startViewTransition(() => applyThemeChanges());
+								
+								transition.finished.finally(() => {
+									html.classList.remove('theme-flipping');
+									restoreScroll(scrollPos);
+								});
+							} else {
+								// Fallback
+								html.classList.add('theme-flipping');
+								applyThemeChanges();
+								requestAnimationFrame(() => {
+									restoreScroll(scrollPos);
+									setTimeout(() => {
+										html.classList.remove('theme-flipping');
+									}, 100);
+								});
+							}
+							}
+						}, { once: false, passive: false });
+					}
+				}
+				
+				initializeTheme();
+				
+				// Prevent breadcrumb link clicks from bubbling
+				document.addEventListener('click', function(e) {
+					var target = e.target;
+					if (!(target instanceof Element)) return;
+					var link = target.closest && target.closest('a[data-breadcrumb-link]');
+					if (link) e.stopPropagation();
+				}, true);
+				
+				document.addEventListener('DOMContentLoaded', initializeTheme);
+			})();
+		</script>
+	</body>
+</html>
+
+<style>
+  /* Import Ubuntu font */
+  @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+  
+  /* Page view-transitions only during router navigations */
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-router-view] { view-transition-name: router; }
+    ::view-transition-old(router),
+    ::view-transition-new(router) {
+      animation-duration: 0.12s;
+      animation-timing-function: ease-out;
+      animation-fill-mode: both;
+    }
+    ::view-transition-old(router) { animation-name: simple-fade-out; }
+    ::view-transition-new(router) { animation-name: simple-fade-in; }
+  }
+  
+  @keyframes simple-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  @keyframes simple-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* During router navigation, suppress body color/background transitions to avoid flash */
+  html[data-router-view] body,
+  html.page-nav body {
+    transition: none !important;
+  }
+  html.page-nav .content-section,
+  html.page-nav .media-card {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  /* Disable CSS transitions and scroll snapping during theme flip to prevent jumping/flashes */
+  html.theme-flipping, 
+  html.theme-flipping *,
+  html.theme-flipping .content-wrapper {
+    transition: none !important;
+    view-transition-name: none !important;
+    scroll-snap-type: none !important;
+  }
+  
+  /* Selectively disable animations to prevent unintended flashes, 
+     but explicitly PROTECT the morphing bubble and its content */
+  html.theme-flipping *:not(.wave-bubble-container):not(.wave-bubble-container *) {
+    animation: none !important;
+  }
+
+  /* Force circle shape if animation is briefly suppressed by browser optimization */
+  html.theme-flipping .wave-bubble-container {
+    border-radius: 50% !important;
+    animation: morph-wave 25s linear infinite alternate !important;
+  }
+  
+  /* CSS Variables for responsive content boundaries */
+  :root {
+    --content-max-width: 56rem;
+    --content-min-width: 475px; /* Updated to 475px for MacBook Pro */
+    --content-padding: clamp(1rem, 2vw, 2rem);
+    --header-height: 80px;
+    --header-height-tablet: 70px;
+    --header-height-mobile: 60px;
+    /* Updated z-index variables for consistent management */
+    --z-background: -1;
+    --z-content: 10;
+    --z-header: 20; /* Lowered from 50 to be below theme toggle */
+    --z-menu: 30; /* Added specific z-index for menu */
+    --z-toggle: 40; /* Added specific z-index for theme toggle */
+    --z-overlay: 100;
+    
+    /* Page-specific theme colors */
+    --bio-accent-light: #e0d8c5;
+    --bio-accent-dark: #0d0f1c;
+    --projects-accent-light: #e6e0d0;
+    --projects-accent-dark: #1f1e36;
+    --journey-accent-light: #dde4e6;
+    --journey-accent-dark: #1a2530;
+    --notes-accent-light: #e6e0e6;
+    --notes-accent-dark: #251a30;
+    --lab-accent-light: #e6dde0;
+    --lab-accent-dark: #301a25;
+    
+    /* Default page colors - specific pages will override these */
+    --page-accent-light: var(--bio-accent-light);
+    --page-accent-dark: var(--bio-accent-dark);
+  }
+	
+  
+  /* Header container is the ONLY fixed element for the menu area */
+  .header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0; 
+    width: 100%;
+    z-index: var(--z-header); /* Use z-index variable */
+    padding: 0;
+    height: var(--header-height);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: none;
+    isolation: initial;
+    overflow: visible;
+    will-change: auto;
+    contain: none;
+  }
+
+  /* Consolidated header container background rules */
+  /* All theme states use transparent background for consistency */
+  .dark .header-container,
+  html.dark .header-container,
+  html:not(.dark) .header-container,
+  body[data-theme="dark"] .header-container,
+  body[data-theme="light"] .header-container {
+    background: none;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  /* Page-specific background colors using CSS custom properties pattern */
+  /* Consolidated pattern: single rule for all pages with per-page variable overrides */
+  [class^="page-"] {
+    background-color: var(--page-accent-light, var(--bio-accent-light));
+  }
+  
+  .dark [class^="page-"],
+  [class^="page-"][data-theme="dark"] {
+    background-color: var(--page-accent-dark, var(--bio-accent-dark));
+  }
+  
+  /* Per-page variable overrides */
+  .page-projects {
+    --page-accent-light: var(--projects-accent-light);
+    --page-accent-dark: var(--projects-accent-dark);
+  }
+  
+  .page-journey {
+    --page-accent-light: var(--journey-accent-light);
+    --page-accent-dark: var(--journey-accent-dark);
+  }
+  
+  .page-notes {
+    --page-accent-light: var(--notes-accent-light);
+    --page-accent-dark: var(--notes-accent-dark);
+  }
+  
+  .page-lab {
+    --page-accent-light: var(--lab-accent-light);
+    --page-accent-dark: var(--lab-accent-dark);
+  }
+
+  /* Safe area - defines content boundaries */
+  .safe-area {
+    width: 100%;
+    max-width: var(--content-max-width);
+    min-width: var(--content-min-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--content-padding);
+    padding-right: var(--content-padding);
+  }
+
+  /* Main content with Apple-style safe area handling */
+  .main-content {
+    position: relative;
+    z-index: var(--z-content); /* Use z-index variable */
+    min-height: 100dvh;
+    width: 100vw;
+    box-sizing: border-box;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+             env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  }
+
+  /* Global text colors with improved readability */
+  .dark p,
+  .dark h1:not([class*="name-title"]), 
+  .dark h2, 
+  .dark h3, 
+  .dark h4, 
+  .dark h5, 
+  .dark h6, 
+  .dark li {
+    color: var(--text-primary);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+  }
+  
+  /* Footer container */
+  .footer-wrapper {
+    position: relative;
+    z-index: var(--z-content); /* Match content z-index */
+    margin-top: auto; /* Push to bottom of available space */
+  }
+  
+  /* Minimum width constraint for entire site to prevent extreme compression */
+  html {
+    min-width: 320px;
+  }
+  
+  /* Better typography */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  
+  h1 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+  }
+  
+  h2 {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+  }
+  
+  h3 {
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+  }
+  
+
+  
+  /* Responsive menu adjustments */
+  /* Mobile/tablet/touch: solid header and painted safe-area for Safari status bar */
+  @media (max-width: 900px), (max-device-width: 900px), (hover: none) and (pointer: coarse) {
+    .header-container {
+      height: calc(var(--header-height-mobile) + env(safe-area-inset-top, 0px));
+      padding-top: env(safe-area-inset-top, 0px);
+      background-color: var(--current-bg-light);
+      background: var(--current-bg-light);
+      background-image: none;
+      width: 100%;
+    }
+    .main-content {
+      padding-top: calc(var(--header-height-mobile) + env(safe-area-inset-top, 0px));
+    }
+    html.dark .header-container {
+      background-color: var(--current-bg-dark) !important;
+      background: var(--current-bg-dark) !important;
+      background-image: var(--current-bg-dark-gradient) !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    :root {
+      --content-padding: 0.75rem;
+    }
+  }
+
+  /* Apple-style seamless background - body is the visual edge */
+  html, body {
+    padding: 0;
+    margin: 0;
+    min-height: 100dvh;
+    width: 100vw;
+    box-sizing: border-box;
+    /* Enhanced smooth scrolling with momentum */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: auto;
+  }
+  
+  /* Prevent browser fullscreen gestures on bio page */
+  body.page-home {
+    overscroll-behavior-y: contain; /* Prevent pull-to-refresh */
+    overscroll-behavior-x: none; /* Prevent horizontal overscroll */
+    touch-action: pan-y; /* Allow vertical scrolling only */
+  }
+
+  body {
+    font-family: 'Ubuntu', sans-serif;
+    line-height: 1.6;
+    color: var(--sketch-text);
+    background-color: var(--current-bg-light);
+    transition: background-color 0.5s ease, color 0.5s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Create stacking context at the body level */
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+  
+  /* Hide horizontal scrolling by default but enable it below minimum width */
+  html, body {
+    overflow-x: hidden; /* Hide horizontal scrollbar by default */
+    max-width: 100vw;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+  }
+  
+  /* Enable horizontal scrolling below minimum width */
+  @media (max-width: 475px) {
+    html, body {
+      overflow-x: auto;
+    }
+  }
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Add smooth scrolling for better UX */
+  html {
+    scroll-behavior: smooth;
+    min-width: var(--content-min-width); /* Set minimum width for entire site */
+  }
+  
+  /* Reset minimum width on small screens */
+  @media (max-width: 475px) {
+    html {
+      min-width: auto;
+    }
+  }
+
+  /* Theme toggle specific styles - optimized for mobile */
+  #theme-toggle {
+    /* Optimized for mobile touch */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* Improve mobile touch responsiveness */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    
+    /* Subtle fade - visible but subtle by default */
+    opacity: 0.25;
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  /* Full visibility on hover */
+  #theme-toggle:hover {
+    opacity: 1;
+  }
+  
+  /* On mobile/touch devices, keep theme toggle fully visible */
+  @media (hover: none) {
+    #theme-toggle {
+      opacity: 1 !important;
+    }
+  }
+  
+  /* Mobile-friendly hover states */
+  @media (hover: hover) {
+    #theme-toggle:hover {
+      background-color: rgba(213, 207, 192, 0.8);
+    }
+    
+    .dark #theme-toggle:hover {
+      background-color: rgba(26, 31, 64, 0.8);
+    }
+  }
+  
+  /* Remove all problematic animations */
+  #theme-toggle * {
+    animation: none !important;
+    will-change: auto;
+  }
+  
+  /* Consistent page transitions */
+</style>
+

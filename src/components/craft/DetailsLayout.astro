@@ -1,0 +1,145 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+  date?: Date | string;
+  tags?: string[];
+  backHref: string;
+  backLabel: string;
+}
+const { title, description, date, tags = [], backHref, backLabel } = Astro.props;
+const formattedDate = date
+  ? (typeof date === 'string' ? new Date(date) : date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  : null;
+---
+
+<div class="project-header">
+  <nav class="breadcrumb">
+    <a href={backHref} data-breadcrumb-link>← {backLabel}</a>
+  </nav>
+  <h1 class="craft-title">{title}</h1>
+  {description && <p class="craft-subtitle" set:html={description}></p>}
+  <div class="project-meta">
+    {formattedDate && (
+      <time class="project-date" datetime={date instanceof Date ? date.toISOString() : date}>
+        {formattedDate}
+      </time>
+    )}
+    {tags.length > 0 && (
+      <div class="project-tags">
+        {tags.map((tag: string) => (
+          <span class="tag-pill">{tag}</span>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+<slot />
+
+<style is:global>
+  .project-header {
+    position: relative;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto var(--space-xl) auto;
+  }
+  .breadcrumb {
+    margin-bottom: var(--space-lg);
+  }
+  .breadcrumb a {
+    color: var(--rainbow-journey);
+    text-decoration: none;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    transition: all 0.3s ease;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: rgba(90, 160, 230, 0.1);
+    border: 1px solid rgba(90, 160, 230, 0.2);
+  }
+  .breadcrumb a:hover {
+    background: rgba(90, 160, 230, 0.2);
+    transform: translateX(-4px);
+  }
+  html:not(.dark) .breadcrumb a {
+    color: #1A5C8B;
+    background: rgba(26, 92, 139, 0.1);
+    border-color: rgba(26, 92, 139, 0.2);
+  }
+  html:not(.dark) .breadcrumb a:hover {
+    background: rgba(26, 92, 139, 0.2);
+  }
+  .craft-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm, 0.5rem) 0;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    background: linear-gradient(135deg, 
+      var(--rainbow-projects), 
+      var(--rainbow-lab),
+      var(--rainbow-notes)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  html:not(.dark) .craft-title {
+    background: linear-gradient(135deg, #8B4A00, #8B1A5C, #4A1A8B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+  }
+  .craft-subtitle {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    line-height: 1.6;
+    color: var(--rainbow-bio);
+    margin: 0 auto var(--space-lg, 2rem) auto;
+    max-width: 800px;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    font-weight: 300;
+  }
+  html:not(.dark) .craft-subtitle {
+    color: #8B1A42;
+  }
+  .project-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg, 2rem);
+    flex-wrap: wrap;
+    margin-top: var(--space-md, 1rem);
+  }
+  .project-date {
+    color: var(--rainbow-journey);
+    font-size: 0.9rem;
+    font-weight: 400;
+    font-family: 'Ubuntu', system-ui, sans-serif;
+    padding: 0.4rem 1rem;
+    background: rgba(90, 160, 230, 0.1);
+    border-radius: 2rem;
+    border: 1px solid rgba(90, 160, 230, 0.2);
+  }
+  html:not(.dark) .project-date {
+    color: #1A5C8B;
+    background: rgba(26, 92, 139, 0.1);
+    border-color: rgba(26, 92, 139, 0.2);
+  }
+  .project-tags {
+    display: flex;
+    gap: var(--space-xs, 0.5rem);
+    flex-wrap: wrap;
+  }
+</style> 

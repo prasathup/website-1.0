@@ -1,0 +1,12 @@
+# Cloudflare Pages Redirects
+# Redirect .pages.dev subdomain to custom domain for SEO
+# Reference: https://developers.cloudflare.com/pages/configuration/redirects/
+
+# NOTE: This file is for static redirects within your site
+# For .pages.dev → custom domain redirect, use Cloudflare Bulk Redirects in dashboard
+# (Cloudflare doesn't support cross-domain redirects in _redirects file)
+
+# Example static redirects (if needed in future):
+# /old-path /new-path 301
+# /blog/* /notes/:splat 301
+

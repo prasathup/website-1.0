@@ -1,0 +1,671 @@
+---
+// src/components/Menu.astro
+// Centered navigation menu with icons and hover effects
+import SvgTypewriterLabel from './SvgTypewriterLabel.astro';
+import HeartStopperSprite from './HeartStopperSprite.astro';
+
+// Universal Menu component - clean responsive approach
+export interface Props {
+  activeItem?: number;
+}
+
+const { activeItem = -1 } = Astro.props;
+
+// Define menu items with icons
+const menuItems = [
+  { name: 'Bio', href: '/', icon: 'person' },
+  { name: 'Projects', href: '/projects', icon: 'code' },
+  { name: 'Journey', href: '/journey', icon: 'footprint' },
+  { name: 'Notes', href: '/notes', icon: 'psychology' },
+  { name: 'Lab', href: '/lab', icon: 'science' },
+];
+
+// Get current path to determine active link
+// IMPORTANT: Normalize pathname to handle trailing slash differences between
+// dev server (no trailing slash) and production/Cloudflare (with trailing slash)
+const rawPathname = Astro.url.pathname;
+const normalizePathname = (path: string) => {
+  // Remove trailing slash (except for root "/")
+  if (path !== '/' && path.endsWith('/')) {
+    return path.slice(0, -1);
+  }
+  return path;
+};
+const pathname = normalizePathname(rawPathname);
+const isBioPage = pathname === '/' || pathname === '/bio';
+
+// Define explicit color values (darker tones for better readability)
+const colorValues = [
+  { textClass: "text-[#c44a6b]", hex: '#c44a6b' }, // Bio - darker rose
+  { textClass: "text-[#c4983a]", hex: '#c4983a' }, // Projects - darker amber
+  { textClass: "text-[#4585c4]", hex: '#4585c4' }, // Journey - darker sky
+  { textClass: "text-[#7a4bc4]", hex: '#7a4bc4' }, // Notes - darker lavender
+  { textClass: "text-[#c44585]", hex: '#c44585' }  // Lab - darker pink
+];
+
+// No longer determining background color here - will use CSS variables
+---
+
+{/* Include the SVG sprite sheet component */}
+<HeartStopperSprite />
+
+{/* 
+  Navigation container with horizontal scroll capability and glow-safe area
+  Bio pages have no backdrop, other pages get full-width blur
+*/}
+<div class={`menu-glow-safe-area ${isBioPage ? '' : 'enable-backdrop-blur'}`} data-page={pathname === '/' ? 'index' : pathname.split('/')[1] || 'index'}>
+  
+  <div class="menu-wrapper w-full flex justify-center">
+    <nav class="w-auto scroll-container" style="width: fit-content; max-width: 100%;">
+    {/* Scroll indicator left */}
+    <div class="scroll-indicator scroll-left-indicator">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </div>
+    
+    <div class="menu-container mx-auto flex justify-center items-center py-2 px-4 w-full max-w-4xl">
+      {/* Start padding to mirror end spacer and keep icons centered */}
+      <div class="scroll-start-padding" style="width: 1rem; height: 1px;"></div>
+      <ul class="menu-items flex justify-center items-center gap-2 w-full flex-nowrap">
+        {menuItems.map((item, index) => {
+          // Use both props.activeItem and pathname to determine if active
+          // Normalize both paths for consistent matching across dev/production
+          const normalizedHref = normalizePathname(item.href);
+          const isActive = (activeItem === index) || (pathname === normalizedHref);
+          const { textClass, hex: iconHexColor } = colorValues[index] || { textClass: '', hex: '#000000' };
+          
+          return (
+            <li class="menu-item list-none flex-shrink-0 flex flex-col items-center mx-1 relative">
+              <a 
+                href={item.href} 
+                class="group relative flex flex-col items-center justify-center gap-0 touch-manipulation"
+                style="width: 2.25rem; height: 2.25rem; -webkit-tap-highlight-color: transparent;"
+                aria-label={item.name}
+              >
+                <span 
+                    class={`menu-icon material-symbols-outlined ${textClass} ${isActive ? 'active' : ''} relative z-10`}
+                    style={`font-size: 1.25rem; font-variation-settings: 'FILL' 1, 'wght' 600; color: ${iconHexColor}; --icon-color-rgb: ${iconHexColor.replace('#', '').match(/.{2}/g)?.map(hex => parseInt(hex, 16)).join(', ')};`}
+                >
+                  {item.icon}
+                </span>
+                
+                <SvgTypewriterLabel 
+                  text={item.name}
+                  color={iconHexColor}
+                  class="menu-label"
+                />
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      
+      {/* Add extra padding div at the end to ensure full scrolling visibility */}
+      <div class="scroll-end-padding" style="width: 1rem; height: 1px;"></div>
+    </div>
+    
+    {/* Scroll indicator right */}
+    <div class="scroll-indicator scroll-right-indicator">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </div>
+  </nav>
+  </div>
+</div>
+
+{/* Material Icons - preload with display=swap for better performance */}
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0"></noscript>
+
+<style is:global>
+  :root {
+    --menu-bg-light: var(--current-bg-light);
+    --menu-bg-dark: var(--current-bg-dark);
+    --menu-bg-gradient: var(--current-bg-dark-gradient);
+    --menu-current-bg: var(--menu-bg-light);
+    --menu-shadow-light: rgba(0, 0, 0, 0.08);
+    --menu-shadow-dark: rgba(0, 0, 20, 0.6);
+    --menu-border-light: rgba(100, 100, 100, 0.15);
+    --menu-border-dark: rgba(80, 80, 120, 0.15);
+  }
+  
+  .dark {
+    --menu-current-bg: var(--menu-bg-dark);
+    --menu-shadow-opacity: 0.15;
+    --menu-border-opacity: 0.08;
+  }
+
+  body {
+    font-family: 'Ubuntu', sans-serif;
+  }
+  
+  /* Glow safe area - allows glow effects to extend beyond normal boundaries */
+  .menu-glow-safe-area {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+    z-index: var(--z-menu);
+    isolation: isolate;
+  }
+
+  @media (hover: none) {
+    .menu-glow-safe-area::before {
+      content: '';
+      position: fixed;
+      top: env(safe-area-inset-top, 0px);
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: transparent;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      mask: linear-gradient(to bottom,
+        rgba(0,0,0,1) 0%,
+        rgba(0,0,0,0.85) 40%,
+        rgba(0,0,0,0) 100%);
+      -webkit-mask: linear-gradient(to bottom,
+        rgba(0,0,0,1) 0%,
+        rgba(0,0,0,0.85) 40%,
+        rgba(0,0,0,0) 100%);
+      z-index: calc(var(--z-menu) - 2);
+      pointer-events: none;
+    }
+  }
+  
+  /* Backdrop blur below menu */
+  .menu-glow-safe-area.enable-backdrop-blur::before {
+    content: '';
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    height: 85px;
+    background: transparent;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    contain: paint;
+    mask: linear-gradient(to bottom, 
+      rgba(0,0,0,1) 0%,     
+      rgba(0,0,0,1) 70%,    
+      rgba(0,0,0,0) 100%    
+    );
+    -webkit-mask: linear-gradient(to bottom, 
+      rgba(0,0,0,1) 0%, 
+      rgba(0,0,0,1) 70%, 
+      rgba(0,0,0,0) 100%
+    );
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  
+  /* Bio page: Centered backdrop blur */
+  .menu-glow-safe-area.enable-bio-backdrop-blur::before {
+    content: '';
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(48rem, calc(100vw - 2rem));
+    height: 110px;
+    background: transparent;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    contain: paint;
+    mask: linear-gradient(to bottom, 
+      rgba(0,0,0,1) 0%,     
+      rgba(0,0,0,1) 70%,    
+      rgba(0,0,0,0) 100%    
+    );
+    -webkit-mask: linear-gradient(to bottom, 
+      rgba(0,0,0,1) 0%, 
+      rgba(0,0,0,1) 70%, 
+      rgba(0,0,0,0) 100%
+    );
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  /* Theme support: Ensure transparent backgrounds for backdrop-filter */
+  html:not(.dark) .menu-glow-safe-area.enable-backdrop-blur::before,
+  html:not(.dark) .menu-glow-safe-area.enable-bio-backdrop-blur::before {
+    background: transparent;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: none;
+  }
+  
+  .menu-wrapper {
+    width: fit-content;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+    padding-bottom: 1.5rem;
+    position: relative;
+    opacity: 0.25;
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .menu-glow-safe-area.menu-visible .menu-wrapper {
+    opacity: 1;
+  }
+
+  .scroll-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    max-width: 100%;
+  }
+
+  /* Menu container - transparent, layout only */
+  .menu-container {
+    background-color: transparent;
+    background-image: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: none;
+    position: relative;
+    min-height: 70px;
+    z-index: var(--z-menu);
+    width: auto;
+    min-width: 0;
+    overflow: visible; 
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .dark .menu-container {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  @media (max-width: 768px) {
+    .menu-wrapper {
+      padding-left: var(--content-padding);
+      padding-right: var(--content-padding);
+    }
+
+    .menu-items {
+      width: 100%;
+      justify-content: space-between;
+      gap: clamp(0.25rem, 1vw, 0.5rem);
+    }
+    
+    .menu-item a {
+      width: 2.75rem !important;
+      height: 2.75rem !important;
+    }
+    
+    .menu-icon {
+      font-size: 1.5rem !important;
+    }
+    
+    .menu-container {
+      overflow: visible;
+      padding-left: clamp(0.75rem, 4vw, 1.5rem);
+      padding-right: clamp(0.75rem, 4vw, 1.5rem);
+      width: 100%;
+      max-width: var(--content-max-width);
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .scroll-container {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+  
+  .allow-horizontal-scroll .menu-items {
+    overflow-x: auto !important;
+  }
+  
+  .menu-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .menu-items {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 1.5vw, 0.75rem);
+    width: auto;
+    padding: 0;
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .dark .scroll-indicator {
+    background-color: rgba(30, 30, 50, 0.7);
+    color: rgba(200, 200, 255, 0.9);
+  }
+
+  @media (max-width: 475px) {
+    .scroll-indicator.active {
+      opacity: 0.9;
+      pointer-events: auto;
+    }
+  }
+  
+  .scroll-left-indicator {
+    left: 0;
+  }
+
+  .scroll-right-indicator {
+    right: 0;
+  }
+
+  .menu-item {
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .menu-icon {
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+    transform: translateZ(0);
+    border-radius: 50%;
+    padding: 6px;
+  }
+
+  .group:hover .menu-icon {
+    transform: scale(1.15) translateZ(0);
+    box-shadow: 0 8px 20px rgba(var(--icon-color-rgb, 100, 100, 100), 0.6);
+    will-change: transform;
+  }
+
+  .menu-icon.active {
+    transform: scale(1.05) translateZ(0);
+    box-shadow: 0 6px 16px rgba(var(--icon-color-rgb, 100, 100, 100), 0.4);
+  }
+  
+  .menu-wrapper:not(:hover) .menu-icon.active {
+    opacity: 0.5;
+  }
+
+  .group:hover .menu-icon.active {
+    transform: scale(1.2) translateZ(0);
+    box-shadow: 0 10px 24px rgba(var(--icon-color-rgb, 100, 100, 100), 0.7);
+  }
+
+  .group:active .menu-icon {
+    transform: scale(0.98) translateZ(0);
+    transition: transform 100ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-icon {
+      transition: none;
+    }
+    
+    .group:hover .menu-icon {
+      transform: scale(1.05) translateZ(0);
+    }
+    
+    .menu-icon.active {
+      transform: scale(1.02) translateZ(0);
+    }
+  }
+
+  .dark .menu-icon {
+    animation: none;
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+  }
+  
+  html[data-astro-transition-scope] .menu-icon {
+    transition-property: none !important;
+  }
+
+  @media (hover: none) {
+    .menu-wrapper {
+      opacity: 1 !important;
+    }
+    
+    .group:hover .menu-icon {
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .menu-icon.active {
+      transform: none;
+      box-shadow: 0 2px 8px rgba(var(--icon-color-rgb, 100, 100, 100), 0.3);
+      opacity: 1 !important;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .group:hover .menu-icon {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    
+    .group:active .menu-icon {
+      transform: scale(0.9) translateZ(0);
+      transition: transform 0.1s ease-out;
+    }
+    
+    .group {
+      min-width: 44px;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    
+    .menu-icon {
+      transition: transform 0.1s ease-out !important;
+    }
+    
+    .menu-icon.active {
+      opacity: 1;
+      box-shadow: 0 2px 8px rgba(var(--icon-color-rgb, 100, 100, 100), 0.3);
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    function setupMenuClickHandlers() {
+      const menuItems = document.querySelectorAll('.menu-item a');
+      menuItems.forEach(link => {
+        if (link instanceof HTMLAnchorElement) {
+          link.addEventListener('click', function(_e) {
+            _e.stopPropagation();
+          });
+          
+          link.addEventListener('touchstart', function(_e) {
+            this.style.opacity = '0.7';
+          }, { passive: true });
+          
+          link.addEventListener('touchend', function(_e) {
+            this.style.opacity = '';
+          }, { passive: true });
+          
+          link.addEventListener('touchcancel', function(_e) {
+            this.style.opacity = '';
+          }, { passive: true });
+        }
+      });
+    }
+    
+    document.addEventListener('astro:page-load', () => {
+      setupMenuClickHandlers();
+    });
+  });
+
+  function setupHorizontalScroll() {
+    const menuContainer = document.querySelector('.menu-container') as HTMLElement;
+    const leftIndicator = document.querySelector('.scroll-left-indicator') as HTMLElement;
+    const rightIndicator = document.querySelector('.scroll-right-indicator') as HTMLElement;
+    
+    if (!menuContainer || !leftIndicator || !rightIndicator) return;
+    
+    function updateScrollIndicators() {
+      if (window.innerWidth > 475) {
+        leftIndicator.classList.remove('active');
+        rightIndicator.classList.remove('active');
+        return;
+      }
+      
+      const isScrollable = menuContainer.scrollWidth > menuContainer.clientWidth;
+      
+      if (!isScrollable) {
+        leftIndicator.classList.remove('active');
+        rightIndicator.classList.remove('active');
+        return;
+      }
+      
+      if (menuContainer.scrollLeft > 5) {
+        leftIndicator.classList.add('active');
+      } else {
+        leftIndicator.classList.remove('active');
+      }
+      
+      const remainingScroll = menuContainer.scrollWidth - (menuContainer.scrollLeft + menuContainer.clientWidth);
+      if (remainingScroll > 2) {
+        rightIndicator.classList.add('active');
+      } else {
+        rightIndicator.classList.remove('active');
+      }
+    }
+    
+    updateScrollIndicators();
+    menuContainer.addEventListener('scroll', updateScrollIndicators);
+    window.addEventListener('resize', updateScrollIndicators);
+    
+    leftIndicator.addEventListener('click', () => {
+      menuContainer.scrollBy({ left: -100, behavior: 'smooth' });
+    });
+    
+    rightIndicator.addEventListener('click', () => {
+      menuContainer.scrollBy({ left: 100, behavior: 'smooth' });
+    });
+    
+    rightIndicator.addEventListener('dblclick', () => {
+      menuContainer.scrollTo({ 
+        left: menuContainer.scrollWidth, 
+        behavior: 'smooth'
+      });
+    });
+    
+    let isDown = false;
+    let startX: number;
+    let scrollLeft: number;
+    
+    menuContainer.addEventListener('mousedown', (e) => {
+      isDown = true;
+      menuContainer.classList.add('active');
+      startX = e.pageX - menuContainer.offsetLeft;
+      scrollLeft = menuContainer.scrollLeft;
+    });
+    
+    menuContainer.addEventListener('mouseleave', () => {
+      isDown = false;
+      menuContainer.classList.remove('active');
+    });
+    
+    menuContainer.addEventListener('mouseup', () => {
+      isDown = false;
+      menuContainer.classList.remove('active');
+    });
+    
+    menuContainer.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - menuContainer.offsetLeft;
+      const walk = (x - startX) * 2;
+      menuContainer.scrollLeft = scrollLeft - walk;
+      updateScrollIndicators();
+    });
+    
+    menuContainer.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      if (touch) {
+        startX = touch.pageX - menuContainer.offsetLeft;
+        scrollLeft = menuContainer.scrollLeft;
+      }
+    }, { passive: true });
+    
+    menuContainer.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      if (touch) {
+        const x = touch.pageX - menuContainer.offsetLeft;
+        const walk = (startX - x) * 1.5;
+        menuContainer.scrollLeft = scrollLeft + walk;
+        updateScrollIndicators();
+      }
+    }, { passive: true });
+    
+    menuContainer.addEventListener('touchend', updateScrollIndicators, { passive: true });
+  }
+  
+  document.addEventListener('DOMContentLoaded', setupHorizontalScroll);
+  document.addEventListener('astro:page-load', setupHorizontalScroll);
+  window.addEventListener('load', setupHorizontalScroll);
+  
+  function setupMenuFade() {
+    const menuGlowArea = document.querySelector('.menu-glow-safe-area');
+    const menuContainer = document.querySelector('.menu-container');
+    const menuItems = document.querySelectorAll('.menu-item');
+    const menuItemLinks = document.querySelectorAll('.menu-item a');
+    
+    if (!menuGlowArea) return;
+    
+    const menuElements = [menuContainer, ...Array.from(menuItems), ...Array.from(menuItemLinks)];
+    
+    menuElements.forEach(element => {
+      if (!element) return;
+      
+      element.addEventListener('mouseenter', () => {
+        menuGlowArea.classList.add('menu-visible');
+      });
+      
+      element.addEventListener('mouseleave', (e) => {
+        const mouseEvent = e as MouseEvent;
+        const relatedTarget = mouseEvent.relatedTarget as HTMLElement | null;
+        if (relatedTarget && (
+          relatedTarget.closest('.menu-item') || 
+          relatedTarget.closest('.menu-container')
+        )) {
+          return;
+        }
+        menuGlowArea.classList.remove('menu-visible');
+      });
+    });
+  }
+  
+  document.addEventListener('DOMContentLoaded', setupMenuFade);
+  document.addEventListener('astro:page-load', setupMenuFade);
+</script> 

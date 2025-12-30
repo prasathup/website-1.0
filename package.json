@@ -1,0 +1,47 @@
+{
+  "name": "prasathup",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist .astro",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:lint": "eslint src/ --ext .ts,.js --config eslint.config.js",
+    "security:check": "npm run security:audit && npm run security:lint",
+    "time-track:start": "tsx scripts/time-tracker.ts start",
+    "time-track:stop": "tsx scripts/time-tracker.ts stop",
+    "time-track:status": "tsx scripts/time-tracker.ts status",
+    "time-track:report": "tsx scripts/time-tracker.ts report"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@astrojs/react": "^4.4.2",
+    "@astrojs/tailwind": "^6.0.2",
+    "@types/three": "^0.181.0",
+    "astro": "^5.16.6",
+    "gsap": "^3.13.0",
+    "pixi.js": "^8.2.4",
+    "tailwindcss": "^3.4.17",
+    "three": "^0.181.2"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "terser": "^5.36.0",
+    "dompurify": "^3.3.0",
+    "eslint": "^9.38.0",
+    "eslint-plugin-security": "^3.0.1",
+    "snyk": "^1.1300.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

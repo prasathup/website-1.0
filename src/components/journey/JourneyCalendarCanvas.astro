@@ -1,0 +1,1146 @@
+---
+// Canvas-based high-performance Journey Calendar
+// Replaces DOM-based grid with Canvas rendering for 5,200+ week units
+
+// --- TYPE DEFINITIONS ---
+interface Week {
+  weekNumber: number;
+  year: number;
+  weekInYear: number;
+  isFilled: boolean;
+  isCurrent: boolean;
+  phase: string;
+  date: string;
+}
+
+interface PhaseConfig {
+  min: number;
+  max: number;
+  phase: string;
+  label: string;
+  color: string;
+}
+
+
+// --- DYNAMIC DATE CALCULATION (Build Time) ---
+const birthDate = new Date(Date.UTC(1989, 5, 8)); // June 8, 1989
+const today = new Date();
+
+// Calculate current week in year
+const currentYear = today.getFullYear();
+const yearStartDate = new Date(Date.UTC(currentYear, 5, 8));
+const msSinceYearStart = today.getTime() - yearStartDate.getTime();
+const daysSinceYearStart = Math.floor(msSinceYearStart / (1000 * 60 * 60 * 24)) + 1;
+const currentWeekInYear = Math.floor((daysSinceYearStart - 1) / 7) + 1;
+
+// Calculate total weeks passed since birth
+const msSinceBirth = today.getTime() - birthDate.getTime();
+const weeksSinceBirth = Math.floor(msSinceBirth / (1000 * 60 * 60 * 24 * 7));
+
+// --- CALENDAR CONFIGURATION ---
+const YEARS = 100;
+const WEEKS_PER_YEAR = 52;
+const TOTAL_WEEKS = YEARS * WEEKS_PER_YEAR;
+const CURRENT_WEEK_NUMBER = weeksSinceBirth + 1;
+
+// Phase boundaries matching your original design
+const PHASE_BOUNDARIES: PhaseConfig[] = [
+  { min: 1, max: 12, phase: 'childhood', label: 'Childhood (0-12)', color: 'rgba(45, 90, 135, 0.6)' },
+  { min: 13, max: 19, phase: 'adolescence', label: 'Adolescence (13-19)', color: 'rgba(139, 69, 19, 0.6)' },
+  { min: 20, max: 30, phase: 'young-adulthood', label: 'Young Adult (20-30)', color: 'rgba(75, 0, 130, 0.6)' },
+  { min: 31, max: 40, phase: 'early-adulthood', label: 'Early Adult (31-40)', color: 'rgba(45, 90, 135, 0.6)' },
+  { min: 41, max: 65, phase: 'middle-adulthood', label: 'Middle Adult (41-65)', color: 'rgba(139, 69, 19, 0.6)' },
+  { min: 66, max: 80, phase: 'late-adulthood', label: 'Late Adult (66-80)', color: 'rgba(75, 0, 130, 0.6)' },
+  { min: 81, max: 100, phase: 'advanced-age', label: 'Advanced Age (81-100)', color: 'rgba(45, 90, 135, 0.6)' }
+];
+
+
+// Efficient phase lookup function
+function getPhase(year: number): string {
+  const foundPhase = PHASE_BOUNDARIES.find(p => year >= p.min && year <= p.max);
+  return foundPhase ? foundPhase.phase : 'childhood';
+}
+
+// Generate week data structure
+const weeks: Week[] = Array.from({ length: TOTAL_WEEKS }, (_, index) => {
+  const weekNumber = index + 1;
+  const year = Math.floor(index / WEEKS_PER_YEAR) + 1;
+  const weekInYear = (index % WEEKS_PER_YEAR) + 1;
+  
+  const isInPastYear = year < (currentYear - birthDate.getFullYear() + 1);
+  const isInCurrentYear = year === (currentYear - birthDate.getFullYear() + 1);
+  const isFilled = isInPastYear || (isInCurrentYear && weekInYear <= currentWeekInYear);
+  const isCurrent = isInCurrentYear && weekInYear === currentWeekInYear;
+
+  const weekDate = new Date(birthDate.getTime() + index * (1000 * 60 * 60 * 24 * 7));
+  
+  return {
+    weekNumber,
+    year,
+    weekInYear,
+    isFilled,
+    isCurrent,
+    phase: getPhase(year),
+    date: weekDate.toISOString().split('T')[0] || ''
+  };
+});
+
+// Find current week coordinates for pulse animation
+const currentWeek = weeks.find(w => w.isCurrent);
+const currentWeekCoords = currentWeek ? {
+  week: currentWeek.weekInYear - 1,
+  year: currentWeek.year - 1
+} : { week: 0, year: 0 };
+---
+
+<div class="journey-calendar-container">
+  <div class="calendar-main-card">
+    <!-- Canvas-based calendar -->
+    <div class="canvas-calendar-wrapper">
+      <canvas 
+        id="life-calendar-canvas" 
+        class="life-calendar-canvas"
+        data-weeks={JSON.stringify(weeks)}
+        data-phase-boundaries={JSON.stringify(PHASE_BOUNDARIES)}
+        data-current-week={JSON.stringify(currentWeekCoords)}
+        data-current-week-number={CURRENT_WEEK_NUMBER}
+      ></canvas>
+      
+      
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel">
+      <div class="stat-item">
+        <span class="stat-value">{CURRENT_WEEK_NUMBER.toLocaleString()}</span>
+        <span class="stat-label">Weeks Lived</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+   .journey-calendar-container {
+     /* Force consistent sizing - no viewport units */
+     padding: 0;
+     margin: 0 auto;
+     position: relative;
+     width: 100%;
+     max-width: none;
+     height: auto;
+     
+     /* Consistent box model */
+     box-sizing: border-box;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     
+     /* Consistent overflow handling */
+     overflow: hidden;
+     
+     /* Consistent background */
+     background: #161825;
+     border-radius: 12px;
+     
+     /* Force hardware acceleration consistently */
+     -webkit-transform: translateZ(0);
+     -moz-transform: translateZ(0);
+     -ms-transform: translateZ(0);
+     -o-transform: translateZ(0);
+     transform: translateZ(0);
+     
+     /* Prevent weird browser behaviors */
+     -webkit-backface-visibility: hidden;
+     -moz-backface-visibility: hidden;
+     -ms-backface-visibility: hidden;
+     backface-visibility: hidden;
+     
+     /* Ensure touch interactions work */
+     touch-action: pan-y;
+   }
+
+  .calendar-main-card {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+     
+     /* Consistent box model */
+     box-sizing: border-box;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     
+     /* No margins or padding that could cause inconsistencies */
+     margin: 0;
+     padding: 0;
+  }
+
+   .canvas-calendar-wrapper {
+     flex: 1;
+     position: relative;
+     width: 100%;
+     height: auto;
+     background: #161825;
+     overflow: hidden;
+     
+     /* Consistent box model */
+     box-sizing: border-box;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     
+     /* No padding/margin */
+     margin: 0;
+     padding: 0;
+   }
+
+   .life-calendar-canvas {
+     /* UNIVERSAL CANVAS OPTIMIZATION: High-quality rendering for all browsers */
+     display: block;
+     position: relative;
+     height: auto;
+     
+     /* Consistent box model */
+     box-sizing: border-box;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     
+     /* Remove default margins/padding */
+     margin: 0;
+     padding: 0;
+     
+     /* Consistent cursor */
+     cursor: crosshair;
+     
+     /* UNIVERSAL HARDWARE ACCELERATION: Force GPU rendering */
+     -webkit-transform: translateZ(0);
+     -moz-transform: translateZ(0);
+     -ms-transform: translateZ(0);
+     -o-transform: translateZ(0);
+     transform: translateZ(0);
+     will-change: transform;
+     
+     /* UNIVERSAL IMAGE RENDERING: Optimize for crisp canvas rendering */
+     image-rendering: -webkit-optimize-contrast;
+     image-rendering: -moz-crisp-edges;
+     image-rendering: pixelated;
+     image-rendering: crisp-edges;
+     
+     /* Prevent canvas from interfering with scrolling */
+     touch-action: pan-y;
+     
+     /* Force consistent dimensions */
+     max-width: 100%;
+     max-height: none;
+     
+     /* Prevent selection weirdness */
+     -webkit-user-select: none;
+     -moz-user-select: none;
+     -ms-user-select: none;
+     user-select: none;
+     
+     /* UNIVERSAL FONT RENDERING: Optimize text quality across browsers */
+     -webkit-font-smoothing: antialiased;
+     -moz-osx-font-smoothing: grayscale;
+     text-rendering: optimizeLegibility;
+     font-feature-settings: "kern" 1;
+     
+     /* UNIVERSAL BACKFACE VISIBILITY: Optimize rendering */
+     -webkit-backface-visibility: hidden;
+     -moz-backface-visibility: hidden;
+     -ms-backface-visibility: hidden;
+     backface-visibility: hidden;
+   }
+
+  /* Enhanced statistics panel - CONSISTENT WITH CALENDAR BACKGROUND */
+  .stats-panel {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.5rem !important; /* DRAMATICALLY REDUCED GAP between value and label */
+    background: #161825 !important; /* MATCH CALENDAR BACKGROUND */
+    color: #e2e8f0 !important;
+    border-radius: 1rem !important; /* DRAMATICALLY REDUCED BORDER RADIUS for smaller container */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+    padding: 0.4rem 1rem !important; /* DRAMATICALLY REDUCED PADDING for smaller container */
+    margin: 0.5rem auto 1.5rem auto !important; /* DRAMATICALLY REDUCED TOP MARGIN to bring closer to calendar */
+    width: max-content !important;
+    font-size: 0.8rem !important; /* DRAMATICALLY REDUCED FONT SIZE for smaller container */
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    position: relative !important;
+    z-index: 20 !important;
+     
+     /* Consistent behavior */
+     box-sizing: border-box !important;
+     -webkit-box-sizing: border-box !important;
+     -moz-box-sizing: border-box !important;
+  }
+
+  .stat-value {
+    font-size: 1.1rem !important; /* INCREASED FONT SIZE for better readability */
+    font-weight: 700 !important;
+    color: #ffffff !important;
+  }
+
+  .stat-label {
+    font-size: 0.8rem !important; /* INCREASED FONT SIZE for better readability */
+    opacity: 0.85 !important;
+    color: #cbd5e1 !important;
+  }
+
+  .stat-item { 
+    display: contents; 
+  }
+
+  /* Light mode adjustments */
+  html:not(.dark) .journey-calendar-container {
+    background: #e5e7eb;
+  }
+
+  html:not(.dark) .canvas-calendar-wrapper {
+    background: #e5e7eb;
+  }
+
+  html:not(.dark) .stats-panel {
+    background: #e5e7eb !important; /* MATCH CALENDAR BACKGROUND IN LIGHT MODE */
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    color: #1e293b !important;
+  }
+
+  html:not(.dark) .stat-value {
+    color: #0f172a !important;
+  }
+
+  html:not(.dark) .stat-label {
+    color: #64748b !important;
+  }
+
+  /* Browser-specific targeted fixes */
+  @supports (-webkit-appearance: none) {
+    /* WebKit browsers (Safari, Chrome) */
+    .journey-calendar-container {
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .life-calendar-canvas {
+      -webkit-font-smoothing: antialiased;
+    }
+  }
+
+  /* Firefox-specific fixes */
+  @-moz-document url-prefix() {
+    .life-calendar-canvas {
+      -moz-osx-font-smoothing: grayscale;
+    }
+  }
+
+  /* Responsive behavior with fixed breakpoints */
+  @media screen and (max-width: 768px) {
+    .stats-panel {
+      font-size: 0.7rem !important; /* DRAMATICALLY REDUCED for smaller container */
+      padding: 0.3rem 0.8rem !important; /* DRAMATICALLY REDUCED PADDING for smaller container */
+      gap: 0.4rem !important; /* DRAMATICALLY REDUCED GAP */
+      margin: 0.3rem auto 1.25rem auto !important; /* DRAMATICALLY REDUCED TOP MARGIN to bring closer */
+    }
+    
+    .stat-value {
+      font-size: 1rem !important; /* INCREASED for better readability */
+    }
+    
+    .stat-label {
+      font-size: 0.75rem !important; /* INCREASED for better readability */
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .stats-panel {
+      font-size: 0.65rem !important; /* DRAMATICALLY REDUCED for smaller container */
+      padding: 0.25rem 0.7rem !important; /* DRAMATICALLY REDUCED PADDING for smaller container */
+      gap: 0.3rem !important; /* DRAMATICALLY REDUCED GAP */
+      margin: 0.2rem auto 1rem auto !important; /* DRAMATICALLY REDUCED TOP MARGIN to bring closer */
+    }
+    
+    .stat-value {
+      font-size: 0.9rem !important; /* INCREASED for better readability */
+    }
+    
+    .stat-label {
+      font-size: 0.7rem !important; /* INCREASED for better readability */
+    }
+  }
+
+  /* Accessibility and performance */
+  @media (prefers-reduced-motion: reduce) {
+    .life-calendar-canvas,
+    .journey-calendar-container {
+      -webkit-transform: none !important;
+      -moz-transform: none !important;
+      -ms-transform: none !important;
+      -o-transform: none !important;
+      transform: none !important;
+    }
+  }
+
+  /* Force consistent font rendering across all browsers */
+  .journey-calendar-container,
+  .journey-calendar-container * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+  }
+
+  /* Prevent weird zoom behaviors */
+  @media screen and (max-width: 1024px) {
+    .journey-calendar-container {
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .journey-calendar-container {
+      background: white !important;
+      box-shadow: none;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .stats-panel {
+      background: white !important;
+      border: 1px solid #000 !important;
+      color: #000 !important;
+    }
+  }
+
+  /* Light mode adjustments - REMOVED CONFLICTING RULES */
+  html:not(.dark) .canvas-calendar-wrapper {
+    background: #e5e7eb; /* MATCH CALENDAR BACKGROUND */
+  }
+
+   /* Responsive design */
+   @media (max-width: 768px) {
+     .journey-calendar-container {
+       height: auto; /* Let it size to fit content on mobile too */
+     }
+   }
+
+  /* Accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .life-calendar-canvas {
+      will-change: auto;
+    }
+  }
+</style>
+
+<script>
+  import { 
+    PerformanceMonitor,
+    AnimationThrottler
+  } from '../../lib/canvas-utils';
+
+  // Type definitions for the script section
+  interface Week {
+    weekNumber: number;
+    year: number;
+    weekInYear: number;
+    isFilled: boolean;
+    isCurrent: boolean;
+    phase: string;
+    date: string;
+  }
+
+  interface PhaseConfig {
+    min: number;
+    max: number;
+    phase: string;
+    label: string;
+    color: string;
+  }
+
+
+  // High-performance Canvas-based Journey Calendar
+  class JourneyCalendarCanvas {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private weeks: Week[];
+    private phaseBoundaries: PhaseConfig[];
+    private currentWeek: { week: number; year: number };
+    
+     // Grid constants
+     private readonly GRID_WEEKS = 52;
+     private readonly GRID_YEARS = 100;
+    
+    // Grid dimensions
+    private cellSize = 0;
+    private gridW = 0;
+    private gridX0 = 0;
+    private gridY0 = 0;
+    private canvasW = 0;
+    private canvasH = 0;
+    
+    // Animation state
+    private animationId: number | null = null;
+    private pulseTime = 0;
+    private trailBuffer: Array<{ x: number; y: number; timestamp: number }> = [];
+    private mousePos = { x: 0, y: 0 };
+    private currentWeekCoord = { x: 0, y: 0 };
+    
+    // Performance optimizations
+    private devicePixelRatio = 1;
+    private isAnimating = false;
+    private performanceMonitor: PerformanceMonitor;
+    private animationThrottler: AnimationThrottler;
+    private resizeHandler!: () => void;
+    private theme = 'dark';
+    
+    // ADD THIS LINE: Store calculated width
+    private phaseLabelWidth = 120; // Store calculated width
+
+    constructor(canvas: HTMLCanvasElement) {
+      this.canvas = canvas;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
+      this.ctx = ctx;
+      
+      // Initialize performance utilities
+      this.performanceMonitor = new PerformanceMonitor();
+      this.animationThrottler = new AnimationThrottler();
+      
+      // Parse data from canvas attributes
+      this.weeks = JSON.parse(canvas.dataset['weeks'] || '[]');
+      this.phaseBoundaries = JSON.parse(canvas.dataset['phaseBoundaries'] || '[]');
+      this.currentWeek = JSON.parse(canvas.dataset['currentWeek'] || '{"week": 0, "year": 0}');
+      
+      // Detect theme
+      this.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      
+      this.setupCanvas();
+      this.setupEventListeners();
+      this.startAnimation();
+      
+      
+      // Start performance monitoring
+      this.performanceMonitor.start();
+      
+    }
+
+    private setupCanvas() {
+      // UNIVERSAL OPTIMIZATION: Get optimal device pixel ratio for all browsers
+      this.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 3); // Cap at 3x for performance
+      
+      // Set canvas size
+      this.resizeCanvas();
+      
+      // UNIVERSAL CONTEXT OPTIMIZATION: Configure for best quality across all browsers
+      this.optimizeCanvasContext();
+    }
+
+    // UNIVERSAL CANVAS CONTEXT OPTIMIZATION: Best practices for all browsers
+    private optimizeCanvasContext() {
+      // Set transform for high-DPI displays
+      this.ctx.setTransform(this.devicePixelRatio, 0, 0, this.devicePixelRatio, 0, 0);
+      
+      // UNIVERSAL RENDERING QUALITY: Optimize for crisp rendering
+      this.ctx.imageSmoothingEnabled = true;
+      this.ctx.imageSmoothingQuality = 'high';
+      
+      // UNIVERSAL TEXT RENDERING: Optimize text quality
+      this.ctx.textBaseline = 'alphabetic';
+      this.ctx.textAlign = 'start';
+      this.ctx.fontKerning = 'normal';
+      this.ctx.fontVariantCaps = 'normal';
+      
+      // UNIVERSAL PERFORMANCE: Optimize for smooth rendering
+      this.ctx.lineCap = 'round';
+      this.ctx.lineJoin = 'round';
+      
+      // UNIVERSAL COMPOSITE: Optimize blending
+      this.ctx.globalCompositeOperation = 'source-over';
+    }
+
+     private resizeCanvas() {
+       const viewportWidth = window.innerWidth;
+       const viewportHeight = window.innerHeight;
+       const isMobile = viewportWidth <= 768;
+       const isSmallMobile = viewportWidth <= 480;
+       
+       // AGGRESSIVE SOLUTION: Force full viewport width usage
+       // SIMPLE SOLUTION: Use viewport width directly
+       const targetWidth = viewportWidth - 40; // 20px margin on each side
+       const targetHeight = Math.round(viewportHeight * 0.85);
+       
+       // Simple spacing calculations - adjusted for closer labels
+       const horizontalPadding = isSmallMobile ? 12 : isMobile ? 16 : 20;
+       const topLabelSpace = isSmallMobile ? 50 : isMobile ? 60 : 70; // Reduced for closer week labels
+       const bottomPadding = isSmallMobile ? 20 : isMobile ? 25 : 30;
+       const yearLabelWidth = isSmallMobile ? 30 : isMobile ? 35 : 40; // Reduced for closer year labels
+       
+       // UNIVERSAL FIX: Calculate phase label width based on available space
+       const reservedSpace = (horizontalPadding * 2) + yearLabelWidth + (this.GRID_WEEKS * 8);
+       const availableForLabels = Math.max(0, targetWidth - reservedSpace);
+       this.phaseLabelWidth = Math.max(60, Math.min(120, availableForLabels));
+       
+       // Calculate grid dimensions
+       const availableWidth = targetWidth - (horizontalPadding * 2) - yearLabelWidth - this.phaseLabelWidth;
+       const availableHeight = targetHeight - topLabelSpace - bottomPadding;
+       
+       const widthConstraint = availableWidth / this.GRID_WEEKS;
+       const heightConstraint = availableHeight / this.GRID_YEARS;
+       
+       // SIMPLE CELL SIZE: Just use the constraint
+       this.cellSize = Math.round(Math.max(widthConstraint, heightConstraint));
+       this.cellSize = Math.max(this.cellSize, 8); // Simple minimum
+       this.cellSize = Math.min(this.cellSize, 25); // Simple maximum
+       
+       this.gridW = this.cellSize * this.GRID_WEEKS;
+       const gridH = this.cellSize * this.GRID_YEARS;
+       
+       // DIRECT SOLUTION: Calculate canvas width based on content
+       const calculatedCanvasW = horizontalPadding + yearLabelWidth + this.gridW + this.phaseLabelWidth + horizontalPadding;
+       // Use calculated width - this should fill the available space properly
+       this.canvasW = calculatedCanvasW;
+       this.canvasH = gridH + topLabelSpace + bottomPadding;
+       
+       // UNIVERSAL CANVAS SIZING: High-DPI optimized for all browsers
+       this.canvas.width = Math.round(this.canvasW * this.devicePixelRatio);
+       this.canvas.height = Math.round(this.canvasH * this.devicePixelRatio);
+       this.canvas.style.width = `${Math.round(this.canvasW)}px`;
+       this.canvas.style.height = `${Math.round(this.canvasH)}px`;
+       
+       // UNIVERSAL CANVAS STYLING: Consistent across all browsers
+       this.canvas.style.position = 'relative';
+       this.canvas.style.display = 'block';
+       this.canvas.style.margin = '0 auto';
+       this.canvas.style.boxSizing = 'border-box';
+       
+       // UNIVERSAL RENDERING OPTIMIZATION: Force hardware acceleration
+       this.canvas.style.willChange = 'transform';
+       this.canvas.style.transform = 'translateZ(0)';
+       
+       // Re-apply context optimizations after canvas resize
+       this.optimizeCanvasContext();
+       
+       // Center the grid within the expanded canvas
+       const totalContentWidth = yearLabelWidth + this.gridW + this.phaseLabelWidth;
+       const availableSpace = this.canvasW - (horizontalPadding * 2);
+       const extraSpace = Math.max(0, availableSpace - totalContentWidth);
+       const leftOffset = horizontalPadding + (extraSpace / 2);
+       
+       this.gridX0 = leftOffset + yearLabelWidth;
+       this.gridY0 = topLabelSpace;
+       
+       this.currentWeekCoord = {
+         x: this.gridX0 + (this.currentWeek?.week || 0) * this.cellSize,
+         y: this.gridY0 + (this.currentWeek?.year || 0) * this.cellSize
+       };
+       
+       console.log('DIRECT CANVAS SIZING:', {
+         viewport: `${viewportWidth}x${viewportHeight}`,
+         targetWidth: targetWidth,
+         calculatedCanvasW: calculatedCanvasW,
+         finalCanvasW: this.canvasW,
+         cellSize: this.cellSize,
+         gridSize: `${this.gridW}x${gridH}`,
+         phaseLabelWidth: this.phaseLabelWidth,
+         gridX0: this.gridX0
+       });
+       
+      // FORCE REFRESH: Trigger immediate redraw to override Safari's rendering
+      // Use RAF for more reliable timing than setTimeout(0)
+      requestAnimationFrame(() => {
+        this.render();
+        
+        // Check Safari sizing after a short delay
+        // Safari sometimes misinterprets canvas dimensions during initial render
+        setTimeout(() => {
+          const actualWidth = this.canvas.getBoundingClientRect().width;
+          if (Math.abs(actualWidth - this.canvasW) > 5) {
+            console.log('SAFARI SIZE MISMATCH:', {
+              expected: this.canvasW,
+              actual: actualWidth,
+              difference: actualWidth - this.canvasW
+            });
+            // Force correct size with important flag
+            this.canvas.style.setProperty('width', `${Math.round(this.canvasW)}px`, 'important');
+            this.render();
+          }
+        }, 100);
+      });
+     }
+
+
+    private setupEventListeners() {
+      // Mouse move for trail effect
+      this.canvas.addEventListener('mousemove', (e) => {
+        const rect = this.canvas.getBoundingClientRect();
+        this.mousePos.x = e.clientX - rect.left;
+        this.mousePos.y = e.clientY - rect.top;
+        
+        // Add to trail buffer
+        const week = Math.floor((this.mousePos.x - this.gridX0) / this.cellSize);
+        const year = Math.floor((this.mousePos.y - this.gridY0) / this.cellSize);
+        
+        
+        if (week >= 0 && week < this.GRID_WEEKS && year >= 0 && year < this.GRID_YEARS) {
+          const x = this.gridX0 + week * this.cellSize;
+          const y = this.gridY0 + year * this.cellSize;
+          
+          // Only add to trail if it's a new position (avoid duplicates)
+          const lastTrail = this.trailBuffer[this.trailBuffer.length - 1];
+          if (!lastTrail || lastTrail.x !== x || lastTrail.y !== y) {
+            this.trailBuffer.push({ x, y, timestamp: Date.now() });
+          }
+          
+          // Limit trail buffer size for smoother, longer trail
+          if (this.trailBuffer.length > 12) {
+            this.trailBuffer.shift();
+          }
+        }
+      }, { passive: true });
+
+      // UNIVERSAL FIX: Simple debounced resize handling
+      this.resizeHandler = this.createSimpleDebouncedResize();
+      window.addEventListener('resize', this.resizeHandler, { passive: true });
+
+      // Theme change handling
+      const observer = new MutationObserver(() => {
+        const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        if (newTheme !== this.theme) {
+          this.theme = newTheme;
+          this.resizeCanvas();
+        }
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+      // Visibility change handling
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.stopAnimation();
+        } else {
+          this.startAnimation();
+        }
+      });
+     }
+
+     // UNIVERSAL FIX: Simple debounced resize handler
+     private createSimpleDebouncedResize() {
+       let resizeTimeout: ReturnType<typeof setTimeout>;
+       
+       return () => {
+         clearTimeout(resizeTimeout);
+         resizeTimeout = setTimeout(() => {
+           this.resizeCanvas();
+         }, 100);
+       };
+     }
+
+
+    private startAnimation() {
+      if (this.animationId) return;
+      
+      this.isAnimating = true;
+      const isMobile = window.innerWidth <= 768;
+      
+      const animate = (currentTime: number) => {
+        if (!this.isAnimating) return;
+        
+        // MOBILE PERFORMANCE: More aggressive throttling on mobile
+        if (!this.animationThrottler.shouldRender(currentTime)) {
+          this.animationId = requestAnimationFrame(animate);
+          return;
+        }
+        
+        // Slower pulse on mobile to reduce CPU usage
+        this.pulseTime += isMobile ? 0.01 : 0.02;
+        this.render();
+        this.animationId = requestAnimationFrame(animate);
+      };
+      
+      this.animationId = requestAnimationFrame(animate);
+    }
+
+    private stopAnimation() {
+      this.isAnimating = false;
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+      this.performanceMonitor.stop();
+    }
+
+     private render() {
+       // Clear canvas
+       this.ctx.clearRect(0, 0, this.canvasW, this.canvasH);
+       
+       // Draw grid cells
+       this.drawGrid();
+       
+       // Draw labels
+       this.drawLabels();
+       
+       // Draw trail effect
+       this.drawTrail();
+       
+       // Draw current week pulse
+       this.drawCurrentWeekPulse();
+     }
+
+     private drawGrid() {
+       for (let year = 0; year < this.GRID_YEARS; year++) {
+         for (let week = 0; week < this.GRID_WEEKS; week++) {
+           const weekIndex = year * this.GRID_WEEKS + week;
+           const weekData = this.weeks[weekIndex];
+           
+           if (!weekData) continue;
+           
+           const x = this.gridX0 + week * this.cellSize;
+           const y = this.gridY0 + year * this.cellSize;
+           
+           // Add small gap between cells
+           const gap = 1; // 1 pixel gap
+           const cellW = this.cellSize - gap;
+           const cellH = this.cellSize - gap;
+           
+           // Calculate rounded corner radius based on cell size
+           const cornerRadius = Math.max(1, Math.min(3, cellW * 0.15));
+           
+           // Use exact phase color mapping
+           const fillColor = this.getWeekColor(year, week, weekData);
+           this.ctx.fillStyle = fillColor;
+           this.drawRoundedRect(x + gap/2, y + gap/2, cellW, cellH, cornerRadius);
+           
+           // Current week will be handled by the glow effect - no border needed
+         }
+       }
+     }
+
+     private getWeekColor(_year: number, _week: number, weekData: Week): string {
+       // OPTIMIZED COLOR SCHEME: Rich dark mode, washed out light mode for better blending
+       const colors = {
+         'childhood': this.theme === "dark" ? "#1e3a5f" : "rgba(45, 90, 135, 0.4)", // Rich dark teal/blue vs washed out light
+         'adolescence': this.theme === "dark" ? "#5d2e0a" : "rgba(139, 69, 19, 0.35)", // Rich dark brown vs washed out light
+         'young-adulthood': this.theme === "dark" ? "#2d1a4a" : "rgba(75, 0, 130, 0.4)", // Rich dark purple vs washed out light
+         'early-adulthood': this.theme === "dark" ? "#1e3a5f" : "rgba(45, 90, 135, 0.4)", // Rich dark teal/blue vs washed out light
+         'middle-adulthood': this.theme === "dark" ? "#5d2e0a" : "rgba(139, 69, 19, 0.35)", // Rich dark brown vs washed out light
+         'late-adulthood': this.theme === "dark" ? "#2d1a4a" : "rgba(75, 0, 130, 0.4)", // Rich dark purple vs washed out light
+         'advanced-age': this.theme === "dark" ? "#2d1a4a" : "rgba(75, 0, 130, 0.4)" // Same as late-adulthood - consistent rich dark vs washed out light
+       };
+       
+       if (weekData.isFilled) {
+         return colors[weekData.phase as keyof typeof colors] || colors['childhood'];
+       } else {
+         // Empty weeks - optimized subtle background for better blending
+         return this.theme === "dark" ? "rgba(40, 40, 40, 0.4)" : "rgba(180, 180, 180, 0.2)";
+       }
+     }
+
+     // Helper method to draw rounded rectangles
+     private drawRoundedRect(x: number, y: number, width: number, height: number, radius: number, stroke: boolean = false) {
+       this.ctx.beginPath();
+       this.ctx.moveTo(x + radius, y);
+       this.ctx.lineTo(x + width - radius, y);
+       this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+       this.ctx.lineTo(x + width, y + height - radius);
+       this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+       this.ctx.lineTo(x + radius, y + height);
+       this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+       this.ctx.lineTo(x, y + radius);
+       this.ctx.quadraticCurveTo(x, y, x + radius, y);
+       this.ctx.closePath();
+       
+       if (stroke) {
+         this.ctx.stroke();
+       } else {
+         this.ctx.fill();
+       }
+     }
+
+
+     private drawLabels() {
+       const isMobile = window.innerWidth <= 768;
+       const isSmallMobile = window.innerWidth <= 480;
+       
+       // MOBILE-OPTIMIZED FONT SIZING: Prevent text squeezing
+       const titleFontSize = Math.max(isSmallMobile ? 10 : isMobile ? 11 : 12, Math.min(18, this.cellSize * 1.0));
+       const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif';
+       
+       // Draw WEEKS label - ALIGN "W" TO WEEK NUMBER 1
+       this.ctx.save();
+       this.ctx.font = `bold ${titleFontSize}px ${systemFont}`;
+       this.ctx.fillStyle = this.theme === "dark" ? '#e2e8f0' : '#475569';
+       this.ctx.textAlign = "left";
+       this.ctx.textBaseline = "bottom";
+       // ALIGN "W" TO WEEK 1: Position WEEKS so the "W" aligns with week number 1
+       const weeksLabelY = this.gridY0 - 20; // Increased gap from 15 to 20px for better spacing
+       const week1CenterX = this.gridX0 + this.cellSize / 2 - 8; // Move left 8px for proper alignment
+       this.ctx.fillText("WEEKS", week1CenterX, weeksLabelY);
+       this.ctx.restore();
+
+       // Draw YEARS label - ALIGN "S" TO THE LEFT OF YEAR NUMBER 1
+       this.ctx.save();
+       this.ctx.font = `bold ${titleFontSize}px ${systemFont}`;
+       this.ctx.fillStyle = this.theme === "dark" ? '#e2e8f0' : '#475569';
+       this.ctx.textAlign = "center";
+       this.ctx.textBaseline = "bottom"; // Changed to "bottom" so "S" aligns properly
+       // ALIGN "S" TO THE LEFT OF YEAR 1: Position YEARS so the "S" is just to the left of year number 1
+       const year1RightX = this.gridX0 - 4; // Right edge of year number 1 (right-aligned)
+       const yearsLabelX = year1RightX - 8; // Position "S" 8px to the left of year number 1
+       const yearsLabelY = this.gridY0 + this.cellSize / 2 + 20; // Moved down from 15px to 20px for better spacing
+       this.ctx.translate(yearsLabelX, yearsLabelY);
+       this.ctx.rotate(-Math.PI / 2);
+       this.ctx.fillText("YEARS", 0, 0);
+       this.ctx.restore();
+
+       // Draw year labels - CONSISTENT ACROSS ALL SCREEN SIZES
+       const yearFontSize = Math.max(isSmallMobile ? 8 : isMobile ? 9 : 10, Math.min(16, this.cellSize * 0.7));
+       const yearLabelX = this.gridX0 - 4; // Much closer to grid (was -8)
+       
+       // Start from year 1, then show every 5th year
+       for (let y = 1; y <= this.GRID_YEARS; y += (y === 1 ? 4 : 5)) {
+         this.ctx.save();
+         this.ctx.font = `bold ${yearFontSize}px ${systemFont}`; // Made bold for better visibility
+         this.ctx.fillStyle = this.theme === "dark" ? '#ffffff' : '#1e293b'; // Higher contrast colors
+         this.ctx.textAlign = "right";
+         this.ctx.textBaseline = "middle";
+         this.ctx.fillText(`${y}`, yearLabelX, this.gridY0 + (y - 1) * this.cellSize + this.cellSize / 2);
+         this.ctx.restore();
+       }
+
+       // Draw week labels - CONSISTENT ACROSS ALL SCREEN SIZES
+       const weekFontSize = Math.max(isSmallMobile ? 7 : isMobile ? 8 : 9, Math.min(15, this.cellSize * 0.65));
+       const weekLabelY = this.gridY0 - Math.max(5, this.cellSize * 0.2); // Increased gap slightly for better spacing
+       const weekLabels = [1, 14, 27, 40, 52]; // CONSISTENT: Always show same week numbers (1, 14, 27, 40, 52)
+       
+       weekLabels.forEach(w => {
+         this.ctx.save();
+         this.ctx.font = `bold ${weekFontSize}px ${systemFont}`; // Made bold for better visibility
+         this.ctx.fillStyle = this.theme === "dark" ? '#ffffff' : '#1e293b'; // Higher contrast colors
+         this.ctx.textAlign = "center";
+         this.ctx.textBaseline = "bottom";
+         this.ctx.fillText(`${w}`, this.gridX0 + (w - 1) * this.cellSize + this.cellSize / 2, weekLabelY);
+         this.ctx.restore();
+       });
+
+       // UNIVERSAL FIX: Draw phase labels with calculated width
+       this.drawPhaseLabels(systemFont);
+     }
+
+     // UNIVERSAL FIX: Simple phase label drawing with calculated width
+     private drawPhaseLabels(systemFont: string) {
+       this.phaseBoundaries.forEach((phase) => {
+         const topPx = this.gridY0 + (phase.min - 1) * this.cellSize;
+         const heightPx = (phase.max - phase.min + 1) * this.cellSize;
+         
+         const phaseLabelSpacing = 8; // Increased gap between phase labels and week units
+         const leftPx = this.gridX0 + this.gridW + phaseLabelSpacing;
+         
+         // BULLETPROOF FIX: Always draw phase labels - no bounds checking
+         {
+           this.ctx.save();
+           
+           // RESPONSIVE CONTAINER SIZING: Scale with window size and measure text
+           const isMobile = window.innerWidth <= 768;
+           const isSmallMobile = window.innerWidth <= 480;
+           
+           // LARGER FONT SIZING: Make text more readable
+           const baseFontSize = Math.max(10, Math.min(18, this.cellSize * 0.6)); // Larger base font
+           const heightFactor = Math.min(heightPx / 120, 1); // Scale down for shorter containers
+           const phaseFontSize = Math.max(baseFontSize * 0.9, Math.min(baseFontSize * 1.4 * heightFactor, this.cellSize * 0.8));
+           this.ctx.font = `bold ${phaseFontSize}px ${systemFont}`;
+           
+           // Extract phase name and age range
+           const phaseName = phase.label.split('(')[0]?.trim() || '';
+           const ageRange = phase.label.split('(')[1]?.replace(')', '') || '';
+           
+           // Set up age range font if it exists
+           if (ageRange && heightPx > 50) {
+             const ageFontSize = Math.max(baseFontSize * 0.8, Math.min(baseFontSize * 1.1 * heightFactor, this.cellSize * 0.6));
+             this.ctx.font = `${ageFontSize}px ${systemFont}`;
+           }
+           
+           // UNIFORM CONTAINER WIDTH: Keep containers aligned
+           const uniformWidth = isSmallMobile ? 50 : isMobile ? 70 : 90; // Same width for all containers
+           const optimalWidth = uniformWidth;
+           
+           // Draw background with optimal width
+           const bgPadding = 4;
+           this.ctx.fillStyle = phase.color;
+           this.ctx.globalAlpha = 0.12;
+           this.ctx.fillRect(leftPx, topPx + bgPadding, optimalWidth, heightPx - (bgPadding * 2));
+           this.ctx.globalAlpha = 1.0;
+           
+           // Phase name and age range already extracted above
+           
+           // Position and rotate for vertical text using optimal width
+           const centerX = leftPx + optimalWidth / 2;
+           const centerY = topPx + heightPx / 2;
+           
+           this.ctx.translate(centerX, centerY);
+           this.ctx.rotate(-Math.PI / 2);
+           
+           // Draw phase name first (vertical)
+           this.ctx.font = `bold ${phaseFontSize}px ${systemFont}`;
+           this.ctx.fillStyle = this.theme === "dark" ? '#ffffff' : '#1e293b';
+           this.ctx.textAlign = "center";
+           this.ctx.textBaseline = "middle";
+           
+           // SIMPLE, BULLETPROOF SOLUTION: Fixed spacing that just works
+           // Phase name at top
+           this.ctx.fillText(phaseName, 0, -20);
+           
+           // Year period below phase name - SIMPLE and RELIABLE
+           if (ageRange && heightPx > 50) {
+             const ageFontSize = Math.max(9, Math.min(12, this.cellSize * 0.5)); // Simple font size
+             this.ctx.font = `${ageFontSize}px ${systemFont}`;
+             this.ctx.fillStyle = this.theme === "dark" ? '#cbd5e1' : '#64748b';
+             this.ctx.fillText(ageRange, 0, 0); // Simple positioning
+           }
+           
+           this.ctx.restore();
+         }
+       });
+     }
+
+    private drawTrail() {
+      const now = Date.now();
+      
+      
+      this.trailBuffer.forEach((trailCell, index) => {
+        const alpha = this.fade(trailCell.timestamp, now);
+        if (alpha > 0) {
+          // Get the week data for this position to determine phase color
+          // trailCell.x and trailCell.y are already the grid coordinates, not pixel coordinates
+          const week = Math.floor((trailCell.x - this.gridX0) / this.cellSize);
+          const year = Math.floor((trailCell.y - this.gridY0) / this.cellSize);
+          
+          // Ensure we're within bounds
+          if (week >= 0 && week < this.GRID_WEEKS && year >= 0 && year < this.GRID_YEARS) {
+            const weekIndex = year * this.GRID_WEEKS + week;
+            const weekData = this.weeks[weekIndex];
+            
+            if (weekData) {
+              // Get phase color for this week
+              const phaseColor = this.getPhaseColor(weekData.phase);
+              
+              // Only the most recent (cursor) unit gets full glow, others get subtle lighting
+              const isCurrentCursor = index === this.trailBuffer.length - 1;
+              const glowIntensity = isCurrentCursor ? alpha : alpha * 0.3; // Much more subtle for trail
+              
+              this.drawNaturalGlow(trailCell.x, trailCell.y, this.cellSize, glowIntensity, phaseColor);
+            }
+          }
+        }
+      });
+      
+      // Clean up old trail points - longer trail duration
+      this.trailBuffer = this.trailBuffer.filter(trailCell => 
+        now - trailCell.timestamp < 1200 // Increased from 500ms to 1200ms
+      );
+    }
+
+    private fade(timestamp: number, now: number = Date.now()): number {
+      const age = now - timestamp;
+      return Math.max(0, 1 - age / 1200); // Slower fade over 1200ms for smoother effect
+    }
+
+    // Get the phase color for hover effects - VIBRANT VERSIONS for visibility
+    private getPhaseColor(phase: string): string {
+      const colors = {
+        'childhood': this.theme === "dark" ? "#4a9eff" : "#0066cc", // Bright blue
+        'adolescence': this.theme === "dark" ? "#ff6b35" : "#cc4400", // Bright orange-red
+        'young-adulthood': this.theme === "dark" ? "#b347d9" : "#9900cc", // Bright purple
+        'early-adulthood': this.theme === "dark" ? "#4a9eff" : "#0066cc", // Bright blue
+        'middle-adulthood': this.theme === "dark" ? "#ff6b35" : "#cc4400", // Bright orange-red
+        'late-adulthood': this.theme === "dark" ? "#b347d9" : "#9900cc", // Bright purple
+        'advanced-age': this.theme === "dark" ? "#4a9eff" : "#0066cc" // Bright blue
+      };
+      
+      return colors[phase as keyof typeof colors] || colors['childhood'];
+    }
+
+
+    private drawCurrentWeekPulse() {
+      if (!this.currentWeek) return;
+      
+      const t = Date.now() % 2000 / 2000; // Slower, more subtle pulse
+      // ORIGINAL DESIGN: Natural pulsing glow effect
+      const alpha = 0.4 + 0.2 * Math.sin(Math.PI * 2 * t);
+      
+      // Create the natural glow using high-performance shadow blur technique
+      this.drawNaturalGlow(this.currentWeekCoord.x, this.currentWeekCoord.y, this.cellSize, alpha);
+    }
+
+    // HIGH-PERFORMANCE METHOD: Create natural glow using shadow blur technique
+    private drawNaturalGlow(x: number, y: number, size: number, alpha: number, customColor?: string) {
+      // Account for the gap in positioning
+      const gap = 1;
+      const adjustedX = x + gap/2;
+      const adjustedY = y + gap/2;
+      const adjustedSize = size - gap;
+      
+      this.ctx.save();
+      
+      // Method 1: Shadow blur for natural glow (most performance efficient)
+      const glowColor = customColor || (this.theme === "dark" ? "#7a8b9a" : "#9aabb8");
+      this.ctx.shadowColor = glowColor;
+      this.ctx.shadowBlur = Math.max(8, adjustedSize * 0.8); // Dynamic blur based on cell size
+      this.ctx.shadowOffsetX = 0;
+      this.ctx.shadowOffsetY = 0;
+      this.ctx.globalAlpha = alpha;
+      
+      // Draw the glowing unit with shadow
+      const cornerRadius = Math.max(1, Math.min(3, adjustedSize * 0.15));
+      this.ctx.fillStyle = glowColor;
+      this.drawRoundedRect(adjustedX, adjustedY, adjustedSize, adjustedSize, cornerRadius);
+      
+      this.ctx.restore();
+      
+      // Method 2: Additional subtle radial gradient for enhanced effect
+      this.ctx.save();
+      const centerX = adjustedX + adjustedSize / 2;
+      const centerY = adjustedY + adjustedSize / 2;
+      const glowRadius = adjustedSize * 1.6;
+      
+      const grad = this.ctx.createRadialGradient(
+        centerX, centerY, 0,
+        centerX, centerY, glowRadius
+      );
+      
+      // Create a subtle overlay gradient
+      grad.addColorStop(0, `${glowColor}${Math.floor(alpha * 0.2 * 255).toString(16).padStart(2, '0')}`);
+      grad.addColorStop(0.5, `${glowColor}${Math.floor(alpha * 0.1 * 255).toString(16).padStart(2, '0')}`);
+      grad.addColorStop(1, "transparent");
+      
+      this.ctx.globalAlpha = 1.0;
+      this.ctx.fillStyle = grad;
+      
+      // Draw the gradient overlay
+      const glowOffset = (glowRadius - adjustedSize) / 2;
+      this.drawRoundedRect(
+        adjustedX - glowOffset, 
+        adjustedY - glowOffset, 
+        adjustedSize + glowOffset * 2, 
+        adjustedSize + glowOffset * 2, 
+        cornerRadius + glowOffset
+      );
+      
+      this.ctx.restore();
+    }
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('life-calendar-canvas') as HTMLCanvasElement;
+    if (canvas) {
+      new JourneyCalendarCanvas(canvas);
+    }
+  });
+</script>
+
+
+
+
