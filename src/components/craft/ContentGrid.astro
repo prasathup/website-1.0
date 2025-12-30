@@ -1,0 +1,408 @@
+---
+// ContentGrid provides CSS-only masonry layout with theme support
+export interface Props {
+  columns?: 2 | 3 | 4;
+  gap?: string;
+  theme?: 'projects' | 'lab' | 'notes' | 'journey';
+  class?: string;
+}
+
+const { 
+  columns = 3, 
+  gap = '1.5rem',
+  theme = 'projects',
+  class: className = '' 
+} = Astro.props;
+
+// Determine layout class based on columns
+const layoutClass = columns === 2 
+  ? 'craft-grid-2col' 
+  : columns === 4
+  ? 'craft-grid-4col'
+  : 'craft-grid-3col';
+---
+
+<!-- Content grid with CSS-only masonry and theme support -->
+<section 
+  class={`craft-grid ${layoutClass} theme-${theme} ${className}`}
+  data-columns={columns}
+  data-theme={theme}
+  style={`--grid-columns: ${columns}; --grid-gap: ${gap};`}
+  aria-label="Content grid"
+>
+  <slot />
+</section>
+
+<style>
+  /* Base masonry layout styles */
+  .craft-grid {
+    display: grid;
+    gap: var(--grid-gap, 16px);
+    grid-auto-rows: 20px; /* Small rows for masonry effect */
+    grid-auto-flow: row; /* preserve source order (no dense backfilling) */
+    align-items: start;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 16px;
+  }
+
+  /* 3-column layout (Projects) - existing behavior */
+  .craft-grid-3col {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    max-width: 1400px;
+  }
+
+  /* 4-column layout (Journey) */
+  .craft-grid-4col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--card-gap);
+    max-width: 1600px;
+  }
+
+  /* 2-column layout (Lab & Notes) - exactly two columns on >= sm */
+  .craft-grid-2col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 1400px;
+  }
+
+  /* Responsive 3-column masonry (Projects) */
+  @media (min-width: 640px) {
+    .craft-grid-3col {
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: var(--grid-gap, 18px);
+      padding: 0 20px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .craft-grid-3col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--grid-gap, 20px);
+      padding: 0 24px;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .craft-grid-3col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--grid-gap, 18px);
+      padding: 0 32px;
+    }
+  }
+
+  /* Responsive 4-column masonry (Journey) */
+  @media (min-width: 640px) {
+    .craft-grid-4col {
+      /* Force symmetry: exactly two columns on small/medium screens */
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap, 18px);
+      padding: 0 20px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .craft-grid-4col {
+      /* Force symmetry: exactly four columns on desktop */
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--grid-gap, 20px);
+      padding: 0 24px;
+    }
+  }
+
+  /* Responsive 2-column masonry (Lab & Notes) */
+  @media (min-width: 640px) {
+    .craft-grid-2col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap, 20px);
+      padding: 0 24px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .craft-grid-2col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap, 24px);
+      padding: 0 32px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .craft-grid-2col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap, 28px);
+      padding: 0 40px;
+    }
+  }
+
+  /* Mobile single column for both layouts */
+  @media (max-width: 639px) {
+    .craft-grid {
+      grid-template-columns: 1fr;
+      gap: var(--grid-gap, 16px);
+      padding: 0 16px;
+      grid-auto-rows: 22px; /* Slightly taller rows for phone readability */
+    }
+
+    /* Make phone cards a little roomier without changing layout ratios */
+    .craft-grid > :global([data-card-size="short"]) { min-height: 215px; }
+    .craft-grid > :global([data-card-size="standard"]) { min-height: 295px; }
+    .craft-grid > :global([data-card-size="tall"]) { min-height: 375px; }
+    .craft-grid > :global([data-card-size="wide"]) { min-height: 255px; }
+    .craft-grid > :global([data-card-size="hero"]) { min-height: 455px; }
+    .craft-grid > :global([data-card-size="tile"]) { min-height: 170px; }
+  }
+
+  /* Grid item base styling */
+  .craft-grid > :global(*) {
+    grid-row: span var(--row-span, 15);
+    break-inside: avoid;
+    max-width: 100%;
+    width: 100%;
+    justify-self: center;
+  }
+
+  /* 3-column layout card constraints */
+  @media (min-width: 1024px) {
+    .craft-grid-3col > :global(*) {
+      max-width: 420px;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .craft-grid-3col > :global(*) {
+      max-width: 440px;
+    }
+  }
+
+  /* 2-column layout card constraints - wider cards */
+  @media (min-width: 1024px) {
+    .craft-grid-2col > :global(*) {
+      max-width: 560px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .craft-grid-2col > :global(*) {
+      max-width: 600px;
+    }
+  }
+
+  /* 4-column layout card constraints - properly centered on mobile */
+  @media (max-width: 639px) {
+    .craft-grid-4col > :global(*) {
+      min-width: auto;
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .craft-grid-4col > :global(*) {
+      max-width: 400px;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .craft-grid-4col > :global(*) {
+      max-width: 420px;
+    }
+  }
+
+  /* Balanced masonry sizing - same for all themes */
+  .craft-grid > :global([data-card-size="short"]) {
+    --row-span: 11;
+    min-height: 200px;
+  }
+
+  .craft-grid > :global([data-card-size="standard"]) {
+    --row-span: 15;
+    min-height: 280px;
+  }
+
+  .craft-grid > :global([data-card-size="tall"]) {
+    --row-span: 19;
+    min-height: 360px;
+  }
+
+  .craft-grid > :global([data-card-size="wide"]) {
+    --row-span: 13;
+    min-height: 240px;
+  }
+
+  .craft-grid > :global([data-card-size="hero"]) {
+    --row-span: 23;
+    min-height: 440px;
+    grid-column: span 1;
+  }
+
+  /* New: shallow rectangle tile for Lab */
+  .craft-grid > :global([data-card-size="tile"]) {
+    --row-span: 7; /* shorter height */
+    min-height: 140px;
+  }
+
+  /* Larger screen adjustments for all themes */
+  @media (min-width: 1024px) {
+    .craft-grid > :global([data-card-size="short"]) {
+      --row-span: 12;
+      min-height: 220px;
+    }
+    
+    .craft-grid > :global([data-card-size="standard"]) {
+      --row-span: 16;
+      min-height: 300px;
+    }
+    
+    .craft-grid > :global([data-card-size="tall"]) {
+      --row-span: 19;
+      min-height: 400px;
+    }
+    
+    .craft-grid > :global([data-card-size="wide"]) {
+      --row-span: 14;
+      min-height: 260px;
+    }
+    
+    .craft-grid > :global([data-card-size="hero"]) {
+      --row-span: 23;
+      min-height: 500px;
+    }
+
+    .craft-grid > :global([data-card-size="tile"]) {
+      --row-span: 8;
+      min-height: 160px;
+    }
+  }
+
+  /* 2-column layouts get slightly taller cards for better proportions */
+  @media (min-width: 1024px) {
+    .craft-grid-2col > :global([data-card-size="short"]) {
+      --row-span: 13;
+      min-height: 240px;
+    }
+    
+    .craft-grid-2col > :global([data-card-size="standard"]) {
+      --row-span: 17;
+      min-height: 320px;
+    }
+    
+    .craft-grid-2col > :global([data-card-size="tall"]) {
+      --row-span: 21;
+      min-height: 420px;
+    }
+    
+    .craft-grid-2col > :global([data-card-size="wide"]) {
+      --row-span: 15;
+      min-height: 280px;
+    }
+    
+    .craft-grid-2col > :global([data-card-size="hero"]) {
+      --row-span: 25;
+      min-height: 520px;
+    }
+
+    .craft-grid-2col > :global([data-card-size="tile"]) {
+      --row-span: 10; /* flatter for rectangle look */
+      min-height: 200px;
+    }
+  }
+
+  /* Removed CSS entrance animations to keep JS motion smooth and simple */
+
+  /* Theme-specific grid adjustments */
+  .craft-grid.theme-lab {
+    /* Remove any container backdrop so there's no gray box around cards */
+    background: none;
+    box-shadow: none;
+  }
+
+  /* JS-driven motion for Lab cards (CSS float removed to avoid transform conflicts) */
+
+  .craft-grid.theme-notes {
+    /* Notes theme: cozy, reading-focused spacing */
+  }
+
+  .craft-grid.theme-projects {
+    /* Projects theme: current optimized spacing */
+  }
+
+  /* Ensure 3 columns on laptop/desktop for Projects */
+  @media (min-width: 1024px) {
+    .craft-grid-3col.theme-projects {
+      /* Force exactly three columns to match Journey's stable layout */
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Lab: allow truly wide cards to span 2 columns on desktop */
+  @media (min-width: 1024px) {
+    .craft-grid.theme-lab > :global([data-card-size="tile"]) {
+      grid-column: span 2; /* make it truly rectangular */
+    }
+    /* Remove max-width caps so span=2 items can actually stretch */
+    .craft-grid-3col.theme-lab > :global([data-card-size="tile"]) {
+      max-width: none;
+    }
+  }
+
+  /* Theme-specific row-span adjustments for Projects
+     Increase heights slightly to ensure footers/tag pills never clip */
+  .craft-grid.theme-projects > :global([data-card-size="short"]) {
+    --row-span: 13;
+    min-height: 240px;
+  }
+  .craft-grid.theme-projects > :global([data-card-size="standard"]) {
+    --row-span: 17;
+    min-height: 320px;
+  }
+  .craft-grid.theme-projects > :global([data-card-size="tall"]) {
+    --row-span: 22;
+    min-height: 420px;
+  }
+  .craft-grid.theme-projects > :global([data-card-size="wide"]) {
+    --row-span: 15;
+    min-height: 280px;
+  }
+  .craft-grid.theme-projects > :global([data-card-size="hero"]) {
+    --row-span: 25;
+    min-height: 520px;
+  }
+
+  @media (min-width: 1024px) {
+    .craft-grid.theme-projects > :global([data-card-size="short"]) {
+      --row-span: 14;
+      min-height: 260px;
+    }
+    .craft-grid.theme-projects > :global([data-card-size="standard"]) {
+      --row-span: 18;
+      min-height: 340px;
+    }
+    .craft-grid.theme-projects > :global([data-card-size="tall"]) {
+      --row-span: 23;
+      min-height: 440px;
+    }
+    .craft-grid.theme-projects > :global([data-card-size="wide"]) {
+      --row-span: 16;
+      min-height: 300px;
+    }
+    .craft-grid.theme-projects > :global([data-card-size="hero"]) {
+      --row-span: 26;
+      min-height: 540px;
+    }
+  }
+
+  /* Grid gap adjustments for different screen sizes */
+  @media (max-width: 480px) {
+    .craft-grid {
+      gap: var(--space-sm, 1rem);
+      padding: 0 var(--space-sm, 1rem);
+    }
+  }
+
+  /* Focus management for keyboard navigation */
+  .craft-grid:focus-within {
+    outline: none;
+  }
+</style> 

@@ -1,0 +1,404 @@
+---
+// Responsive background image component using pure CSS and High-Performance CSS Masks
+// Images used:
+// - Left: 709×1117px
+// - Right: 689×1073px
+// - Bottom: 363×315px (Enterprise)
+import { Image } from 'astro:assets';
+import leftBg from '../assets/Landing Background/macbook-pro-16-left-screen.png';
+import rightBg from '../assets/Landing Background/macbook-pro-16-right-screen.png';
+import bottomBg from '../assets/Landing Background/macbook-pro-16-mid-bottom-screen.png';
+
+// Shown on home and bio pages as specified in Layout.astro
+const { pageName } = Astro.props;
+const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
+---
+
+<div class={`background-container ${shouldShowByDefault ? 'visible' : ''}`} data-page-name={pageName || 'unknown'}>
+  <!-- Simple solid background color (Unmasked) -->
+  <div class="base-color"></div>
+  
+  <!-- MASK LAYER: Controls visibility of all artwork -->
+  <!-- Initially hidden (via mask), revealed by cursor interaction -->
+  <div id="artwork-mask-layer">
+      <!-- Left image - AVIF with high quality -->
+      <div class="art-container left-art">
+        <Image 
+          src={leftBg} 
+          alt="" 
+          class="bg-image left-bg-image" 
+          loading="eager"
+          quality="high"
+          format="avif"
+        />
+      </div>
+      
+      <!-- Right image - AVIF with high quality -->
+      <div class="art-container right-art">
+        <Image 
+          src={rightBg} 
+          alt="" 
+          class="bg-image right-bg-image" 
+          loading="eager"
+          quality="high"
+          format="avif"
+        />
+      </div>
+      
+      <!-- Bottom image (Enterprise) - AVIF with high quality -->
+      <div class="art-container bottom-art" id="enterprise-container">
+        <Image 
+          src={bottomBg} 
+          alt="" 
+          class="bg-image bottom-bg-image" 
+          loading="eager"
+          id="enterprise-image"
+          quality="high"
+          format="avif"
+        />
+      </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ shouldShowByDefault }}>
+  // --- Mask Animation & Interaction Logic ---
+  
+  const state = {
+    isExpanded: false,
+    mouseX: 0,
+    mouseY: 0,
+    // Configuration - Round 5: Drastic Slowdown, 75% Softness
+    hoverRadius: 0, 
+    hoverSoftness: 135, // 75% of 180px - Smaller but still soft
+    expandRadius: '200vmax', 
+    expandSoftness: 800, 
+  };
+
+  function updateMaskVariables(x, y, radius, softness, customTransition = null) {
+    const maskLayer = document.getElementById('artwork-mask-layer');
+    if (!maskLayer) return;
+
+    if (x !== null) maskLayer.style.setProperty('--mask-x', `${x}px`);
+    if (y !== null) maskLayer.style.setProperty('--mask-y', `${y}px`);
+    if (radius !== null) maskLayer.style.setProperty('--mask-radius', typeof radius === 'number' ? `${radius}px` : radius);
+    if (softness !== null) maskLayer.style.setProperty('--mask-softness', `${softness}px`);
+    
+    if (customTransition) {
+        maskLayer.style.transition = customTransition;
+    } else {
+        maskLayer.style.removeProperty('transition');
+    }
+  }
+
+  function handleMouseMove(e) {
+    if (state.isExpanded) return;
+
+    state.mouseX = e.clientX;
+    state.mouseY = e.clientY;
+
+    updateMaskVariables(state.mouseX, state.mouseY, state.hoverRadius, state.hoverSoftness);
+  }
+
+  function handleClick(e) {
+    const backgroundContainer = document.querySelector('.background-container');
+    if (!backgroundContainer || !backgroundContainer.classList.contains('visible')) return;
+
+    if (!state.isExpanded) {
+        // EXPAND
+        state.isExpanded = true;
+        // DRASTIC SLOWDOWN: 6.0s
+        updateMaskVariables(
+            e.clientX, 
+            e.clientY, 
+            state.expandRadius, 
+            state.expandSoftness, 
+            '--mask-radius 6.0s cubic-bezier(0.2, 0.8, 0.2, 1), --mask-softness 6.0s ease-out'
+        );
+    } else {
+        // COLLAPSE
+        state.isExpanded = false;
+        
+        // Slow fade out (3.0s) to keep it relaxed
+        updateMaskVariables(
+            e.clientX, 
+            e.clientY, 
+            state.hoverRadius, 
+            state.hoverSoftness, 
+            '--mask-radius 3.0s cubic-bezier(0.2, 0.8, 0.2, 1), --mask-softness 3.0s ease-out'
+        );
+        
+        state.mouseX = e.clientX;
+        state.mouseY = e.clientY;
+    }
+  }
+
+  // --- Integration & Existing Logic ---
+
+  function setupEnterpriseResponsiveness() {
+    const enterpriseImg = document.getElementById('enterprise-image');
+    const enterpriseContainer = document.getElementById('enterprise-container');
+    if (!enterpriseImg || !enterpriseContainer) return;
+    if (window.getComputedStyle(enterpriseContainer).display === 'none') {
+      return;
+    }
+    enterpriseImg.style.opacity = '1';
+  }
+  
+  function checkVisibility() {
+    const backgroundContainer = document.querySelector('.background-container');
+    if (!backgroundContainer) return;
+
+    const body = document.body;
+    const pageName = body.getAttribute('data-page') || backgroundContainer.getAttribute('data-page-name');
+    const isDisplayPage = pageName === 'home' || pageName === 'bio';
+    
+    if (isDisplayPage) {
+        if (!document.documentElement.classList.contains('transitioning')) {
+            backgroundContainer.classList.add('visible');
+            const baseColor = backgroundContainer.querySelector('.base-color');
+            if (baseColor) {
+                baseColor.setAttribute('data-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            }
+        }
+        setupEnterpriseResponsiveness();
+    } else {
+        backgroundContainer.classList.remove('visible');
+        resetState();
+    }
+  }
+
+  function resetState() {
+    state.isExpanded = false;
+    updateMaskVariables(null, null, state.hoverRadius, state.hoverSoftness, 'none');
+  }
+  
+  function initialize() {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('click', handleClick);
+
+    setTimeout(() => {
+      if (shouldShowByDefault) {
+        const bg = document.querySelector('.background-container');
+        if (bg) {
+            bg.classList.add('visible');
+            setupEnterpriseResponsiveness();
+        }
+      }
+      setTimeout(checkVisibility, 50);
+    }, 10);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+  } else {
+    initialize();
+  }
+  
+  document.addEventListener('astro:page-load', () => {
+    checkVisibility();
+    resetState();
+  });
+  
+  document.addEventListener('astro:before-preparation', () => {
+    document.documentElement.classList.add('transitioning');
+    const bg = document.querySelector('.background-container');
+    if (bg) bg.classList.add('no-transition');
+  });
+  
+  document.addEventListener('astro:after-preparation', () => {
+    document.documentElement.classList.remove('transitioning');
+    const bg = document.querySelector('.background-container');
+    if (bg) bg.classList.remove('no-transition');
+  });
+
+</script>
+
+<style>
+  :root {
+    /* Existing Config */
+    --left-art-width-xl: 45%;
+    --right-art-width-xl: 45%;
+    --left-art-max-width: 709px;
+    --right-art-max-width: 689px;
+    --bottom-art-width: 12%; 
+    --bottom-art-max-width: 173px;
+    --art-opacity: 1;
+    --art-min-height: 100vh;
+    --art-bottom-position: 0;
+
+    /* Mask Animation Config */
+    --mask-x: 50%;
+    --mask-y: 50%;
+    --mask-radius: 0px; 
+    --mask-softness: 135px;
+  }
+  
+  @property --mask-radius {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+  }
+  
+  @property --mask-softness {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 135px;
+  }
+
+  .background-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: var(--z-background, -1);
+    isolation: isolate;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  
+  .background-container.visible {
+    opacity: 1;
+  }
+  
+  .base-color {
+    position: absolute;
+    inset: 0;
+    background-color: var(--current-bg-light);
+    transition: background-color var(--transition-duration, 0.5s) ease, 
+                background-image var(--transition-duration, 0.5s) ease;
+    z-index: 1;
+  }
+  
+  :global(html.dark) .base-color {
+    background-color: var(--current-bg-dark);
+    background-image: var(--current-bg-dark-gradient);
+  }
+
+  /* --- NEW MASK WRAPPER --- */
+  #artwork-mask-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    
+    /* 
+       Refined Gradient for "Soft Spotlight":
+       Removed 'closest-side' which might cause hard boundaries near edges.
+       Just standard 'circle' at position.
+    */
+    mask-image: radial-gradient(
+        circle at var(--mask-x) var(--mask-y), 
+        black var(--mask-radius), /* Solid center */
+        transparent calc(var(--mask-radius) + var(--mask-softness)) /* Fade */
+    );
+    -webkit-mask-image: radial-gradient(
+        circle at var(--mask-x) var(--mask-y), 
+        black var(--mask-radius), 
+        transparent calc(var(--mask-radius) + var(--mask-softness))
+    );
+    
+    will-change: mask-image;
+  }
+
+  /* Art Containers (Children of Mask Layer) */
+  .art-container {
+    position: fixed;
+    overflow: visible;
+    /* z-index handled by parent mask layer now */
+    transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+  }
+  
+  .bg-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: var(--art-opacity);
+    object-position: bottom;
+    object-fit: contain;
+    max-height: none;
+    transform-origin: bottom center;
+  }
+  
+  /* Layout Constraints (Same as before) */
+  .left-art {
+    bottom: var(--art-bottom-position);
+    left: 0;
+    width: var(--left-art-width-xl);
+    height: var(--art-min-height);
+    max-width: var(--left-art-max-width);
+    display: flex;
+    align-items: flex-end;
+  }
+  .left-bg-image { object-position: left bottom; }
+  
+  .right-art {
+    bottom: var(--art-bottom-position);
+    right: 0;
+    width: var(--right-art-width-xl);
+    height: var(--art-min-height);
+    max-width: var(--right-art-max-width);
+    display: flex;
+    align-items: flex-end;
+  }
+  .right-bg-image { object-position: right bottom; }
+  
+  .bottom-art {
+    bottom: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: var(--bottom-art-width);
+    height: auto;
+    max-width: var(--bottom-art-max-width);
+    aspect-ratio: 363/315;
+    z-index: 4; 
+    transition: opacity 0.4s ease;
+  }
+  .bottom-bg-image { 
+    object-position: center bottom; 
+    filter: brightness(1.2); 
+  }
+
+  /* Dark Mode & Responsiveness Preserved */
+  :global(html.dark) .base-color {
+    background-color: var(--current-bg-dark) !important;
+    background-image: var(--current-bg-dark-gradient) !important;
+  }
+  :global(html.dark) .bottom-bg-image { filter: brightness(1.5); }
+
+  /* Breakpoints */
+  @media (min-width: 1800px) {
+    :root { --left-art-width-xl: 50%; --right-art-width-xl: 50%; }
+  }
+  @media (max-width: 1800px) {
+    :root { --left-art-width-xl: 45%; --right-art-width-xl: 45%; --bottom-art-width: 10.5%; }
+  }
+  @media (max-width: 1400px) {
+    :root { --left-art-width-xl: 38%; --right-art-width-xl: 38%; --bottom-art-width: 9.5%; }
+  }
+  @media (max-width: 1200px) {
+    :root { --left-art-width-xl: 32%; --right-art-width-xl: 32%; --bottom-art-width: 8.6%; }
+  }
+  @media (max-width: 1024px) {
+    :root { --left-art-width-xl: 25%; --right-art-width-xl: 25%; --bottom-art-width: 7.1%; }
+    .left-art, .right-art, .bottom-art { display: none; }
+  }
+  @media (max-height: 600px) {
+    .left-art, .right-art { height: 600px; }
+  }
+  @media (min-height: 900px) {
+    body:has(.content-container:nth-child(3)) .bottom-art {}
+  }
+  .dark-theme {
+    background-color: var(--current-bg-dark) !important;
+    background-image: var(--current-bg-dark-gradient) !important;
+  }
+  .background-container.no-transition,
+  .background-container.no-transition * {
+    transition: none !important;
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+  }
+</style>

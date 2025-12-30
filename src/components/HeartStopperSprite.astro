@@ -1,0 +1,71 @@
+---
+// HeartStopperSprite.astro - SVG sprite sheet for Heart Stopper icons
+// This component loads all SVG files and creates a sprite sheet for efficient rendering
+
+// Define the count of SVGs to load
+const svgCount = 22;
+
+// Helper to fetch SVG content at build time
+// @ts-ignore - Using any type for path is acceptable in this build-time context
+async function fetchSvgContent(path) {
+  try {
+    const response = await fetch(new URL(`../../..${path}`, import.meta.url));
+    const text = await response.text();
+    // Extract just the SVG content without outer <svg> tags
+    const svgContent = text.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i)?.[1] || '';
+    return svgContent;
+  } catch (error) {
+    console.error(`Error loading SVG from ${path}:`, error);
+    return '';
+  }
+}
+
+// Generate paths to all SVGs - files in public/ are served at root
+const svgPaths = [];
+// Base SVG (Vector0)
+svgPaths.push(`/HeartStopperSVG/Heartstopper Vector0.svg`);
+// Numbered SVGs (Vector1 through Vector22)
+for (let i = 1; i <= svgCount; i++) {
+  svgPaths.push(`/HeartStopperSVG/Heartstopper Vector${i}.svg`);
+}
+// Add the Hi SVG
+svgPaths.push(`/HeartStopperSVG/Hi.svg`);
+
+// Try to load SVG contents at build time
+// For each SVG we'll create a separate symbol with a unique id
+---
+
+<svg 
+  xmlns="http://www.w3.org/2000/svg"
+  class="heart-stopper-sprite"
+  width="0"
+  height="0"
+  style="position: absolute; width: 0; height: 0; overflow: hidden;"
+  aria-hidden="true"
+>
+  <defs>
+    {svgPaths.map((path, index) => {
+      const id = `heart-svg-${index + 1}`;
+      return (
+        <symbol id={id} viewBox="0 0 111 98">
+          <use href={path} />
+        </symbol>
+      );
+    })}
+  </defs>
+</svg>
+
+<script is:inline define:vars={{ svgCount }}>
+  // Count SVGs for client-side reference
+  // @ts-ignore - Adding property to window object
+  window.heartStopperSvgCount = svgCount;
+  
+  // Expose function to get a random SVG ID
+  // @ts-ignore - Adding method to window object
+  window.getRandomHeartStopperSvgId = function() {
+    // @ts-ignore - Reading property from window object
+    const count = window.heartStopperSvgCount || 24; // 1 base (Vector0) + 22 numbered (Vector1-22) + 1 Hi
+    const index = Math.floor(Math.random() * count) + 1;
+    return `heart-svg-${index}`;
+  };
+</script>

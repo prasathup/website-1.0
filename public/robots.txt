@@ -1,0 +1,4 @@
+# Disallow all search engine crawlers from indexing this website
+User-agent: *
+Disallow: /
+
