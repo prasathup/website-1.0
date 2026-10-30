@@ -53,10 +53,6 @@ const positionedMedia = allMedia.slice().sort((a: any, b: any) => {
 <CraftLayout title={`${title} - Personal Website`} pageName="lab">
   <!-- Lab header with consistent styling -->
   <div slot="header" class="lab-header">
-    <nav class="breadcrumb">
-      <a href="/lab" data-breadcrumb-link>← Back to Lab</a>
-    </nav>
-    
     <h1 class="craft-title">{title}</h1>
     <p class="craft-subtitle" set:html={description}></p>
     
@@ -170,37 +166,6 @@ const positionedMedia = allMedia.slice().sort((a: any, b: any) => {
     text-align: center;
     max-width: 900px;
     margin: 0 auto 0.25rem auto;
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--space-lg);
-  }
-
-  .breadcrumb a {
-    color: var(--rainbow-lab);
-    text-decoration: none;
-    font-size: clamp(0.9rem, 1.5vw, 1rem);
-    transition: all 0.3s ease;
-    font-family: 'Ubuntu', system-ui, sans-serif;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    background: rgba(180, 90, 200, 0.1);
-    border: 1px solid rgba(180, 90, 200, 0.2);
-  }
-
-  .breadcrumb a:hover {
-    background: rgba(180, 90, 200, 0.2);
-    transform: translateX(-4px);
-  }
-
-  html:not(.dark) .breadcrumb a {
-    color: #7A2D8F;
-    background: rgba(122, 45, 143, 0.1);
-    border-color: rgba(122, 45, 143, 0.2);
-  }
-
-  html:not(.dark) .breadcrumb a:hover {
-    background: rgba(122, 45, 143, 0.2);
   }
 
   /* Harmonized title/subtitle styling (same as notes/projects) */

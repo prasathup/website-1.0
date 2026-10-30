@@ -6,10 +6,10 @@
 
 <style>
     .endosome-sketch {
+        /* Layout viewport only — avoid large-viewport height units that stretch
+           the buffer on iOS and drift the oval below bubble-centered bio text. */
         position: fixed;
         inset: 0;
-        width: 100vw;
-        height: 100vh;
         z-index: 0;
         pointer-events: none;
         /* Start visible - will be shown immediately when ready */
@@ -35,7 +35,7 @@
         strokeWidth: 0.01,
         noiseScale: 4.0,
         // Mobile specific settings
-        mobileSize: 0.76,        // Fraction of viewport width (0.0 - 1.0)
+        mobileSize: 0.80,        // Fraction of viewport width (0.0 - 1.0)
         mobileStrokeBoost: 2.5,  // Multiplier for stroke width on mobile
     };
 
@@ -141,15 +141,12 @@
             // Normalize coordinates centered at viewport center
             var p: vec2<f32> = (fragCoord * 2.0 - u.resolution) / minRes;
             
-            // MOBILE: Pure viewport centering (p is already centered at 0,0)
-            // DESKTOP: Apply content position offset for elegant tracking
-            if (u.is_mobile < 0.5) {
-                // Desktop only: offset by content position
-                let viewportCenter: vec2<f32> = u.resolution * 0.5;
-                let contentOffset: vec2<f32> = (u.content_pos - viewportCenter) / minRes * 2.0;
-                p = p - contentOffset;
-            }
-            // Mobile: p stays centered at (0,0) - no offset applied
+            // Track bubble/content position on both mobile and desktop so the
+            // charcoal oval center matches .wave-bubble-container (text target).
+            // MOBILE: Track bubble/content position (size still uses mobile_size).
+            let viewportCenter: vec2<f32> = u.resolution * 0.5;
+            let contentOffset: vec2<f32> = (u.content_pos - viewportCenter) / minRes * 2.0;
+            p = p - contentOffset;
 
             // --- AUTO-SIZING LOGIC ---
             var targetSize: vec2<f32>;
@@ -238,8 +235,8 @@
             // MOBILE & DESKTOP CUSTOMIZABLE: Start time, end time, start position, fusion position
             // Desktop timing: appears at 2% scroll, completes at 48% scroll (46% duration)
             // Mobile timing: appears at 2% scroll, completes at 48% scroll (46% duration)
-            let fusion1Start: f32 = select(0.02, 0.02, u.is_mobile > 0.5); // When it starts appearing
-            let fusion1End: f32 = select(0.546, 0.48, u.is_mobile > 0.5);   // When fusion completes (controls speed/duration)
+            let fusion1Start: f32 = select(0.005, 0.02, u.is_mobile > 0.5); // Start immediately (0.01 desktop)
+            let fusion1End: f32 = select(0.301, 0.48, u.is_mobile > 0.5);   // Fast entry (0.35 desktop) to be close by Career Path
             let tFusion1: f32 = smoothstep(fusion1Start, fusion1End, u.scroll);
             // Desktop: top-left diagonal, Mobile: top-left CORNER for longer visibility in portrait
             let fus1Dir: vec2<f32> = select(
@@ -247,8 +244,8 @@
                 normalize(vec2<f32>(-1.0, 1.0))       // Mobile: top-left corner
             , u.is_mobile > 0.5);
             
-            // Start position: desktop 1.88, mobile 1.8 (distance from center where vesicle starts)
-            let startDist1: f32 = select(1.88, 1.8, u.is_mobile > 0.5);
+            // Start position: desktop 3.0 (Off-screen), mobile 1.8
+            let startDist1: f32 = select(3.0, 1.8, u.is_mobile > 0.5);
             // Fusion position: desktop 0.5, mobile 0.5 (distance from center where it fuses)
             let fusionPos1: f32 = select(0.5, 0.5, u.is_mobile > 0.5);
             let fus1Pos: vec2<f32> = mix(fus1Dir * startDist1 / finalScale, fus1Dir * fusionPos1, tFusion1);
@@ -260,8 +257,9 @@
             // Desktop timing: appears at 35% scroll, completes at 80% scroll (45% duration - slower)
             // Mobile timing: appears at 35% scroll, completes at 80% scroll (45% duration - slower)
             // Goal: Close to main endosome when "Wandering mind" section (50-67% scroll) is in focus, but not fused yet
-            let fusion2Start: f32 = select(0.35, 0.35, u.is_mobile > 0.5); // When it starts appearing (earlier = visible sooner)
-            let fusion2End: f32 = select(0.80, 0.80, u.is_mobile > 0.5);   // When fusion completes (later = fuses after Wandering mind)
+            // Goal: Fuse earlier, while user is reading upper content
+            let fusion2Start: f32 = select(0.29, 0.5, u.is_mobile > 0.5); // Start earlier
+            let fusion2End: f32 = select(0.77, 0.90, u.is_mobile > 0.5);   // Finish when Wandering Mind ends
             let tFusion2: f32 = smoothstep(fusion2Start, fusion2End, u.scroll);
             // Desktop: bottom-right diagonal, Mobile: bottom-right CORNER for longer visibility in portrait
             let fus2Dir: vec2<f32> = select(
@@ -279,10 +277,10 @@
 
             // Fission - Bottom Left (Tubule)
             // MOBILE & DESKTOP CUSTOMIZABLE: Start time, end time, start position, end position
-            // Desktop timing: appears at 72% scroll, completes at 100% scroll (28% duration) - ADJUST THESE FOR DESKTOP
-            // Mobile timing: appears at 72% scroll, completes at 100% scroll (28% duration) - Mobile is correct
-            let fissionStart: f32 = select(0.72, 0.72, u.is_mobile > 0.5); // When it starts appearing (first=desktop, second=mobile)
-            let fissionEnd: f32 = select(0.995, 1.0, u.is_mobile > 0.5);     // When it completes (first=desktop, second=mobile) - controls speed/duration
+            // Desktop timing: appears at 72% scroll, completes at 100% scroll (28% duration)
+            // Mobile timing: appears at 72% scroll, completes at 100% scroll (28% duration)
+            let fissionStart: f32 = select(0.734, 0.72, u.is_mobile > 0.5); // When it starts appearing (first=desktop, second=mobile)
+            let fissionEnd: f32 = select(0.995, 1.0, u.is_mobile > 0.5);     // When it completes (first=desktop, second=mobile)
             let tFission: f32 = smoothstep(fissionStart, fissionEnd, u.scroll);
             // Desktop: bottom-left diagonal, Mobile: bottom-left CORNER for longer visibility in portrait
             let fissionDir: vec2<f32> = select(
@@ -290,13 +288,21 @@
                 normalize(vec2<f32>(-1.0, -1.0))      // Mobile: bottom-left corner
             , u.is_mobile > 0.5);
 
-            // Start position: desktop 0.85, mobile 0.85 (distance from center where tubule starts)
+            // FIX: Hide fission inside main shape until it should appear
+            // Calculate appearance progress: 0 until just before fissionStart, then ramps to 1
+            let fissionAppearProgress: f32 = smoothstep(fissionStart - 0.02, fissionStart, u.scroll);
+            
+            // Start position: 0.85 when visible, but 0.0 (center/hidden) when not visible
             let fissionStartDist: f32 = select(0.85, 0.85, u.is_mobile > 0.5);
+            let effectiveFissionStart: f32 = mix(0.0, fissionStartDist, fissionAppearProgress);
             // End position: desktop 4.25, mobile 4.25 (distance from center where tubule ends)
             let fissionEndDist: f32 = select(4.25, 4.25, u.is_mobile > 0.5);
-            let fisPos: vec2<f32> = mix(fissionDir * fissionStartDist, fissionDir * fissionEndDist / finalScale, tFission);
-            var dFission: f32 = sdSegment(p, fisPos - fissionDir * 0.15, fisPos + fissionDir * 0.15, 0.05);
-            dFission = dFission + snoise(p * 4.0 + time) * 0.015; // Reverted noise slightly
+            let fisPos: vec2<f32> = mix(fissionDir * effectiveFissionStart, fissionDir * fissionEndDist / finalScale, tFission);
+            
+            // FIX: Also fade the fission radius to prevent any visible connection before appearing
+            let fissionRadius: f32 = mix(0.0, 0.05, fissionAppearProgress);
+            var dFission: f32 = sdSegment(p, fisPos - fissionDir * 0.15, fisPos + fissionDir * 0.15, fissionRadius);
+            dFission = dFission + snoise(p * 4.0 + time) * 0.015;
 
             // --- BLENDING ---
             var d: f32 = dMain;
@@ -369,7 +375,7 @@
 
         async init(): Promise<boolean> {
             if (!navigator.gpu) {
-                // WebGPU not supported - silently fall back to WebGL
+                console.log('[Endosome] WebGPU: navigator.gpu not available');
                 return false;
             }
 
@@ -379,9 +385,10 @@
                     forceFallbackAdapter: false
                 });
                 if (!adapter) {
-                    // No adapter available - silently fall back to WebGL
+                    console.log('[Endosome] WebGPU: No adapter available');
                     return false;
                 }
+                console.log('[Endosome] WebGPU: Adapter acquired');
 
                 this.device = await adapter.requestDevice();
                 
@@ -415,10 +422,27 @@
                     return false;
                 }
 
-                // Create shader module
+                // Create shader module with error checking
                 const shaderModule = this.device.createShaderModule({
                     code: WGSL_VERTEX + WGSL_FRAGMENT,
                 });
+                
+                // Check for shader compilation errors (critical for Edge compatibility)
+                // WebGPU doesn't throw on shader errors - must check explicitly
+                if (shaderModule.getCompilationInfo) {
+                    const compilationInfo = await shaderModule.getCompilationInfo();
+                    const errors = compilationInfo.messages.filter(m => m.type === 'error');
+                    if (errors.length > 0) {
+                        // Log errors always for production debugging
+                        console.error('[Endosome] WebGPU shader compilation errors:', errors.map(e => e.message));
+                        return false; // Trigger WebGL fallback
+                    }
+                    // Log warnings too for debugging
+                    const warnings = compilationInfo.messages.filter(m => m.type === 'warning');
+                    if (warnings.length > 0) {
+                        console.warn('[Endosome] WebGPU shader warnings:', warnings.map(w => w.message));
+                    }
+                }
 
                 // Create uniform buffer (80 bytes, aligned to 16)
                 this.uniformBuffer = this.device.createBuffer({
@@ -540,6 +564,8 @@
                     window.addEventListener('orientationchange', () => {
                         setTimeout(updateContentSize, 100);
                     });
+                    // iOS URL bar show/hide changes layout without a window resize
+                    window.visualViewport?.addEventListener('resize', updateContentSize);
                 };
                 
                 // Try to find content element, but don't block initialization
@@ -568,6 +594,7 @@
                 });
 
                 window.addEventListener('resize', this.onResize);
+                window.visualViewport?.addEventListener('resize', this.onResize);
                 return true;
             } catch (e) {
                 // WebGPU initialization failed - silently fall back to WebGL
@@ -623,6 +650,10 @@
         }
 
         setupScrollListener() {
+            // CONSISTENT SCROLL CALCULATION:
+            // Use section-based calculation for more reliable progress across environments
+            const TOTAL_SECTIONS = 6;
+            
             const onScroll = () => {
                 const scroller = document.querySelector('.content-wrapper');
                 // Use the class applied by index.astro to determine scroll strategy strictly
@@ -633,10 +664,27 @@
 
                 if (isMobileStrategy && scroller) {
                     currentScroll = scroller.scrollTop;
-                    maxScroll = scroller.scrollHeight - scroller.clientHeight;
+                    // Use consistent calculation based on clientHeight * (sections - 1)
+                    // This ensures same behavior regardless of how scrollHeight is computed
+                    const viewportH = scroller.clientHeight || window.innerHeight;
+                    maxScroll = viewportH * (TOTAL_SECTIONS - 1);
+                    
+                    // Fallback: if scroller has actual scrollHeight, use the larger value
+                    const actualMax = scroller.scrollHeight - viewportH;
+                    if (actualMax > maxScroll * 0.9) {
+                        maxScroll = actualMax;
+                    }
                 } else {
                     currentScroll = window.scrollY;
-                    maxScroll = document.body.scrollHeight - window.innerHeight;
+                    // Use consistent section-based calculation
+                    const viewportH = window.innerHeight;
+                    maxScroll = viewportH * (TOTAL_SECTIONS - 1);
+                    
+                    // Fallback: if document has actual scrollHeight, use the larger value
+                    const actualMax = document.body.scrollHeight - viewportH;
+                    if (actualMax > maxScroll * 0.9) {
+                        maxScroll = actualMax;
+                    }
                 }
 
                 if (maxScroll <= 0) maxScroll = 1;
@@ -646,6 +694,10 @@
             window.addEventListener('scroll', onScroll, { passive: true });
             const scroller = document.querySelector('.content-wrapper');
             if (scroller) scroller.addEventListener('scroll', onScroll, { passive: true });
+            
+            // Also listen for resize to recalculate on orientation changes
+            window.addEventListener('resize', onScroll, { passive: true });
+            
             onScroll();
         }
 
@@ -690,7 +742,8 @@
                     contentPosXPhysical,  // content_pos.x - converted to physical pixels for correct event positioning
                     contentPosYPhysical,  // content_pos.y (flipped) - converted to physical pixels for correct event positioning
                     this.contentDim[0], this.contentDim[1],  // content_dim (vec2)
-                    CONFIG.scale,                             // scale (f32)
+                    // WINDOWS SPECIFIC FIX: Scale down to 0.99 to match CSS content scaling
+                    /Windows/.test(navigator.userAgent) ? 0.99 : CONFIG.scale, // scale (f32)
                     CONFIG.elongation,                        // elongation (f32)
                     CONFIG.strokeWidth,                       // stroke_width (f32)
                     isMobile,                                 // is_mobile (f32)
@@ -858,6 +911,7 @@
                 window.addEventListener('orientationchange', () => {
                     setTimeout(updateContentSize, 100);
                 });
+                window.visualViewport?.addEventListener('resize', updateContentSize);
             };
             
             // Try to find content element, but don't block initialization
@@ -907,6 +961,7 @@
             });
 
             window.addEventListener('resize', this.onResize);
+            window.visualViewport?.addEventListener('resize', this.onResize);
         }
 
         setupThemeListener() {
@@ -951,6 +1006,10 @@
         }
 
         setupScrollListener() {
+            // CONSISTENT SCROLL CALCULATION:
+            // Use section-based calculation for more reliable progress across environments
+            const TOTAL_SECTIONS = 6;
+            
             const onScroll = () => {
                 const scroller = document.querySelector('.content-wrapper');
                 // Use the class applied by index.astro to determine scroll strategy strictly
@@ -961,10 +1020,26 @@
 
                 if (isMobileStrategy && scroller) {
                     currentScroll = scroller.scrollTop;
-                    maxScroll = scroller.scrollHeight - scroller.clientHeight;
+                    // Use consistent calculation based on clientHeight * (sections - 1)
+                    const viewportH = scroller.clientHeight || window.innerHeight;
+                    maxScroll = viewportH * (TOTAL_SECTIONS - 1);
+                    
+                    // Fallback: if scroller has actual scrollHeight, use the larger value
+                    const actualMax = scroller.scrollHeight - viewportH;
+                    if (actualMax > maxScroll * 0.9) {
+                        maxScroll = actualMax;
+                    }
                 } else {
                     currentScroll = window.scrollY;
-                    maxScroll = document.body.scrollHeight - window.innerHeight;
+                    // Use consistent section-based calculation
+                    const viewportH = window.innerHeight;
+                    maxScroll = viewportH * (TOTAL_SECTIONS - 1);
+                    
+                    // Fallback: if document has actual scrollHeight, use the larger value
+                    const actualMax = document.body.scrollHeight - viewportH;
+                    if (actualMax > maxScroll * 0.9) {
+                        maxScroll = actualMax;
+                    }
                 }
 
                 if (maxScroll <= 0) maxScroll = 1;
@@ -974,6 +1049,10 @@
             window.addEventListener('scroll', onScroll, { passive: true });
             const scroller = document.querySelector('.content-wrapper');
             if (scroller) scroller.addEventListener('scroll', onScroll, { passive: true });
+            
+            // Also listen for resize to recalculate on orientation changes
+            window.addEventListener('resize', onScroll, { passive: true });
+            
             onScroll();
         }
 
@@ -1058,15 +1137,10 @@
                     // Normalize coordinates centered at viewport center
                     vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / minRes;
                     
-                    // MOBILE: Pure viewport centering (p is already centered at 0,0)
-                    // DESKTOP: Apply content position offset for elegant tracking
-                    if (u_is_mobile < 0.5) {
-                        // Desktop only: offset by content position
-                        vec2 viewportCenter = u_resolution.xy * 0.5;
-                        vec2 contentOffset = (u_content_pos - viewportCenter) / minRes * 2.0;
-                        p -= contentOffset;
-                    }
-                    // Mobile: p stays centered at (0,0) - no offset applied
+                    // MOBILE: Track bubble/content position (size still uses mobile_size).
+                    vec2 viewportCenter = u_resolution.xy * 0.5;
+                    vec2 contentOffset = (u_content_pos - viewportCenter) / minRes * 2.0;
+                    p -= contentOffset;
                     
                     // --- AUTO-SIZING LOGIC ---
                     vec2 targetSize;
@@ -1139,17 +1213,18 @@
                     dMain += surfaceNoise * 0.02;
 
                     // Fusion 1 - MOBILE & DESKTOP CUSTOMIZABLE
-                    // Desktop timing: appears at 2% scroll, completes at 54% scroll (52% duration)
-                    // Mobile timing: appears at 2% scroll, completes at 48% scroll (46% duration)
-                    float fusion1Start = u_is_mobile > 0.5 ? 0.02 : 0.02; // When it starts appearing
-                    float fusion1End = u_is_mobile > 0.5 ? 0.48 : 0.54;   // When fusion completes (controls speed/duration)
+                    // Desktop timing: appears at 1% scroll, completes at 30% scroll (Fast)
+                    // Mobile timing: appears at 1% scroll, completes at 30% scroll (Fast)
+                    float fusion1Start = u_is_mobile > 0.5 ? 0.01 : 0.01; 
+                    float fusion1End = u_is_mobile > 0.5 ? 0.30 : 0.30;   
                     float tFusion1 = smoothstep(fusion1Start, fusion1End, u_scroll);
                     // Desktop: top-left diagonal, Mobile: top-left CORNER for longer visibility in portrait
                     vec2 fus1Dir = u_is_mobile > 0.5 
                         ? normalize(vec2(-0.50, 1.0))      // Mobile: top-left corner
                         : normalize(vec2(-1.0, 0.5));     // Desktop: diagonal
-                    // Start position: desktop 1.88, mobile 1.8 (distance from center where vesicle starts)
-                    float startDist1 = u_is_mobile > 0.5 ? 1.8 : 1.88;
+                    // Start position: pushed farther out on WebGL to stay off-screen at load
+                    // Desktop 3.0, Mobile 2.5
+                    float startDist1 = u_is_mobile > 0.5 ? 2.5 : 3.0;
                     // Fusion position: desktop 0.5, mobile 0.5 (distance from center where it fuses)
                     float fusionPos1 = u_is_mobile > 0.5 ? 0.5 : 0.5;
                     vec2 fus1Pos = mix(fus1Dir * startDist1 / finalScale, fus1Dir * fusionPos1, tFusion1);
@@ -1160,15 +1235,15 @@
                     // Desktop timing: appears at 35% scroll, completes at 80% scroll (45% duration - slower)
                     // Mobile timing: appears at 35% scroll, completes at 80% scroll (45% duration - slower)
                     // Goal: Close to main endosome when "Wandering mind" section (50-67% scroll) is in focus, but not fused yet
-                    float fusion2Start = u_is_mobile > 0.5 ? 0.35 : 0.35; // When it starts appearing (earlier = visible sooner)
-                    float fusion2End = u_is_mobile > 0.5 ? 0.90 : 0.9;   // When fusion completes (later = fuses after Wandering mind)
+                    float fusion2Start = u_is_mobile > 0.5 ? 0.20 : 0.20; // Start earlier
+                    float fusion2End = u_is_mobile > 0.5 ? 1.0 : 1.0;   // EXTENDED to 1.0: Delays merge significantly
                     float tFusion2 = smoothstep(fusion2Start, fusion2End, u_scroll);
                     // Desktop: bottom-right diagonal, Mobile: bottom position for longer visibility in portrait
                     vec2 fus2Dir = u_is_mobile > 0.5 
                         ? normalize(vec2(0.35, -1.0))       // Mobile: pure bottom
                         : normalize(vec2(0.8, -0.6));       // Desktop: diagonal
-                    // Start position: desktop 2.8, mobile 2.0 (distance from center - closer = appears closer to main endosome)
-                    float startDist2 = u_is_mobile > 0.5 ? 2.0 : 2.8;
+                    // Start position: 1.9 (Close, but distinct enough to not be 'half fused' at 60% scroll)
+                    float startDist2 = u_is_mobile > 0.5 ? 1.9 : 1.9;
                     // Fusion position: desktop 0.5, mobile 0.5 (distance from center where it fuses - closer to main endosome)
                     float fusionPos2 = u_is_mobile > 0.5 ? 0.5 : 0.5;
                     vec2 fus2Pos = mix(fus2Dir * startDist2 / finalScale, fus2Dir * fusionPos2, tFusion2);
@@ -1176,22 +1251,30 @@
                     dFusion2 += snoise(p * 5.0 + time * 1.1) * 0.005;
 
                     // Fission - MOBILE & DESKTOP CUSTOMIZABLE
-                    // Desktop timing: appears at 72% scroll, completes at 100% scroll (28% duration) - ADJUST FIRST VALUE FOR DESKTOP
-                    // Mobile timing: appears at 72% scroll, completes at 100% scroll (28% duration) - Mobile is correct
-                    // Format: mobile_value : desktop_value
+                    // Desktop timing: appears at 72% scroll, completes at 100% scroll (28% duration)
+                    // Mobile timing: appears at 72% scroll, completes at 100% scroll (28% duration)
                     float fissionStart = u_is_mobile > 0.5 ? 0.72 : 0.72; // When it starts appearing (mobile : desktop)
-                    float fissionEnd = u_is_mobile > 0.5 ? 1.0 : 1.0;     // When it completes (mobile : desktop) - ADJUST SECOND VALUE FOR DESKTOP SPEED
+                    float fissionEnd = u_is_mobile > 0.5 ? 1.0 : 1.0;     // When it completes (mobile : desktop)
                     float tFission = smoothstep(fissionStart, fissionEnd, u_scroll);
                     // Desktop: bottom-left diagonal, Mobile: bottom-left CORNER for longer visibility in portrait
                     vec2 fissionDir = u_is_mobile > 0.5 
                         ? normalize(vec2(-0.50, -1.0))      // Mobile: bottom-left corner
                         : normalize(vec2(-0.8, -0.6));     // Desktop: diagonal
-                    // Start position: desktop 0.85, mobile 0.85 (distance from center where tubule starts)
+                    
+                    // FIX: Hide fission inside main shape until it should appear
+                    // Calculate appearance progress: 0 until just before fissionStart, then ramps to 1
+                    float fissionAppearProgress = smoothstep(fissionStart - 0.02, fissionStart, u_scroll);
+                    
+                    // Start position: 0.85 when visible, but 0.0 (center/hidden) when not visible
                     float fissionStartDist = u_is_mobile > 0.5 ? 0.85 : 0.85;
+                    float effectiveFissionStart = mix(0.0, fissionStartDist, fissionAppearProgress);
                     // End position: desktop 4.25, mobile 4.25 (distance from center where tubule ends)
                     float fissionEndDist = u_is_mobile > 0.5 ? 4.25 : 4.25;
-                    vec2 fisPos = mix(fissionDir * fissionStartDist, fissionDir * fissionEndDist / finalScale, tFission);
-                    float dFission = sdSegment(p, fisPos - fissionDir*0.15, fisPos + fissionDir*0.15, 0.05);
+                    vec2 fisPos = mix(fissionDir * effectiveFissionStart, fissionDir * fissionEndDist / finalScale, tFission);
+                    
+                    // FIX: Also fade the fission radius to prevent any visible connection before appearing
+                    float fissionRadius = mix(0.0, 0.05, fissionAppearProgress);
+                    float dFission = sdSegment(p, fisPos - fissionDir*0.15, fisPos + fissionDir*0.15, fissionRadius);
                     dFission += snoise(p * 4.0 + time) * 0.015;
 
                     float d = dMain;
@@ -1273,14 +1356,41 @@
                     }
 
                     void main() {
-                        vec2 screenCenter = u_content_pos.xy;
-                        vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-                        vec2 targetP = (screenCenter * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-                        p -= targetP;
                         float minRes = min(u_resolution.x, u_resolution.y);
-                        vec2 contentUV = u_content_dim / minRes;
-                        float padding = 0.35;
-                        vec2 targetSize = contentUV + padding;
+                        
+                        // Normalize coordinates centered at viewport center
+                        vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / minRes;
+                        
+                        // MOBILE: Track bubble/content position (size still uses mobile_size).
+                        vec2 viewportCenter = u_resolution.xy * 0.5;
+                        vec2 contentOffset = (u_content_pos - viewportCenter) / minRes * 2.0;
+                        p -= contentOffset;
+                        // --- AUTO-SIZING LOGIC ---
+                        vec2 targetSize;
+                        
+                        if (u_is_mobile > 0.5) {
+                            // MOBILE: Size defined by uniform
+                            float mobileSize = u_mobile_size;
+                            if (u_resolution.y > u_resolution.x) {
+                                // Portrait: make oval taller
+                                targetSize = vec2(mobileSize, mobileSize * 1.3);
+                            } else {
+                                // Landscape: make oval wider
+                                targetSize = vec2(mobileSize * 1.3, mobileSize);
+                            }
+                        } else {
+                            // Desktop: use content dimensions with padding
+                            // CLAMP to 90% of viewport to prevent overflow on resize
+                            float w = u_content_dim.x / minRes + 0.35;
+                            float h = u_content_dim.y / minRes + 0.35;
+                            
+                            // Convert back to viewport relative to check bounds
+                            vec2 vpSize = u_resolution / minRes;
+                            w = min(w, vpSize.x * 0.9);
+                            h = min(h, vpSize.y * 0.9);
+                            
+                            targetSize = vec2(w, h);
+                        }
                         float finalScale = max(targetSize.x, targetSize.y) * 0.65 * u_scale;
                         p /= finalScale;
 
@@ -1307,27 +1417,31 @@
                         dMain += surfaceNoise * 0.02;
 
                         // IMPROVED TIMING: Fusion 1 appears only when scrolling begins (completely hidden on load)
-                        // Fusion 1 (2% - 47%) - appears as scrolling starts, takes 45% of scroll for longer journey
-                        // Vesicle starts well outside viewport (2.2) - completely hidden at load, appears quickly on scroll
-                        float tF1 = smoothstep(0.02, 0.47, u_scroll);
-                        vec2 f1Pos = mix(normalize(vec2(-1.0, 0.5)) * 2.2 / finalScale, normalize(vec2(-1.0, 0.5)) * 0.5, tF1);
-                        float df1 = sdCircle(p - f1Pos, 0.12);
-                        // Fusion 2 (35% - 80%) - slower, appears close during Wandering mind section (50-67%)
+                    // Fusion 1 (1% - 30%) - Fast entry
+                    // Move start farther out in WebGL so it stays off-screen until scroll begins
+                    float tF1 = smoothstep(0.01, 0.30, u_scroll);
+                    vec2 f1Pos = mix(normalize(vec2(-1.0, 0.5)) * 3.0 / finalScale, normalize(vec2(-1.0, 0.5)) * 0.5, tF1);
+                    float df1 = sdCircle(p - f1Pos, 0.12);
+                        // Fusion 2 (20% - 100%) - slower, appears close during Wandering mind section (50-67%)
                         // Desktop: bottom-right diagonal, Mobile: pure bottom
-                        float tF2 = smoothstep(0.35, 0.80, u_scroll);
+                        float tF2 = smoothstep(0.20, 1.0, u_scroll);
                         vec2 f2Dir = u_is_mobile > 0.5 
-                            ? normalize(vec2(0.0, -1.0))       // Mobile: pure bottom
+                            ? normalize(vec2(0.35, -1.0))       // Mobile: pure bottom
                             : normalize(vec2(0.8, -0.6));      // Desktop: diagonal
-                        // Start closer (2.8 desktop, 2.0 mobile) and fuse closer (0.5)
-                        float startDist2_fallback = u_is_mobile > 0.5 ? 2.0 : 2.8;
+                        // Start closer (2.2) and fuse closer (0.5)
+                        float startDist2_fallback = u_is_mobile > 0.5 ? 2.2 : 2.2;
                         vec2 f2Pos = mix(f2Dir * startDist2_fallback / finalScale, f2Dir * 0.5, tF2);
                         float df2 = sdCircle(p - f2Pos, 0.09);
                         // Fission (72% - 100%) - ends at clean last frame, takes 28% of scroll
                         // Bottom-left direction (budding from left bottom) - same for mobile and desktop
+                        // FIX: Hide fission inside main shape until it should appear
+                        float fissionAppear = smoothstep(0.70, 0.72, u_scroll);
                         float tFis = smoothstep(0.72, 1.0, u_scroll);
                         vec2 fisDir = normalize(vec2(-0.8, -0.6));
-                        vec2 fisPos = mix(fisDir * 0.6, fisDir * 2.2 / finalScale, tFis);
-                        float dfis = sdSegment(p, fisPos - fisDir*0.15, fisPos + fisDir*0.15, 0.05);
+                        float effectiveFisStart = mix(0.0, 0.6, fissionAppear);
+                        vec2 fisPos = mix(fisDir * effectiveFisStart, fisDir * 2.2 / finalScale, tFis);
+                        float fisRadius = mix(0.0, 0.05, fissionAppear);
+                        float dfis = sdSegment(p, fisPos - fisDir*0.15, fisPos + fisDir*0.15, fisRadius);
 
                         float d = dMain;
                         d = smin(d, df1, 0.35);
@@ -1348,21 +1462,26 @@
                 `;
             }
 
+            // Create shaders - these will throw if compilation fails
             const vs = this.createShader(this.gl.VERTEX_SHADER, finalVS);
             const fs = this.createShader(this.gl.FRAGMENT_SHADER, finalFS);
-            if (!vs || !fs) return;
 
             this.program = this.gl.createProgram();
-            if (!this.program) return;
+            if (!this.program) {
+                throw new Error('[Endosome] Failed to create WebGL program');
+            }
 
             this.gl.attachShader(this.program, vs);
             this.gl.attachShader(this.program, fs);
             this.gl.linkProgram(this.program);
 
             if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
-                console.error(this.gl.getProgramInfoLog(this.program));
-                return;
+                const errorLog = this.gl.getProgramInfoLog(this.program);
+                console.error('[Endosome] WebGL program linking failed:', errorLog);
+                throw new Error(`[Endosome] WebGL program linking failed: ${errorLog}`);
             }
+            
+            console.log('[Endosome] WebGL shaders compiled successfully');
 
             this.gl.useProgram(this.program);
             this.uniforms['u_resolution'] = this.gl.getUniformLocation(this.program, 'u_resolution');
@@ -1382,13 +1501,18 @@
 
         createShader(type: number, source: string) {
             const shader = this.gl.createShader(type);
-            if (!shader) return null;
+            if (!shader) {
+                const typeName = type === this.gl.VERTEX_SHADER ? 'vertex' : 'fragment';
+                throw new Error(`[Endosome] Failed to create ${typeName} shader`);
+            }
             this.gl.shaderSource(shader, source);
             this.gl.compileShader(shader);
             if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-                console.error(this.gl.getShaderInfoLog(shader));
+                const errorLog = this.gl.getShaderInfoLog(shader);
+                const typeName = type === this.gl.VERTEX_SHADER ? 'vertex' : 'fragment';
+                console.error(`[Endosome] ${typeName} shader compilation failed:`, errorLog);
                 this.gl.deleteShader(shader);
-                return null;
+                throw new Error(`[Endosome] ${typeName} shader compilation failed: ${errorLog}`);
             }
             return shader;
         }
@@ -1430,7 +1554,15 @@
                     );
                 }
                 if (u['u_content_dim']) this.gl.uniform2f(u['u_content_dim'], this.contentDim[0], this.contentDim[1]);
-                if (u['u_scale']) this.gl.uniform1f(u['u_scale'], CONFIG.scale);
+                
+                // WINDOWS SPECIFIC FIX (WebGPU & WebGL):
+                // Windows layout is scaled down (0.92) via CSS to fix overflow.
+                // We must scale down the endosome similarly (1.4 * 0.82 ~= 1.15) to match.
+                // NOTE: UserAgents on Windows can vary (Win64, Windows NT), 'Windows' covers all.
+                const isWindows = navigator.userAgent.includes("Windows");
+                const targetScale = isWindows ? 0.99 : CONFIG.scale;
+                
+                if (u['u_scale']) this.gl.uniform1f(u['u_scale'], targetScale);
                 if (u['u_stroke_color']) this.gl.uniform3fv(u['u_stroke_color'], this.currentThemeColor);
                 if (u['u_elongation']) this.gl.uniform1f(u['u_elongation'], CONFIG.elongation);
                 if (u['u_stroke_width']) this.gl.uniform1f(u['u_stroke_width'], CONFIG.strokeWidth);
@@ -1494,27 +1626,31 @@
 
             if (webgpuSuccess) {
                 renderer = webgpuRenderer;
-                if (import.meta.env.MODE === 'development') {
-                    console.log('EndosomeSketch: Using WebGPU renderer');
-                }
+                // Always set data attribute for debugging (production-safe)
+                canvas.dataset['renderer'] = 'webgpu';
+                // Log renderer type always for production debugging
+                console.log('[Endosome] Renderer: WebGPU');
                 isInitialized = true;
             } else {
                 // Fallback to WebGL
                 try {
-                    if (import.meta.env.MODE === 'development') {
-                        console.log('EndosomeSketch: WebGPU not available, trying WebGL...');
-                    }
+                    // Log diagnostic info for WebGL fallback
+                    const testCanvas = document.createElement('canvas');
+                    const webgl2Available = !!testCanvas.getContext('webgl2');
+                    const webgl1Available = !!testCanvas.getContext('webgl');
+                    console.log(`[Endosome] WebGPU unavailable, trying WebGL... (WebGL2: ${webgl2Available}, WebGL1: ${webgl1Available})`);
+                    
                     renderer = new WebGLEndosomeRenderer(canvas);
-                    if (import.meta.env.MODE === 'development') {
-                        console.log('EndosomeSketch: Using WebGL fallback renderer');
-                    }
+                    // Always set data attribute for debugging (production-safe)
+                    const isWebGL2 = renderer.gl instanceof WebGL2RenderingContext;
+                    canvas.dataset['renderer'] = isWebGL2 ? 'webgl2' : 'webgl1';
+                    // Log renderer type always for production debugging
+                    console.log(`[Endosome] Renderer: ${isWebGL2 ? 'WebGL2' : 'WebGL1'}`);
                     isInitialized = true;
                 } catch (e) {
                     // Gracefully handle when neither WebGPU nor WebGL is available
-                    // Only show warning in development mode
-                    if (import.meta.env.MODE === 'development') {
-                        console.warn('EndosomeSketch: GPU rendering not available. The page will work without the background animation.');
-                    }
+                    console.error('[Endosome] GPU rendering failed:', e);
+                    canvas.dataset['renderer'] = 'none';
                     // Hide the canvas so it doesn't block content
                     canvas.style.display = 'none';
                     isInitialized = false;

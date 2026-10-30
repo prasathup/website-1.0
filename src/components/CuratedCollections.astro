@@ -84,7 +84,7 @@ const defaultCategory = curatedCollectionsData[0]?.id ?? '';
     overflow: hidden;
   }
   html:not(.dark) .curated-collections {
-    background-color: rgba(248, 245, 239, 0.75);
+    background-color: rgba(var(--bg-opacity-light), 0.75);
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
@@ -190,7 +190,7 @@ const defaultCategory = curatedCollectionsData[0]?.id ?? '';
     box-shadow: 0 6px 14px rgba(230, 177, 80, 0.14), 0 3px 8px rgba(0, 0, 0, 0.14);
   }
   html:not(.dark) .curated-items-grid :global(.curated-item-card) {
-    background-color: rgba(248, 245, 239, 0.75);
+    background-color: rgba(var(--bg-opacity-light), 0.75);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
   html:not(.dark) .curated-items-grid :global(.curated-item-card:hover),

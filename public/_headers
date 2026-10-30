@@ -29,13 +29,20 @@
   # Note: This works together with meta CSP - CDN level is preferred
   Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
 
-# Aggressive caching for hashed static assets (Astro automatically adds hashes)
-/_astro/*
-  Cache-Control: public, max-age=31536000, immutable
+# Do NOT set long-lived / immutable Cache-Control on /_astro/*.
+# Cloudflare Pages serves index.html (200) for unknown asset paths; combined with
+# immutable caching that poisons the CDN. Module scripts send an Origin header and
+# hit a separate cache entry — so the custom domain can serve HTML for the home lens
+# JS while curl (no Origin) and *.pages.dev still get real JavaScript. Symptom:
+# dead section scroll + wrong oval text on the custom domain only.
+# Hashed filenames already bust caches when content changes; CF default static
+# caching is enough.
 
-# Long-term caching for media files (images, videos)
+# Caching for media files (images, videos) with revalidation
+# Removed 'immutable' to allow updates when files change
+# Using must-revalidate so browsers check for updates while still benefiting from cache
 /media/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=604800, must-revalidate
 
 # Long-term caching for SVG files
 /HeartStopperSVG/*
@@ -51,9 +58,9 @@
 
 # Force no-cache for favicon files to prevent Google/YouTube aggressive caching
 # This ensures crawlers always fetch the latest icon instead of cached versions
-/icon-v2025-01*.png
+/icon-v2*.png
   Cache-Control: public, max-age=0, must-revalidate, no-cache
-/icon-v2025-01*.ico
+/icon-v2*.ico
   Cache-Control: public, max-age=0, must-revalidate, no-cache
 /site.webmanifest
   Cache-Control: public, max-age=0, must-revalidate, no-cache

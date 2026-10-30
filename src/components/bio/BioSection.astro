@@ -1,0 +1,69 @@
+---
+/**
+ * One bio section inside the endosome stage.
+ * The two carve floats shape the text flow into the inscribed ellipse:
+ * their shape-outside polygons trace the left/right elliptical arcs, so
+ * line boxes naturally shorten toward the oval's top and bottom.
+ */
+interface Props {
+  id: string;
+  index: number;
+  variant?: 'text' | 'portrait';
+}
+const { id, index, variant = 'text' } = Astro.props;
+---
+<div id={id} class:list={['content-section', `variant-${variant}`]} data-index={index}>
+  <div class="oval-flow">
+    <div class="oval-carve carve-left" aria-hidden="true"></div>
+    <div class="oval-carve carve-right" aria-hidden="true"></div>
+    <div class="oval-spacer" aria-hidden="true"></div>
+    <slot />
+  </div>
+</div>
+
+<style>
+  .content-section {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity, filter;
+    backface-visibility: hidden;
+    contain: layout style;
+  }
+
+  .oval-flow {
+    height: 100%;
+    text-align: center;
+    /* Per-section vertical composition knob, container-relative so it is
+       identical on every device. Overridden per variant/section below. */
+    --oval-top: 18cqh;
+  }
+
+  /* Full-height floats whose shape-outside traces the inscribed ellipse arcs.
+     16-point polygon per side (x = 1 - sqrt(1 - (2t - 1)^2)). */
+  .oval-carve {
+    height: 100%;
+    width: 50%;
+  }
+  .carve-left {
+    float: left;
+    shape-outside: polygon(0% 0%, 100% 0%, 51.6% 6.25%, 33.9% 12.5%, 21.9% 18.75%, 13.4% 25%, 7.3% 31.25%, 3.2% 37.5%, 0.8% 43.75%, 0% 50%, 0.8% 56.25%, 3.2% 62.5%, 7.3% 68.75%, 13.4% 75%, 21.9% 81.25%, 33.9% 87.5%, 51.6% 93.75%, 100% 100%, 0% 100%);
+    /* Slightly tighter than 1.5cqmin — improves WebKit/Chromium wrap parity */
+    shape-margin: clamp(3px, 1.2cqmin, 10px);
+  }
+  .carve-right {
+    float: right;
+    shape-outside: polygon(100% 0%, 0% 0%, 48.4% 6.25%, 66.1% 12.5%, 78.1% 18.75%, 86.6% 25%, 92.7% 31.25%, 96.8% 37.5%, 99.2% 43.75%, 100% 50%, 99.2% 56.25%, 96.8% 62.5%, 92.7% 68.75%, 86.6% 75%, 78.1% 81.25%, 66.1% 87.5%, 48.4% 93.75%, 0% 100%, 100% 100%);
+    shape-margin: clamp(3px, 1.2cqmin, 10px);
+  }
+
+  .oval-spacer {
+    height: var(--oval-top);
+  }
+
+  /* Fallback for browsers without container query units: viewport-scaled spacer */
+  @supports not (height: 1cqh) {
+    .oval-spacer { height: 12vh; }
+  }
+</style>

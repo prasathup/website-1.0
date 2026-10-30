@@ -123,7 +123,8 @@ const themeClass = getThemeClass();
               height={intrinsicHeight}
               decoding="async"
               loading={priority ? 'eager' : 'lazy'}
-              quality="mid"
+              quality={entry.collection === 'notes' ? 'max' : 'mid'}
+              {...(entry.collection === 'notes' ? { format: 'avif' as const } : {})}
             />
           ) : (
             <img 
@@ -246,7 +247,7 @@ const themeClass = getThemeClass();
 
   /* Light Mode Styles */
   html:not(.dark) .card-link {
-    background-color: rgba(248, 245, 239, 0.75);
+    background-color: var(--card-bg-light);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
@@ -320,7 +321,7 @@ const themeClass = getThemeClass();
   }
 
   html:not(.dark) .card-link[data-collection="lab"] {
-    background-color: rgba(248, 245, 239, 0.75);
+    background-color: var(--card-bg-light);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 

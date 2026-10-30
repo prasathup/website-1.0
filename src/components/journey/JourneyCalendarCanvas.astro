@@ -3,15 +3,7 @@
 // Replaces DOM-based grid with Canvas rendering for 5,200+ week units
 
 // --- TYPE DEFINITIONS ---
-interface Week {
-  weekNumber: number;
-  year: number;
-  weekInYear: number;
-  isFilled: boolean;
-  isCurrent: boolean;
-  phase: string;
-  date: string;
-}
+
 
 interface PhaseConfig {
   min: number;
@@ -22,26 +14,11 @@ interface PhaseConfig {
 }
 
 
-// --- DYNAMIC DATE CALCULATION (Build Time) ---
+// --- STATIC CONFIGURATION ---
 const birthDate = new Date(Date.UTC(2000, 0, 1)); // Placeholder date
-const today = new Date();
-
-// Calculate current week in year
-const currentYear = today.getFullYear();
-const yearStartDate = new Date(Date.UTC(currentYear, 5, 8));
-const msSinceYearStart = today.getTime() - yearStartDate.getTime();
-const daysSinceYearStart = Math.floor(msSinceYearStart / (1000 * 60 * 60 * 24)) + 1;
-const currentWeekInYear = Math.floor((daysSinceYearStart - 1) / 7) + 1;
-
-// Calculate total weeks passed since birth
-const msSinceBirth = today.getTime() - birthDate.getTime();
-const weeksSinceBirth = Math.floor(msSinceBirth / (1000 * 60 * 60 * 24 * 7));
-
-// --- CALENDAR CONFIGURATION ---
 const YEARS = 100;
 const WEEKS_PER_YEAR = 52;
 const TOTAL_WEEKS = YEARS * WEEKS_PER_YEAR;
-const CURRENT_WEEK_NUMBER = weeksSinceBirth + 1;
 
 // Phase boundaries matching your original design
 const PHASE_BOUNDARIES: PhaseConfig[] = [
@@ -55,42 +32,6 @@ const PHASE_BOUNDARIES: PhaseConfig[] = [
 ];
 
 
-// Efficient phase lookup function
-function getPhase(year: number): string {
-  const foundPhase = PHASE_BOUNDARIES.find(p => year >= p.min && year <= p.max);
-  return foundPhase ? foundPhase.phase : 'childhood';
-}
-
-// Generate week data structure
-const weeks: Week[] = Array.from({ length: TOTAL_WEEKS }, (_, index) => {
-  const weekNumber = index + 1;
-  const year = Math.floor(index / WEEKS_PER_YEAR) + 1;
-  const weekInYear = (index % WEEKS_PER_YEAR) + 1;
-  
-  const isInPastYear = year < (currentYear - birthDate.getFullYear() + 1);
-  const isInCurrentYear = year === (currentYear - birthDate.getFullYear() + 1);
-  const isFilled = isInPastYear || (isInCurrentYear && weekInYear <= currentWeekInYear);
-  const isCurrent = isInCurrentYear && weekInYear === currentWeekInYear;
-
-  const weekDate = new Date(birthDate.getTime() + index * (1000 * 60 * 60 * 24 * 7));
-  
-  return {
-    weekNumber,
-    year,
-    weekInYear,
-    isFilled,
-    isCurrent,
-    phase: getPhase(year),
-    date: weekDate.toISOString().split('T')[0] || ''
-  };
-});
-
-// Find current week coordinates for pulse animation
-const currentWeek = weeks.find(w => w.isCurrent);
-const currentWeekCoords = currentWeek ? {
-  week: currentWeek.weekInYear - 1,
-  year: currentWeek.year - 1
-} : { week: 0, year: 0 };
 ---
 
 <div class="journey-calendar-container">
@@ -100,10 +41,10 @@ const currentWeekCoords = currentWeek ? {
       <canvas 
         id="life-calendar-canvas" 
         class="life-calendar-canvas"
-        data-weeks={JSON.stringify(weeks)}
+        data-birth-date={birthDate.toISOString()}
         data-phase-boundaries={JSON.stringify(PHASE_BOUNDARIES)}
-        data-current-week={JSON.stringify(currentWeekCoords)}
-        data-current-week-number={CURRENT_WEEK_NUMBER}
+        data-total-weeks={TOTAL_WEEKS}
+        data-weeks-per-year={WEEKS_PER_YEAR}
       ></canvas>
       
       
@@ -112,7 +53,7 @@ const currentWeekCoords = currentWeek ? {
     <!-- Statistics Panel -->
     <div class="stats-panel">
       <div class="stat-item">
-        <span class="stat-value">{CURRENT_WEEK_NUMBER.toLocaleString()}</span>
+        <span class="stat-value" id="weeks-lived-value">-</span>
         <span class="stat-label">Weeks Lived</span>
       </div>
     </div>
@@ -466,9 +407,9 @@ const currentWeekCoords = currentWeek ? {
   class JourneyCalendarCanvas {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
-    private weeks: Week[];
+    private weeks: Week[] = [];
     private phaseBoundaries: PhaseConfig[];
-    private currentWeek: { week: number; year: number };
+    private currentWeek: { week: number; year: number } = { week: 0, year: 0 };
     
      // Grid constants
      private readonly GRID_WEEKS = 52;
@@ -510,10 +451,13 @@ const currentWeekCoords = currentWeek ? {
       this.performanceMonitor = new PerformanceMonitor();
       this.animationThrottler = new AnimationThrottler();
       
-      // Parse data from canvas attributes
-      this.weeks = JSON.parse(canvas.dataset['weeks'] || '[]');
+      // Parse static data from canvas attributes
       this.phaseBoundaries = JSON.parse(canvas.dataset['phaseBoundaries'] || '[]');
-      this.currentWeek = JSON.parse(canvas.dataset['currentWeek'] || '{"week": 0, "year": 0}');
+      const birthDateStr = canvas.dataset['birthDate'] || '';
+      const totalWeeks = parseInt(canvas.dataset['totalWeeks'] || '5200', 10);
+      const weeksPerYear = parseInt(canvas.dataset['weeksPerYear'] || '52', 10);
+      
+      this.generateWeekData(birthDateStr, totalWeeks, weeksPerYear);
       
       // Detect theme
       this.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
@@ -526,6 +470,73 @@ const currentWeekCoords = currentWeek ? {
       // Start performance monitoring
       this.performanceMonitor.start();
       
+    }
+
+    private getPhase(year: number): string {
+      const foundPhase = this.phaseBoundaries.find(p => year >= p.min && year <= p.max);
+      return foundPhase ? foundPhase.phase : 'childhood';
+    }
+
+    private generateWeekData(birthDateStr: string, totalWeeks: number, weeksPerYear: number) {
+      if (!birthDateStr) return;
+      
+      const birthDate = new Date(birthDateStr);
+      const today = new Date();
+      
+      const msSinceBirth = today.getTime() - birthDate.getTime();
+      const weeksSinceBirth = Math.floor(msSinceBirth / (1000 * 60 * 60 * 24 * 7));
+      const currentWeekNumber = weeksSinceBirth + 1;
+      
+      const weeksLivedElement = document.getElementById('weeks-lived-value');
+      if (weeksLivedElement) {
+        weeksLivedElement.textContent = currentWeekNumber.toLocaleString();
+      }
+      
+      const currentCalendarYear = today.getFullYear();
+      const birthdayThisYear = new Date(Date.UTC(currentCalendarYear, birthDate.getUTCMonth(), birthDate.getUTCDate()));
+      const hadBirthdayThisYear = today >= birthdayThisYear;
+      
+      const lifeYearStartDate = hadBirthdayThisYear 
+        ? birthdayThisYear 
+        : new Date(Date.UTC(currentCalendarYear - 1, birthDate.getUTCMonth(), birthDate.getUTCDate()));
+        
+      const msSinceLifeYearStart = today.getTime() - lifeYearStartDate.getTime();
+      const daysSinceLifeYearStart = Math.floor(msSinceLifeYearStart / (1000 * 60 * 60 * 24));
+      const currentWeekInYear = Math.floor(daysSinceLifeYearStart / 7) + 1;
+      
+      const birthYear = birthDate.getUTCFullYear();
+      const currentLifeYear = hadBirthdayThisYear 
+        ? (currentCalendarYear - birthYear + 1) 
+        : (currentCalendarYear - birthYear);
+        
+      this.weeks = Array.from({ length: totalWeeks }, (_, index) => {
+        const weekNum = index + 1;
+        const year = Math.floor(index / weeksPerYear) + 1;
+        const weekInYear = (index % weeksPerYear) + 1;
+        
+        const isInPastYear = year < currentLifeYear;
+        const isInCurrentYear = year === currentLifeYear;
+        const isFilled = isInPastYear || (isInCurrentYear && weekInYear <= currentWeekInYear);
+        const isCurrent = isInCurrentYear && weekInYear === currentWeekInYear;
+      
+        const weekDate = new Date(birthDate.getTime() + index * (1000 * 60 * 60 * 24 * 7));
+        
+        return {
+          weekNumber: weekNum,
+          year,
+          weekInYear,
+          isFilled,
+          isCurrent,
+          phase: this.getPhase(year),
+          date: weekDate.toISOString().split('T')[0] || ''
+        };
+      });
+      
+      const currentWeekObj = this.weeks.find(w => w.isCurrent);
+      this.currentWeek = currentWeekObj ? {
+        week: currentWeekObj.weekInYear - 1,
+        year: currentWeekObj.year - 1
+      } : { week: 0, year: 0 };
     }
 
     private setupCanvas() {

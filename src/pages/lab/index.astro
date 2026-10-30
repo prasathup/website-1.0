@@ -25,6 +25,9 @@ const allSizes = ['standard', 'short', 'tall', 'wide', 'hero', 'tile'];
 for (let i = 0; i < sortedLabItems.length; i++) {
 	const labItem = sortedLabItems[i];
 	
+	// Guard clause: skip if labItem is undefined (defensive programming)
+	if (!labItem) continue;
+	
 	// Get the previous card's actual size (if any)
 	const previousSize = enhancedLabItems[i - 1]?.adaptiveSize || '';
 	

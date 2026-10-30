@@ -25,12 +25,18 @@
   },
   "include": [
     ".astro/types.d.ts", 
-    "**/*",
-    "src/**/*"
+    "src/**/*",
+    "tests/**/*",
+    "*.config.*",
+    "*.config.mjs",
+    "*.config.ts",
+    "*.config.cjs"
   ],
   "exclude": [
     "dist",
     "node_modules",
-    ".astro"
+    ".astro",
+    "Personal website 1.0",
+    "**/Personal website 1.0/**"
   ]
 }

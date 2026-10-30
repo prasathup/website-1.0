@@ -48,10 +48,6 @@ const positionedMedia = allMedia.slice().sort((a: any, b: any) => {
 <CraftLayout title={`${title} - Personal Website`} pageName="notes">
   <!-- Notes header with consistent styling -->
   <div slot="header" class="project-header">
-    <nav class="breadcrumb">
-      <a href="/notes" data-breadcrumb-link>← Back to Notes</a>
-    </nav>
-    
     <h1 class="craft-title">{title}</h1>
     <p class="craft-subtitle" set:html={description}></p>
     
@@ -166,37 +162,6 @@ const positionedMedia = allMedia.slice().sort((a: any, b: any) => {
     text-align: center;
     max-width: 900px;
     margin: 0 auto 0.25rem auto;
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--space-lg);
-  }
-
-  .breadcrumb a {
-    color: var(--rainbow-journey);
-    text-decoration: none;
-    font-size: clamp(0.9rem, 1.5vw, 1rem);
-    transition: all 0.3s ease;
-    font-family: 'Ubuntu', system-ui, sans-serif;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    background: rgba(90, 160, 230, 0.1);
-    border: 1px solid rgba(90, 160, 230, 0.2);
-  }
-
-  .breadcrumb a:hover {
-    background: rgba(90, 160, 230, 0.2);
-    transform: translateX(-4px);
-  }
-
-  html:not(.dark) .breadcrumb a {
-    color: #1A5C8B;
-    background: rgba(26, 92, 139, 0.1);
-    border-color: rgba(26, 92, 139, 0.2);
-  }
-
-  html:not(.dark) .breadcrumb a:hover {
-    background: rgba(26, 92, 139, 0.2);
   }
 
   .craft-title {

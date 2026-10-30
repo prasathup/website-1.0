@@ -8,7 +8,7 @@ import profilePic from '../assets/Profile_pic.jpg';
 
 <Layout title="Personal Website" pageName="home">
 	<!-- The .main-content class in Layout.astro now handles the safe area -->
-    <div class="content-wrapper">
+    <div class="content-wrapper" tabindex="0">
         <!-- Scroll Proxy for CSS Snap and Layout -->
         <div class="scroll-proxy">
             <div class="snap-section" data-index="1"></div>
@@ -26,72 +26,84 @@ import profilePic from '../assets/Profile_pic.jpg';
 		<EndosomeSketch />
 
 		<div class="wave-bubble-container" data-active="1">
-            <div id="section-1" class="content-section active">
+            <div id="section-1" class="content-section">
 				<div class="bio-content flex flex-col items-center w-full">
-					{/* Title with animated gradient and properly aligned underline */}
-					<div class="name-container">
-						<div class="title-wrapper">
-							<div class="hi-svg-container">
-								<img src="/HeartStopperSVG/Hi.svg" alt="" class="hi-svg" />
+					<div class="oval-flow">
+						<div class="oval-carve carve-left" aria-hidden="true"></div>
+						<div class="oval-carve carve-right" aria-hidden="true"></div>
+						<div class="oval-spacer oval-spacer-top" aria-hidden="true"></div>
+						<div class="name-container">
+							<div class="title-wrapper">
+								<div class="hi-svg-container">
+									<img src="/HeartStopperSVG/Hi.svg" alt="" class="hi-svg" />
+								</div>
+								<h1 class="name-title">
+									<span class="animated-gradient">I am Your Name</span>
+								</h1>
+								<div class="title-underline"></div>
 							</div>
-							<h1 class="name-title">
-								<span class="animated-gradient">I am Your Name</span>
-							</h1>
-							<div class="title-underline"></div>
 						</div>
-					</div>
-					
-					{/* Paragraphs with proper sizing and centering - optimized width for better appearance */}
-					<div class="w-full max-w-3xl text-center">
 						<p class="bio-paragraph">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+						<div class="oval-spacer oval-spacer-bottom" aria-hidden="true"></div>
 					</div>
 				</div>
 			</div>
             <div id="section-2" class="content-section">
 				<div class="bio-content flex flex-col items-center w-full">
-					<div class="name-container">
-						<div class="title-wrapper">
-							<h1 class="name-title">
-								<span class="animated-gradient">Career Path</span>
-							</h1>
-							<div class="title-underline"></div>
+					<div class="oval-flow">
+						<div class="oval-carve carve-left" aria-hidden="true"></div>
+						<div class="oval-carve carve-right" aria-hidden="true"></div>
+						<div class="oval-spacer oval-spacer-top" aria-hidden="true"></div>
+						<div class="name-container">
+							<div class="title-wrapper">
+								<h1 class="name-title">
+									<span class="animated-gradient">Career Path</span>
+								</h1>
+								<div class="title-underline"></div>
+							</div>
 						</div>
-					</div>
-					<div class="w-full max-w-3xl text-center">
 						<p class="bio-paragraph">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+						<div class="oval-spacer oval-spacer-bottom" aria-hidden="true"></div>
 					</div>
 				</div>
 			</div>
             <div id="section-3" class="content-section">
-                <div class="bio-content flex flex-col md:flex-row items-center w-full gap-8">
-                    <div class="text-content text-center md:text-left">
-                        <div class="name-container">
-                            <div class="title-wrapper">
-                                <h1 class="name-title">
-                                    <span class="animated-gradient">Farpoint</span>
-                                </h1>
-                                <div class="title-underline"></div>
-                            </div>
-                        </div>
-                        <div class="w-full">
-                            <p class="bio-paragraph">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
-                        </div>
-                    </div>
+                {/* flex-col only: desktop unwraps .oval-flow into title + body siblings */}
+                <div class="bio-content flex flex-col items-center w-full gap-8">
+					<div class="oval-flow">
+						<div class="oval-carve carve-left" aria-hidden="true"></div>
+						<div class="oval-carve carve-right" aria-hidden="true"></div>
+						<div class="oval-spacer oval-spacer-top" aria-hidden="true"></div>
+						<div class="name-container">
+							<div class="title-wrapper">
+								<h1 class="name-title">
+									<span class="animated-gradient">Farpoint</span>
+								</h1>
+								<div class="title-underline"></div>
+							</div>
+						</div>
+						<p class="bio-paragraph">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+						<div class="oval-spacer oval-spacer-bottom" aria-hidden="true"></div>
+					</div>
                 </div>
             </div>
             <div id="section-4" class="content-section">
                 <div class="bio-content flex flex-col items-center w-full">
-                    <div class="name-container">
-                        <div class="title-wrapper">
-                            <h1 class="name-title">
-                                <span class="animated-gradient">Wandering mind</span>
-                            </h1>
-                            <div class="title-underline"></div>
-                        </div>
-                    </div>
-                    <div class="w-full max-w-3xl text-center">
-                        <p class="bio-paragraph">Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos.</p>
-                    </div>
+					<div class="oval-flow">
+						<div class="oval-carve carve-left" aria-hidden="true"></div>
+						<div class="oval-carve carve-right" aria-hidden="true"></div>
+						<div class="oval-spacer oval-spacer-top" aria-hidden="true"></div>
+						<div class="name-container">
+							<div class="title-wrapper">
+								<h1 class="name-title">
+									<span class="animated-gradient">Wandering mind</span>
+								</h1>
+								<div class="title-underline"></div>
+							</div>
+						</div>
+						<p class="bio-paragraph">Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos.</p>
+						<div class="oval-spacer oval-spacer-bottom" aria-hidden="true"></div>
+					</div>
                 </div>
             </div>
             <div id="section-5" class="content-section">
@@ -116,65 +128,306 @@ import profilePic from '../assets/Profile_pic.jpg';
             </div>
             <div id="section-6" class="content-section">
                 <div class="bio-content flex flex-col items-center w-full">
-                    <div class="name-container">
-                        <div class="title-wrapper">
-                            <h1 class="name-title">
-                                <span class="animated-gradient">What now?</span>
-                            </h1>
-                            <div class="title-underline"></div>
-                        </div>
-                    </div>
-                    <div class="w-full max-w-3xl text-center">
-                        <p class="bio-paragraph">Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.</p>
-                        <div class="social-links">
-                            <div class="social-group">
-                                <a href="https://www.youtube.com/" aria-label="YouTube" target="_blank" rel="noreferrer noopener">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.7 3.5 12 3.5 12 3.5s-7.7 0-9.4.6A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.7.6 9.4.6 9.4.6s7.7 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"></path></svg>
-                                </a>
-                                <a href="https://www.instagram.com/" aria-label="Instagram" target="_blank" rel="noreferrer noopener">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.5a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"></path></svg>
-                                </a>
-                                <a href="https://github.com/" aria-label="GitHub" target="_blank" rel="noreferrer noopener">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.4.7-4.1-1.6-4.1-1.6-.6-1.5-1.5-1.9-1.5-1.9-1.2-.8.1-.8.1-.8 1.3.1 2 .1 2 .1 1.2 2 3 1.4 3.7 1.1.1-.9.5-1.4.9-1.7-2.7-.3-5.5-1.4-5.5-6.1 0-1.4.5-2.5 1.3-3.4-.1-.3-.6-1.7.1-3.6 0 0 1.1-.4 3.5 1.3a12.1 12.1 0 0 1 6.3 0c2.4-1.7 3.5-1.3 3.5-1.3.7 1.9.2 3.3.1 3.6.8.9 1.3 2 1.3 3.4 0 4.7-2.8 5.8-5.5 6.1.5.4 1 1.2 1 2.5v3.7c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"></path></svg>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+					<div class="oval-flow">
+						<div class="oval-carve carve-left" aria-hidden="true"></div>
+						<div class="oval-carve carve-right" aria-hidden="true"></div>
+						<div class="oval-spacer oval-spacer-top" aria-hidden="true"></div>
+						<div class="name-container">
+							<div class="title-wrapper">
+								<h1 class="name-title">
+									<span class="animated-gradient">What now?</span>
+								</h1>
+								<div class="title-underline"></div>
+							</div>
+						</div>
+						<p class="bio-paragraph">Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.</p>
+						<div class="oval-spacer oval-spacer-bottom" aria-hidden="true"></div>
+						<div class="social-links">
+							<div class="social-group">
+								<a href="https://www.youtube.com/" aria-label="YouTube" target="_blank" rel="noreferrer noopener">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.7 3.5 12 3.5 12 3.5s-7.7 0-9.4.6A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.7.6 9.4.6 9.4.6s7.7 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"></path></svg>
+								</a>
+								<a href="https://www.instagram.com/" aria-label="Instagram" target="_blank" rel="noreferrer noopener">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.5a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"></path></svg>
+								</a>
+								<a href="https://github.com/" aria-label="GitHub" target="_blank" rel="noreferrer noopener">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.4.7-4.1-1.6-4.1-1.6-.6-1.5-1.5-1.9-1.5-1.9-1.2-.8.1-.8.1-.8 1.3.1 2 .1 2 .1 1.2 2 3 1.4 3.7 1.1.1-.9.5-1.4.9-1.7-2.7-.3-5.5-1.4-5.5-6.1 0-1.4.5-2.5 1.3-3.4-.1-.3-.6-1.7.1-3.6 0 0 1.1-.4 3.5 1.3a12.1 12.1 0 0 1 6.3 0c2.4-1.7 3.5-1.3 3.5-1.3.7 1.9.2 3.3.1 3.6.8.9 1.3 2 1.3 3.4 0 4.7-2.8 5.8-5.5 6.1.5.4 1 1.2 1 2.5v3.7c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"></path></svg>
+								</a>
+							</div>
+						</div>
+					</div>
                 </div>
             </div>
 		</div>
 	</div>
-</Layout>
 
-<script is:inline>
-  // ROBUST MOBILE DETECTION
-  // We want to apply the special "Inner Scroll" mobile layout ONLY to actual mobile/tablet devices
-  // and NOT to resized desktop windows.
-  (function() {
-      const checkMobile = () => {
-          const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-          // Check for mobile user agents
-          const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-          // Check for touch capability combined with screen size (to support touch laptops as desktop)
-          // If it's touch-only (hover: none) it's likely mobile/tablet.
-          const isTouchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-          
-          // STRICT DEFINITION: It's "Mobile Layout" if it's a mobile UA OR (Touch Only AND small screen)
-          const isMobile = isMobileUA || (isTouchDevice && window.innerWidth <= 1024);
-          
-          if (isMobile) {
-              document.body.classList.add('is-mobile');
-              document.body.classList.remove('is-desktop');
-          } else {
-              document.body.classList.add('is-desktop');
-              document.body.classList.remove('is-mobile');
-          }
-      };
-      
-      checkMobile();
-      window.addEventListener('resize', checkMobile);
-  })();
+<script>
+    import {
+        lensNormDist,
+        lensOpacity,
+        nearestSectionIndex,
+        snapCentersInScroller,
+    } from '../lib/endosome-lens-scroll';
+
+    // CONTINUOUS SCROLL-LINKED LENS ENGINE
+    // Focus driven by measured .snap-section positions (not index * clientHeight).
+    // Must stay inside <Layout>: sibling scripts after </Layout> emit after </html>.
+    // Cache-bust marker 2026-07-30-win-scale-092: Windows bio text scale 0.85→0.92.
+
+    const TOTAL_SECTIONS = 6;
+    let sections: HTMLElement[] = [];
+    let snapEls: HTMLElement[] = [];
+    let bubbleEl: HTMLElement | null = null;
+    let scrollerEl: HTMLElement | null = null;
+    let rafId: number | null = null;
+
+    const mediaQueryWarning = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let isReducedMotion = mediaQueryWarning.matches;
+    let isMobileMode = false;
+
+    /**
+     * 1) Size carves to in-flow copy only (never taller — that lofted the text
+     *    inside a flex/abs-centered box).
+     * 2) Nudge so title→paragraph center matches the bubble center. The mobile
+     *    sketch tracks that same .wave-bubble-container rect (content_pos), so
+     *    this is the charcoal stroke center — not a divergent viewport mid.
+     */
+    function syncOvalCarveHeights() {
+        const narrowMobile =
+            window.matchMedia('(max-width: 900px)').matches &&
+            document.body.classList.contains('is-mobile');
+        const bubble = document.querySelector('.wave-bubble-container');
+
+        document.querySelectorAll<HTMLElement>('.oval-flow').forEach((flow) => {
+            const carves = Array.from(flow.querySelectorAll<HTMLElement>('.oval-carve'));
+            flow.style.setProperty('--oval-nudge-y', '0px');
+
+            if (!narrowMobile || !carves.length) {
+                carves.forEach((c) => { c.style.height = ''; });
+                flow.style.height = '';
+                return;
+            }
+
+            const topEl = flow.querySelector('.oval-spacer-top') || flow.querySelector('.name-container');
+            const bottomEl = flow.querySelector('.oval-spacer-bottom') || flow.querySelector('.bio-paragraph');
+            const nameEl = flow.querySelector('.name-container');
+            const paraEl = flow.querySelector('.bio-paragraph');
+            const hasSocial = !!flow.querySelector('.social-links');
+            if (!topEl || !bottomEl || !nameEl || !paraEl) return;
+
+            const measureInFlow = () => {
+                const top = topEl.getBoundingClientRect().top;
+                const bottom = bottomEl.getBoundingClientRect().bottom;
+                return Math.max(8 * 16, Math.ceil(bottom - top + 2));
+            };
+
+            flow.style.height = '';
+            carves.forEach((c) => { c.style.height = '0px'; });
+            void flow.offsetHeight;
+            let h = Math.ceil(measureInFlow() * 1.2);
+            for (let i = 0; i < 5; i++) {
+                carves.forEach((c) => { c.style.height = `${h}px`; });
+                void flow.offsetHeight;
+                h = measureInFlow();
+            }
+            carves.forEach((c) => { c.style.height = `${h}px`; });
+            flow.style.setProperty('--oval-carve-h', `${h}px`);
+            if (!hasSocial) flow.style.height = `${h}px`;
+
+            if (bubble) {
+                const b = bubble.getBoundingClientRect();
+                const targetCy = b.top + b.height / 2;
+                const textCy =
+                    (nameEl.getBoundingClientRect().top + paraEl.getBoundingClientRect().bottom) / 2;
+                const nudge = Math.round(targetCy - textCy);
+                flow.style.setProperty('--oval-nudge-y', `${nudge}px`);
+            }
+        });
+    }
+
+    function getScrollY(): number {
+        if (isMobileMode && scrollerEl) return scrollerEl.scrollTop;
+        return window.scrollY;
+    }
+
+    function getViewportH(): number {
+        if (isMobileMode && scrollerEl) return scrollerEl.clientHeight || window.innerHeight;
+        return window.innerHeight;
+    }
+
+    /** Measured snap tops — fixes Chrome iOS clientHeight vs 100dvh drift. */
+    function getSnapCenters(viewportH: number): number[] {
+        if (isMobileMode) {
+            return snapCentersInScroller(snapEls, viewportH, TOTAL_SECTIONS);
+        }
+        // Desktop: document Y of each snap top
+        return snapEls.length
+            ? snapEls.map((el) => el.getBoundingClientRect().top + window.scrollY)
+            : Array.from({ length: TOTAL_SECTIONS }, (_, i) => i * viewportH);
+    }
+
+    function initLens() {
+        bubbleEl = document.querySelector<HTMLElement>('.wave-bubble-container');
+        scrollerEl = document.querySelector<HTMLElement>('.content-wrapper');
+        sections = Array.from(document.querySelectorAll<HTMLElement>('.content-section'));
+        snapEls = Array.from(document.querySelectorAll<HTMLElement>('.scroll-proxy .snap-section'));
+
+        const updateMode = () => {
+            const nextMobile = document.body.classList.contains('is-mobile');
+            if (isMobileMode && !nextMobile) {
+                // Leaving mobile: clear any depth transforms once (not every RAF).
+                sections.forEach((s) => {
+                    s.style.transform = '';
+                });
+            }
+            isMobileMode = nextMobile;
+            syncOvalCarveHeights();
+        };
+        updateMode();
+        window.addEventListener('resize', updateMode);
+        window.visualViewport?.addEventListener('resize', updateMode);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => syncOvalCarveHeights());
+        }
+
+        if (isMobileMode && scrollerEl) {
+            scrollerEl.focus({ preventScroll: true });
+        }
+
+        if (bubbleEl && !bubbleEl.getAttribute('data-active')) {
+            bubbleEl.setAttribute('data-active', '1');
+        }
+
+        mediaQueryWarning.addEventListener('change', (e) => {
+            isReducedMotion = e.matches;
+        });
+
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        tick();
+        requestAnimationFrame(() => syncOvalCarveHeights());
+    }
+
+    /** Avoid rewriting the same inline style every RAF — thrashing visibility /
+     * pointer-events / transform stalls Chromium document mouse-wheel. */
+    function setStyleProp(el: HTMLElement, prop: keyof CSSStyleDeclaration & string, value: string) {
+        if (el.style[prop] !== value) {
+            (el.style as unknown as Record<string, string>)[prop] = value;
+        }
+    }
+
+    function tick() {
+        rafId = requestAnimationFrame(tick);
+        if (!scrollerEl) return;
+
+        const scrollY = getScrollY();
+        const viewportH = getViewportH();
+        const centers = getSnapCenters(viewportH);
+
+        if (isReducedMotion) {
+            handleReducedMotion(scrollY, centers);
+            return;
+        }
+
+        // Vignette from progress between neighboring snaps
+        const nearest = nearestSectionIndex(scrollY, centers);
+        const c0 = centers[nearest] ?? 0;
+        const c1 = centers[nearest + 1] ?? c0 + viewportH;
+        const span = Math.max(1, c1 - c0);
+        const decimalPart = Math.min(1, Math.max(0, (scrollY - c0) / span));
+        const vignetteOpacity = Math.sin(decimalPart * Math.PI).toFixed(2);
+        if (bubbleEl) {
+            if (bubbleEl.style.getPropertyValue('--vignette-opacity') !== vignetteOpacity) {
+                bubbleEl.style.setProperty('--vignette-opacity', vignetteOpacity);
+            }
+            if (!bubbleEl.hasAttribute('data-lens-ready')) {
+                bubbleEl.setAttribute('data-lens-ready', '1');
+            }
+        }
+
+        sections.forEach((section, index) => {
+            const centerY = centers[index] ?? index * viewportH;
+            const prevCenter = centers[index - 1] ?? centerY - viewportH;
+            const nextCenter = centers[index + 1] ?? centerY + viewportH;
+            const normDist = lensNormDist(scrollY, centerY, prevCenter, nextCenter);
+
+            if (Math.abs(normDist) > 1.15) {
+                setStyleProp(section, 'opacity', '0');
+                setStyleProp(section, 'filter', 'none');
+                // Desktop: never toggle visibility/pointer-events in RAF — threshold
+                // flicker at section boundaries stalls Chromium document mouse-wheel.
+                // Mobile uses a locked scroller; hard-hide there is fine.
+                if (isMobileMode) {
+                    setStyleProp(section, 'visibility', 'hidden');
+                    setStyleProp(section, 'pointerEvents', 'none');
+                }
+                return;
+            }
+
+            const opacity = lensOpacity(normDist);
+            const blurVal = Math.abs(normDist) * 20;
+            let scale = 1;
+            let translateZ = 0;
+            let translateY = 0;
+
+            if (normDist > 0) {
+                scale = 1 - normDist * 0.15;
+                translateZ = -(normDist * 100);
+                translateY = -(normDist * 20);
+            } else {
+                scale = 1 + Math.abs(normDist) * 0.05;
+                translateZ = Math.abs(normDist) * 50;
+                translateY = -(normDist * 20);
+            }
+
+            // Hard-hide nearly invisible sections so they cannot stack/overlap
+            const show = opacity > 0.04;
+            setStyleProp(section, 'opacity', opacity.toFixed(3));
+            setStyleProp(section, 'filter', show ? `blur(${blurVal.toFixed(1)}px)` : 'none');
+            // Desktop: never write visibility / pointer-events / transform in RAF
+            // (document mouse-wheel stalls). Mobile OK.
+            if (isMobileMode) {
+                setStyleProp(section, 'visibility', show ? 'visible' : 'hidden');
+                setStyleProp(section, 'pointerEvents', opacity > 0.55 ? 'auto' : 'none');
+                setStyleProp(
+                    section,
+                    'transform',
+                    `translate3d(0, ${translateY.toFixed(1)}px, ${translateZ.toFixed(1)}px) scale(${scale.toFixed(3)})`,
+                );
+            }
+        });
+
+        const activeIdx = nearestSectionIndex(scrollY, centers) + 1;
+        if (bubbleEl && bubbleEl.getAttribute('data-active') !== String(activeIdx)) {
+            bubbleEl.setAttribute('data-active', String(activeIdx));
+        }
+    }
+
+    function handleReducedMotion(scrollY: number, centers: number[]) {
+        const active = nearestSectionIndex(scrollY, centers);
+        sections.forEach((section, index) => {
+            const on = index === active;
+            section.classList.toggle('active-simple', on);
+            section.style.opacity = on ? '1' : '0';
+            section.style.visibility = on ? 'visible' : 'hidden';
+            section.style.pointerEvents = on ? 'auto' : 'none';
+            section.style.transform = '';
+            section.style.filter = '';
+        });
+        if (bubbleEl) bubbleEl.setAttribute('data-lens-ready', '1');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLens);
+    } else {
+        initLens();
+    }
+    document.addEventListener('astro:page-load', initLens);
+
+    document.addEventListener('astro:before-swap', () => {
+        if (rafId !== null) cancelAnimationFrame(rafId);
+    });
 </script>
+</Layout>
 
 <style>
     /* HYBRID SCROLL STRATEGY: 
@@ -195,22 +448,30 @@ import profilePic from '../assets/Profile_pic.jpg';
             position: relative;
         }
 
-        /* DESKTOP NARROW FIX: Ensure standard scrolling works */
+        /* DESKTOP NARROW: body must NOT be overflow-y:auto. Layout sets
+           overflow-x:hidden on body → CSS computes overflow-y to auto, and a
+           non-overflowing body scrollport eats discrete mouse-wheel (keyboard/
+           trackpad still scroll the documentElement). Keep scroll on html only. */
         body.page-home.is-desktop {
-            overflow-y: auto !important;
+            overflow: visible !important;
             height: auto !important;
-            scroll-snap-type: y mandatory; /* Keep snapping if desired, or remove for free scroll */
+            scroll-snap-type: none;
         }
     }
 
-    /* Desktop original snapping behavior - scoped to home page only */
-    @media (min-width: 901px) {
-        /* Apply scroll-snap to html when body has page-home class */
-        body.page-home ~ *,
-        html:has(body.page-home) {
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-        }
+    /* Desktop home: html is the only scrollport. No CSS scroll-snap (Chromium
+       traps mouse-wheel notches on 100vh snap targets). Lens still measures
+       .snap-section tops for section focus. */
+    html:has(body.page-home.is-desktop) {
+        overflow-x: hidden;
+        overflow-y: auto;
+        scroll-snap-type: none;
+        scroll-behavior: auto;
+    }
+    body.page-home.is-desktop {
+        /* Both axes visible so body is not a scroll container (see CSS overflow
+           pairing: overflow-x ≠ visible forces overflow-y to compute as auto). */
+        overflow: visible !important;
     }
 
 	/* Wrapper for entire content area - Scroller on mobile, layout-only on desktop */
@@ -220,20 +481,20 @@ import profilePic from '../assets/Profile_pic.jpg';
     }
 
     @media (max-width: 900px) {
-        /* MOBILE DEVICE: Inner container scrolling with hidden bars */
+        /* MOBILE DEVICE: Inner container with continuous (proximity) scroll.
+           Not mandatory snap — flick freely; settles gently near section stops. */
         body.page-home.is-mobile .content-wrapper {
             height: 100dvh;
             overflow-y: auto;
             overflow-x: hidden;
-            /* Restore native snapping and smooth scroll on this container */
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
+            scroll-snap-type: y proximity;
             /* Enable momentum scrolling on iOS */
             -webkit-overflow-scrolling: touch;
             /* Allow vertical scrolling only */
             touch-action: pan-y;
             /* Prevent pull-to-refresh on this inner scroller */
             overscroll-behavior-y: contain;
+            outline: none;
 
             /* HIDE SCROLLBARS to maintain layout design */
             -ms-overflow-style: none;
@@ -292,30 +553,96 @@ import profilePic from '../assets/Profile_pic.jpg';
     .snap-section {
         height: 100vh;
         width: 100%;
-        scroll-snap-align: start;
-        /* Desktop: Hard stop for intentional focusing */
-        scroll-snap-stop: always;
+        /* Snap align only on mobile scroller — see body.is-mobile below */
     }
 
     @media (max-width: 900px) {
-        .snap-section {
-            /* Mobile: "Flywheel" feel - allow flicking past multiple sections */
+        body.is-mobile .snap-section {
+            /* Continuous scroll: dvh stops + soft settle (no hard mandatory locks) */
+            height: 100dvh;
+            scroll-snap-align: start;
             scroll-snap-stop: normal;
         }
         
-        /* Desktop Narrow: Remove fixed height snap points to allow better content distribution */
+        /* Desktop Narrow: spacers for scroll height; no CSS snap (mouse-wheel trap) */
         body.is-desktop .snap-section {
            height: auto;
            min-height: 100vh; /* Ensure full screen at least */
-           scroll-snap-stop: always; /* Keep specific snapping */
+           scroll-snap-align: none;
            padding: 4rem 0; /* Add padding for breathability */
+        }
+    }
+
+    @media (min-width: 901px) {
+        body.is-desktop .snap-section {
+            scroll-snap-align: none;
         }
     }
 
     /* Container for the bio content - spacing handled by CSS variables */
     .bio-content {
-        gap: var(--spacing-md); /* Reduced from lg for tighter spacing */
-        transform: translateY(-3vh); /* Nudge content up to visually center it (original behavior) */
+        gap: var(--spacing-md);
+        transform: translateY(-3vh); /* Original nudge */
+    }
+
+	/* Oval text flow: carves inert by default; mobile enables them ≤900px */
+	.oval-flow {
+		width: 100%;
+		text-align: center;
+	}
+	.oval-carve,
+	.oval-spacer {
+		display: none;
+	}
+
+	/*
+	  Desktop: unwrap .oval-flow so layout matches deployed/main —
+	  name-container + paragraph are flex children of .bio-content again
+	  (gap, max-w-3xl wrap, title size). Carves/spacers stay display:none.
+	*/
+	body.is-desktop .oval-flow {
+		display: contents;
+	}
+	body.is-desktop .oval-carve,
+	body.is-desktop .oval-spacer {
+		display: none !important;
+	}
+	body.is-desktop .oval-flow > .bio-paragraph,
+	body.is-desktop .oval-flow > .social-links {
+		/* Recreate main's .w-full.max-w-3xl.text-center wrapper */
+		width: 100%;
+		max-width: 48rem; /* tailwind max-w-3xl */
+		margin-left: auto;
+		margin-right: auto;
+		text-align: center;
+		padding-inline: clamp(0.75rem, 2.2vw, 1.25rem);
+	}
+
+	/*
+	  Desktop title: match deployed rendering. Production CSS asked for
+	  Ubuntu Mono but never loaded it, so Safari used SF Mono / Monaco.
+	  Localhost self-hosts Ubuntu Mono 700 at weight 800 → faux-bold and
+	  a chunkier “small bold” look. Use the same system mono stack as prod.
+	*/
+	body.is-desktop .name-title {
+		font-family: 'SF Mono', Monaco, 'Cascadia Code', ui-monospace, monospace;
+		font-weight: 800;
+	}
+
+    /* DESKTOP FIX: Shrink content ONLY on Windows to handle wider font rendering */
+    /* Mac/Linux/Others stay at 1.0 (original perfect design). 0.92 = try closer Mac fill. */
+    @media (min-width: 901px) {
+        body.is-windows .bio-content {
+            transform: translateY(-3vh) scale(0.92);
+            transform-origin: center center;
+            width: 100%;
+        }
+        
+        /* Specific fix for Section 5 (Becoming) to ensure profile picture fits */
+        body.is-windows #section-5 .bio-content {
+             transform: translateY(-3vh) scale(0.92);
+             width: 100%;
+        }
     }
 	
 	/* Container for title and gradient border */
@@ -570,84 +897,17 @@ import profilePic from '../assets/Profile_pic.jpg';
         contain: layout style paint;
     }
     
-    /* Initial state: First section should be visible and sharp on load */
-    #section-1.active {
+    /*
+      Lens opacity/transform are owned by JS (measured snap centers).
+      Do NOT force opacity via #section-1.active or [data-active] — those
+      fought inline styles on some iOS Chrome builds and left pages overlapping.
+      data-active remains for non-visual hooks; pointer-events set in tick().
+    */
+    /* First paint before lens JS: show section 1 only */
+    .wave-bubble-container:not([data-lens-ready]) #section-1 {
         opacity: 1;
-        transform: scale(1) translateZ(0);
-        filter: blur(0px);
-        pointer-events: auto;
+        visibility: visible;
     }
-	
-	/* Staggered content - minimal transition for entrance only */
-	.content-section .name-container,
-	.content-section .bio-paragraph,
-	.content-section .text-content,
-	.content-section .profile-image-container,
-	.content-section .social-links {
-		/* We might want JS to drive this too, or keep minimal ease */
-		/* For analog feel, we remove delay and let opacity drive it */
-		transition: opacity 0.1s linear; 
-	}
-
-    /* Active mapping via data attribute (1-indexed) - LENS FOCUSED state */
-    .wave-bubble-container[data-active="1"] #section-1,
-    .wave-bubble-container[data-active="2"] #section-2,
-    .wave-bubble-container[data-active="3"] #section-3,
-    .wave-bubble-container[data-active="4"] #section-4,
-    .wave-bubble-container[data-active="5"] #section-5,
-    .wave-bubble-container[data-active="6"] #section-6 {
-        /* LENS FOCUS: At focal plane - sharp and clear */
-        opacity: 1;
-        transform: scale(1) translateZ(0);
-        filter: blur(0px);
-        pointer-events: auto;
-    }
-	
-	/* Staggered elements become visible when section is active */
-	.wave-bubble-container[data-active="1"] #section-1 .name-container,
-	.wave-bubble-container[data-active="2"] #section-2 .name-container,
-	.wave-bubble-container[data-active="3"] #section-3 .name-container,
-	.wave-bubble-container[data-active="4"] #section-4 .name-container,
-	.wave-bubble-container[data-active="5"] #section-5 .name-container,
-	.wave-bubble-container[data-active="6"] #section-6 .name-container {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-		filter: blur(0px);
-	}
-	
-	.wave-bubble-container[data-active="1"] #section-1 .bio-paragraph,
-	.wave-bubble-container[data-active="1"] #section-1 .w-full.max-w-3xl,
-	.wave-bubble-container[data-active="1"] #section-1 .text-content,
-	.wave-bubble-container[data-active="2"] #section-2 .bio-paragraph,
-	.wave-bubble-container[data-active="2"] #section-2 .w-full.max-w-3xl,
-	.wave-bubble-container[data-active="2"] #section-2 .text-content,
-	.wave-bubble-container[data-active="3"] #section-3 .bio-paragraph,
-	.wave-bubble-container[data-active="3"] #section-3 .w-full.max-w-3xl,
-	.wave-bubble-container[data-active="3"] #section-3 .text-content,
-	.wave-bubble-container[data-active="4"] #section-4 .bio-paragraph,
-	.wave-bubble-container[data-active="4"] #section-4 .w-full.max-w-3xl,
-	.wave-bubble-container[data-active="4"] #section-4 .text-content,
-	.wave-bubble-container[data-active="5"] #section-5 .bio-paragraph,
-	.wave-bubble-container[data-active="5"] #section-5 .w-full.max-w-3xl,
-	.wave-bubble-container[data-active="5"] #section-5 .text-content,
-	.wave-bubble-container[data-active="6"] #section-6 .bio-paragraph,
-	.wave-bubble-container[data-active="6"] #section-6 .w-full.max-w-3xl,
-	.wave-bubble-container[data-active="6"] #section-6 .text-content {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-		filter: blur(0px);
-	}
-	
-	.wave-bubble-container[data-active="5"] #section-5 .profile-image-container {
-		opacity: 1;
-		transform: scale(1);
-		filter: blur(0px);
-	}
-	
-	.wave-bubble-container[data-active="6"] #section-6 .social-links {
-		opacity: 1;
-		transform: translateY(0);
-	}
 	
 	/* ========================================
 	   DEPTH OF FIELD - Receding section effect
@@ -728,70 +988,148 @@ import profilePic from '../assets/Profile_pic.jpg';
 
 	/* Keyframes deleted as morphing is now WebGL based */
 
-    /* FIX FOR DESKTOP NARROW:
-       Apply oval distribution adjustments, but keep SIZES reasonable for desktop.
-    */
+    /* Narrow viewports: oval taper (1–4) + soft fill (5–6). Bubble geometry frozen. */
     @media (max-width: 900px) {
-        /* Common Layout Adjustments (keep for both) */
         .wave-bubble-container {
-            /* MOBILE: Center precisely in viewport */
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            /* Fill most of viewport with small padding */
             width: calc(100vw - 12px);
-            height: calc(100dvh - 100px); /* Account for header */
-            padding: 0.5rem; /* Reduced from 1rem to give more space */
-            /* Allow vertical scroll (swipe) but prevent horizontal/zoom */
+            height: calc(100dvh - 100px);
+            padding: 0.5rem;
             touch-action: pan-y;
+            container-type: size;
+            container-name: bubble;
         }
-        
-        /* RESTRICT layout hacks that break Desktop Narrow */
-        /* Only apply the tightest mobile constraints to actual mobile */
-        
+
         .bio-content {
-            transform: none; /* Remove desktop nudge */
-            gap: 0.5rem; /* Tighter gap for mobile */
+            transform: none;
+            gap: 0.5rem;
         }
 
-        /* OVAL TEXT DISTRIBUTION: Bigger font, wider lines */
-        .bio-paragraph {
-            font-size: 0.95rem; /* Increased size */
-            line-height: 1.5;
-            max-width: 96%; /* Allow text to fill the oval */
-            margin: 0 auto;
+        /*
+          Oval craft is mobile-UA only. Narrow desktop (body.is-desktop ≤900px)
+          keeps the deployed/main look: no shape-outside, 2rem title, 1.25rem body.
+        */
+        body.is-mobile #section-1 .bio-content,
+        body.is-mobile #section-2 .bio-content,
+        body.is-mobile #section-3 .bio-content,
+        body.is-mobile #section-4 .bio-content,
+        body.is-mobile #section-6 .bio-content {
+            /* Anchor for absolutely centered oval-flow (endosome box, not flex quirks) */
+            display: block !important;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            gap: 0;
+            transform: none !important;
+            margin: 0;
+            padding: 0;
         }
-        
-        /* DESKTOP OVERRIDE for Sizes */
-        body.is-desktop .bio-paragraph {
-             font-size: 1.25rem !important; /* Larger text as requested */
-             max-width: 85% !important; /* Use more horizontal space */
-             line-height: 1.6;
+
+        body.is-mobile .oval-flow {
+            /*
+              Content-sized oval centered on the bubble. Mobile sketch tracks
+              the same bubble via content_pos, so this is the charcoal center.
+              Carve height must match in-flow copy — oversized floats loft text.
+            */
+            --oval-flow-w: 86%;
+            --oval-pole: 1.1em;
+            --oval-nudge-y: 0px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, calc(-50% + var(--oval-nudge-y)));
+            width: var(--oval-flow-w);
+            height: auto;
+            max-width: 100%;
+            max-height: 82%;
+            text-align: center;
+            display: block;
         }
-        
+
+        body.is-mobile .oval-carve {
+            display: block;
+            height: var(--oval-carve-h, 22em);
+            width: 50%;
+        }
+
+        /*
+          Full ellipse (x = 1 - sqrt(1-(2t-1)^2)) with pole floor at 70% of the
+          half-float so tip chords stay ~30% of flow width — oval silhouette
+          without zero-width clearout at the bottom.
+        */
+        body.is-mobile .carve-left {
+            float: left;
+            shape-outside: polygon(0% 0%, 70% 0%, 51.6% 6.25%, 33.9% 12.5%, 21.9% 18.75%, 13.4% 25%, 7.3% 31.25%, 3.2% 37.5%, 0.8% 43.75%, 0% 50%, 0.8% 56.25%, 3.2% 62.5%, 7.3% 68.75%, 13.4% 75%, 21.9% 81.25%, 33.9% 87.5%, 51.6% 93.75%, 70% 100%, 0% 100%);
+            shape-margin: clamp(3px, 1.4cqmin, 10px);
+        }
+
+        body.is-mobile .carve-right {
+            float: right;
+            shape-outside: polygon(100% 0%, 30% 0%, 48.4% 6.25%, 66.1% 12.5%, 78.1% 18.75%, 86.6% 25%, 92.7% 31.25%, 96.8% 37.5%, 99.2% 43.75%, 100% 50%, 99.2% 56.25%, 96.8% 62.5%, 92.7% 68.75%, 86.6% 75%, 78.1% 81.25%, 66.1% 87.5%, 48.4% 93.75%, 30% 100%, 100% 100%);
+            shape-margin: clamp(3px, 1.4cqmin, 10px);
+        }
+
+        body.is-mobile .oval-spacer {
+            display: block;
+            height: var(--oval-pole);
+            width: 100%;
+        }
+
+        @supports not (height: 1cqmin) {
+            body.is-mobile .carve-left,
+            body.is-mobile .carve-right {
+                shape-margin: 6px;
+            }
+        }
+
+        body.is-mobile .oval-flow .name-title {
+            font-size: clamp(1.85rem, 6.8vw, 2.2rem) !important;
+        }
+
+        body.is-mobile .oval-flow .bio-paragraph {
+            font-size: clamp(1.28rem, 4.8vw, 1.48rem) !important;
+            line-height: 1.38 !important;
+            max-width: none !important;
+            /* Match Becoming (.text-content gap) — breathing room under title */
+            margin: var(--spacing-sm) 0 0 !important;
+            padding: 0 !important;
+            text-align: center !important;
+        }
+
+        body.is-mobile .oval-flow .social-links {
+            margin-top: 0.75rem;
+            clear: both;
+        }
+
+        /* Narrow desktop: deployed/main bubble + type (oval unwrap is global above) */
         body.is-desktop .wave-bubble-container {
-             /* Add more breathing room on desktop portrait */
-             width: min(90vw, 600px); /* Constraint width */
+             width: min(90vw, 600px);
              height: min(85vh, 800px);
-             padding: 2rem; 
+             padding: 2rem;
         }
 
-        /* Tighter name title on mobile */
-        .name-title {
-            font-size: 1.5rem;
-        }
         body.is-desktop .name-title {
-            font-size: 2rem; /* Keep title punchy on desktop */
+            font-size: 2rem;
         }
 
-        /* BECOMING SECTION: Smaller profile, tighter layout */
-        /* BECOMING SECTION: Cleaner layout */
+        body.is-desktop .content-section .bio-paragraph {
+            font-size: 1.25rem !important;
+            line-height: 1.6;
+            max-width: 78% !important;
+            text-align: center !important;
+        }
+
+        /* Soft fill: Becoming only (portrait + short copy) */
         #section-5 .bio-content {
             gap: 0.75rem !important;
             padding: 0.5rem !important;
             flex-direction: column !important;
             align-items: center !important;
+            justify-content: center !important;
             width: 100% !important;
+            height: 100%;
         }
 
         #section-5 .profile-image-container {
@@ -802,14 +1140,13 @@ import profilePic from '../assets/Profile_pic.jpg';
             width: 120px !important;
             height: auto !important;
         }
-        
-        /* Desktop override for profile image */
+
         body.is-desktop #section-5 .profile-image {
-             width: 140px !important; /* Slightly smaller to fit in oval */
+             width: 140px !important;
         }
-        
+
         body.is-desktop #section-5 .bio-content {
-             gap: 0.5rem !important; /* Reduced gap to save vertical space */
+             gap: 0.5rem !important;
         }
 
         #section-5 .text-content {
@@ -818,71 +1155,24 @@ import profilePic from '../assets/Profile_pic.jpg';
             width: 100% !important;
         }
 
-        #section-5 .bio-paragraph {
-            font-size: 0.925rem !important;
-            max-width: 90% !important;
+        body.is-mobile #section-5 .name-title {
+            font-size: clamp(1.7rem, 6.2vw, 2.05rem) !important;
+        }
+
+        body.is-mobile #section-5 .bio-paragraph {
+            font-size: clamp(1.18rem, 4.2vw, 1.32rem) !important;
+            max-width: 78% !important;
+            line-height: 1.42 !important;
             text-align: center !important;
             margin: 0 auto !important;
         }
-        
+
         body.is-desktop #section-5 .bio-paragraph {
             font-size: 1.25rem !important;
-        }
-
-        /* Fix Farpoint section mobile alignment */
-        /* Fix Farpoint section mobile alignment */
-        #section-3 .bio-content {
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-align: center !important;
-            transform: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            gap: 1rem !important;
-            width: 100% !important;
-        }
-
-        #section-3 .text-content {
-            text-align: center !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        #section-3 .name-container {
-            width: 100% !important;
-            text-align: center !important;
-            margin: 0 !important;
-        }
-
-        #section-3 .bio-paragraph {
-            text-align: center !important;
-            margin: 0 auto !important;
             max-width: 90% !important;
-            font-size: 0.95rem !important; /* Bigger font */
-        }
-        
-        body.is-desktop #section-3 .bio-paragraph {
-            font-size: 1.25rem !important;
-        }
-
-        /* All sections: oval text distribution and bigger font */
-        .content-section .bio-paragraph {
-            text-align: center !important;
-            font-size: 0.95rem !important; /* Bigger font */
-            line-height: 1.6;
-            padding: 0 0.5rem;
-        }
-        
-        body.is-desktop .content-section .bio-paragraph {
-             font-size: 1.25rem !important;
         }
     }
 
-    /* Additional responsive breakpoint for very small screens */
-    /* Additional responsive breakpoint for very small screens */
     @media (max-width: 480px) {
         .wave-bubble-container {
             width: calc(100vw - 8px);
@@ -890,23 +1180,27 @@ import profilePic from '../assets/Profile_pic.jpg';
             padding: 0.75rem;
         }
 
-        .bio-paragraph {
-            font-size: 0.9rem !important; /* Increased from 0.8rem */
-            line-height: 1.55 !important;
-            padding: 0 0.25rem;
+        body.is-mobile .oval-flow {
+            --oval-flow-w: 88%;
+            --oval-pole: 1em;
         }
 
-        .name-title {
-            font-size: 1.5rem !important;
+        body.is-mobile .oval-flow .bio-paragraph {
+            font-size: clamp(1.22rem, 5vw, 1.4rem) !important;
+            line-height: 1.36 !important;
         }
 
-        /* Extra tight layout for smallest screens */
-        #section-5 .profile-image {
-            width: 100px !important; /* Keep it visible */
+        body.is-mobile .oval-flow .name-title {
+            font-size: clamp(1.75rem, 7vw, 2.1rem) !important;
         }
 
-        #section-5 .bio-paragraph {
-            font-size: 0.85rem !important; /* Minimum readable size */
+        body.is-mobile #section-5 .profile-image {
+            width: 100px !important;
+        }
+
+        body.is-mobile #section-5 .bio-paragraph {
+            font-size: clamp(1.12rem, 4.4vw, 1.24rem) !important;
+            max-width: 82% !important;
         }
     }
 
@@ -1058,7 +1352,7 @@ import profilePic from '../assets/Profile_pic.jpg';
 	html.dark .social-links svg { opacity: 0.9; }
 
     .wave-bubble-container #section-5 .bio-content { 
-        transform: translate(2vw, -4.5vh) !important; /* Shift right (2vw) to better center within oval */
+        transform: translate(2vw, -4.5vh) !important; /* Revert global to 2vw */
     }
     
     @media (max-width: 900px) {
@@ -1075,195 +1369,49 @@ import profilePic from '../assets/Profile_pic.jpg';
             transform: translateY(-5vh) !important; /* Keep small screen adjustment */
         }
     }
+
+    /* FINAL WINDOWS OVERRIDE: Ensure Section 5 obeys the shrink rule */
+    /* This must be at the very end to override any other media query specificity */
+    /* FINAL WINDOWS OVERRIDE: Targeted Fix for Becoming Section */
+    @media (min-width: 901px) {
+        /* 1. Global scale for text sections (1–4, 6). Becoming overrides below — no scale. */
+        body.is-windows .bio-content {
+            transform: translateY(-3vh) scale(0.92); 
+            transform-origin: center center;
+            width: 100%;
+        }
+
+        /* 2. SPECIFIC fix for "Becoming" layout (intentional — leave scale off) */
+        /* STRATEGY: Move Text Right + Increase Vertical Height */
+        /* Updated Selector for Maximum Specificity */
+        body.is-windows .wave-bubble-container #section-5 .bio-content {
+             /* Standardize position */
+             /* USER FIX: Apply the 12vw shift HERE -> FORCE RIGHT */
+             transform: translate(6vw, -4.5vh) !important;
+             transform-origin: center center !important;
+             width: 100% !important;
+             max-width: 95% !important; 
+             
+             /* MOVE TEXT RIGHT by increasing gap */
+             gap: 2.5rem !important; 
+             align-items: center !important;
+        }
+        
+        /* Standard Profile Pic */
+        body.is-windows #section-5 .profile-image {
+             width: 160px !important; 
+        }
+
+        /* TALLER CONTAINER via Vertical Text Flow */
+        body.is-windows #section-5 .bio-paragraph {
+             font-size: 1.35rem !important;
+             line-height: 1.75 !important;  /* Enhance height */
+             
+             /* NARROW COLUMN -> Forces text into more lines (Taller) */
+             max-width: 25ch !important;     
+             
+             text-align: center !important;
+             margin: 0 !important;
+        }
+    }
 </style>
-
-<script is:inline>
-    // CONTINUOUS SCROLL-LINKED LENS ENGINE
-    // "Analog" focus control driven by native scroll physics
-    
-    // Config
-    const TOTAL_SECTIONS = 6;
-    let sections = [];
-    let bubbleEl = null;
-    let scrollerEl = null;
-    let rafId = null;
-    
-    // State
-    const mediaQueryWarning = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let isReducedMotion = mediaQueryWarning.matches;
-    
-    let isMobileMode = false;
-    
-    function initLens() {
-        bubbleEl = document.querySelector('.wave-bubble-container');
-        scrollerEl = document.querySelector('.content-wrapper');
-        sections = Array.from(document.querySelectorAll('.content-section'));
-        
-        // Detect scroller mode initially and on resize
-        // Detect scroller mode initially and on resize
-        const updateMode = () => {
-            // CRITICAL FIX: Sync with CSS Scroll Strategy
-            // If body has .is-desktop class, we use Window Scroll (even if narrow)
-            // If body has .is-mobile class, we use Inner Container Scroll
-            isMobileMode = document.body.classList.contains('is-mobile');
-        };
-        updateMode();
-        window.addEventListener('resize', updateMode);
-        
-        // Ensure initial state: Set data-active to 1 on load if at top
-        if (bubbleEl && !bubbleEl.getAttribute('data-active')) {
-            bubbleEl.setAttribute('data-active', '1');
-        }
-        
-        // Listen for preference changes
-        mediaQueryWarning.addEventListener('change', (e) => {
-            isReducedMotion = e.matches;
-        });
-        
-        // Start the engine
-        if (rafId) cancelAnimationFrame(rafId);
-        // Run immediately to set initial state
-        tick();
-    }
-    
-    function tick() {
-        rafId = requestAnimationFrame(tick);
-        if (!scrollerEl) return;
-        
-        // HYBRID SYNC:
-        // On mobile, scrollerEl has overflow: auto and we read .scrollTop
-        // On desktop, scrollerEl is just a wrapper and we read window.scrollY
-        const scrollY = isMobileMode ? scrollerEl.scrollTop : window.scrollY;
-        const viewportH = isMobileMode ? (scrollerEl.clientHeight || window.innerHeight) : window.innerHeight;
-        
-        // Optimize: If reduced motion, just do simple class switching
-        if (isReducedMotion) {
-            handleReducedMotion(scrollY, viewportH);
-            return;
-        }
-        
-        const totalHeight = document.documentElement.scrollHeight - viewportH;
-        
-        // VIGNETTE: Intensity based on movement speed or position?
-        // For continuous feel, maybe just keep it subtle or link to "between" states
-        // Strategy: Vignette opacity peaks when we are between sections (e.g. x.5)
-        const globalProgress = scrollY / viewportH;
-        const decimalPart = Math.abs(globalProgress % 1);
-        const transitionIntensity = 1 - (2 * Math.abs(decimalPart - 0.5)); // 0 at integer, 1 at 0.5
-        // Smoother curve
-        const vignetteOpacity = Math.sin(decimalPart * Math.PI);
-        
-        if (bubbleEl) {
-             // Use CSS variable or style for vignette if we want dynamic update
-             // The CSS ::before uses opacity transition, but we can override if needed
-             // For now, let's toggle a class if we are "moving" significantly?
-             // actually, exact analog control of vignette might be too heavy.
-             // Let's stick to the class-based trigger if moving fast, or just mapped to position.
-             
-             // Simple approach: Map opacity to how "far" we are from a snap point
-             bubbleEl.style.setProperty('--vignette-opacity', vignetteOpacity.toFixed(2));
-        }
-        
-        // UPDATE SECTIONS
-        sections.forEach((section, index) => {
-             // Section index is 0..5
-             // Section 'perfect' position is index * viewportH
-             const centerY = index * viewportH;
-             const dist = scrollY - centerY;
-             const normDist = dist / viewportH; // 0 = centered, 1 = one screen away (up), -1 = one screen away (down)
-             
-             // OPTIMIZATION: If far off screen, hide completely
-             if (Math.abs(normDist) > 1.2) {
-                 section.style.opacity = '0';
-                 section.style.visibility = 'hidden';
-                 return;
-             }
-             
-             section.style.visibility = 'visible';
-             
-             // 1. OPACITY
-             // Peak at 0, fade out to +/- 0.6
-             // Curve: Cosine bell or simple linear?
-             // Let's use a bell curve for smooth "passing through"
-             // 1 at 0, 0 at 0.7
-             let opacity = 1 - Math.pow(Math.abs(normDist) / 0.65, 2);
-             opacity = Math.max(0, Math.min(1, opacity));
-             
-             // 2. BLUR
-             // 0 at center, max 20px at edges
-             const blurVal = Math.abs(normDist) * 20;
-             
-             // 3. SCALE & DEPTH (Z)
-             // When normDist > 0 (scrolled past it, it goes up/recedes): Scale down, Z down
-             // When normDist < 0 (approaching it from bottom): Scale up slightly (coming from front), Z up
-             
-             let scale = 1;
-             let translateZ = 0;
-             let translateY = 0;
-             
-             if (normDist > 0) {
-                 // RECEDING (going to background)
-                 // Scale: 1 -> 0.85
-                 scale = 1 - (normDist * 0.15);
-                 // Z: 0 -> -100px
-                 translateZ = -(normDist * 100);
-                 // Y: slight parallax?
-                 translateY = -(normDist * 20); // Move up slightly faster?
-             } else {
-                 // APPROACHING (coming from foreground)
-                 // Scale: 1.05 -> 1
-                 scale = 1 + (Math.abs(normDist) * 0.05);
-                 // Z: 50 -> 0
-                 translateZ = Math.abs(normDist) * 50;
-                 // Y: 
-                 translateY = -(normDist * 20);
-             }
-             
-             // Apply styles
-             section.style.opacity = opacity.toFixed(3);
-             section.style.filter = `blur(${blurVal.toFixed(1)}px)`;
-             section.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, ${translateZ.toFixed(1)}px) scale(${scale.toFixed(3)})`;
-             
-             // Staggered children? 
-             // We can apply a slight multiplier to children for parallax within the section
-             // But for performance, manipulating the parent is safest and smoothest.
-        });
-        
-        // Update bubble active attribute for any CSS reliance
-        const activeIdx = Math.round(scrollY / viewportH) + 1;
-        if (bubbleEl.getAttribute('data-active') !== String(activeIdx)) {
-            bubbleEl.setAttribute('data-active', String(activeIdx));
-        }
-    }
-    
-    function handleReducedMotion(scrollY, viewportH) {
-         sections.forEach((section, index) => {
-             const centerY = index * viewportH;
-             const dist = Math.abs(scrollY - centerY);
-             // Simple switching
-             if (dist < viewportH / 2) {
-                 section.classList.add('active-simple');
-                 section.style.opacity = ''; // Clear inline
-             } else {
-                 section.classList.remove('active-simple');
-                 section.style.opacity = '';
-             }
-             section.style.transform = '';
-             section.style.filter = '';
-         });
-    }
-
-    // Init
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initLens);
-    } else {
-        initLens();
-    }
-    document.addEventListener('astro:page-load', initLens);
-    
-    // Cleanup on navigation
-    document.addEventListener('astro:before-swap', () => {
-        if (rafId) cancelAnimationFrame(rafId);
-    });
-    
-</script>

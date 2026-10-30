@@ -56,10 +56,6 @@ const positionedMedia = allMedia
   
   <!-- Project header with consistent styling -->
   <div slot="header" class="project-header">
-    <nav class="breadcrumb">
-      <a href="/projects" data-breadcrumb-link>← Back to Projects</a>
-    </nav>
-    
     <h1 class="craft-title">{title}</h1>
     <p class="craft-subtitle" set:html={description}></p>
     
@@ -179,39 +175,8 @@ const positionedMedia = allMedia
   .project-header {
     position: relative;
     text-align: center;
-    max-width: 900px;
+    max-width: 1100px;
     margin: 0 auto 0.25rem auto;
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--space-lg);
-  }
-
-  .breadcrumb a {
-    color: var(--rainbow-journey);
-    text-decoration: none;
-    font-size: clamp(0.9rem, 1.5vw, 1rem);
-    transition: all 0.3s ease;
-    font-family: 'Ubuntu', system-ui, sans-serif;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    background: rgba(90, 160, 230, 0.1);
-    border: 1px solid rgba(90, 160, 230, 0.2);
-  }
-
-  .breadcrumb a:hover {
-    background: rgba(90, 160, 230, 0.2);
-    transform: translateX(-4px);
-  }
-
-  html:not(.dark) .breadcrumb a {
-    color: #1A5C8B;
-    background: rgba(26, 92, 139, 0.1);
-    border-color: rgba(26, 92, 139, 0.2);
-  }
-
-  html:not(.dark) .breadcrumb a:hover {
-    background: rgba(26, 92, 139, 0.2);
   }
 
   .craft-title {
@@ -247,12 +212,14 @@ const positionedMedia = allMedia
 
   .craft-subtitle {
     font-size: clamp(1.28rem, 2.2vw, 1.55rem);
-    line-height: 2.0;
+    line-height: 1.5;
     color: var(--rainbow-bio);
     margin: 0 auto var(--space-lg, 2rem) auto;
-    max-width: 800px;
+    max-width: 1050px;
     font-family: 'Ubuntu', system-ui, sans-serif;
     font-weight: 300;
+    word-spacing: 0.05em;
+    letter-spacing: 0.01em;
   }
 
   html:not(.dark) .craft-subtitle {

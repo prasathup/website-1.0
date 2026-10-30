@@ -24,6 +24,9 @@ const allSizes = ['standard', 'short', 'tall', 'wide', 'hero'];
 for (let i = 0; i < sortedProjects.length; i++) {
 	const project = sortedProjects[i];
 	
+	// Guard clause: skip if project is undefined (defensive programming)
+	if (!project) continue;
+	
 	// Get the previous card's actual size (if any)
 	const previousSize = enhancedProjects[i - 1]?.adaptiveSize || '';
 	

@@ -17,12 +17,11 @@ export default defineConfig({
   devToolbar: {
     enabled: false, // Disable the DevToolbar
   },
+  // Image optimization configuration
+  // Note: Sharp (default image service) preserves color profiles when format matches (PNG to PNG)
+  // Using quality="max" and format="png" in Image components ensures color profiles are maintained
+  // This is especially important for Notes art created in Procreate with intentional color profiles
   vite: {
-    ssr: {
-      // Include these packages in the SSR bundle
-      // Since they're used in client-side scripts, we need Vite to resolve them
-      noExternal: ['three', 'gsap']
-    },
     build: {
       minify: 'terser',
       terserOptions: {
@@ -30,10 +29,6 @@ export default defineConfig({
           drop_console: true
         }
       }
-    },
-    optimizeDeps: {
-      // Pre-bundle these dependencies for faster dev server startup
-      include: ['three', 'gsap']
     }
   },
   compressHTML: true,

@@ -2,3 +2,15 @@
 User-agent: *
 Disallow: /
 
+# Allow access to favicon and icon files for link preview services
+# This ensures Perplexity, Google, and other platforms can fetch the icon
+# even though the site is not indexed
+# Note: robots.txt doesn't support wildcards, so we list specific files
+User-agent: *
+Allow: /icon-v2-32x32.png
+Allow: /icon-v2-192x192.png
+Allow: /icon-v2-512x512.png
+Allow: /icon-v2-apple-180x180.png
+Allow: /icon-v2.ico
+Allow: /site.webmanifest
+

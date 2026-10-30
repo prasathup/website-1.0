@@ -25,6 +25,9 @@ const allSizes = ['standard', 'short', 'tall', 'wide'];
 for (let i = 0; i < sortedJourneyItems.length; i++) {
 	const journeyItem = sortedJourneyItems[i];
 	
+	// Guard clause: skip if journeyItem is undefined (defensive programming)
+	if (!journeyItem) continue;
+	
 	// Get the previous card's actual size (if any)
 	const previousSize = enhancedJourneyItems[i - 1]?.adaptiveSize || '';
 	
@@ -109,6 +112,27 @@ for (let i = 0; i < sortedJourneyItems.length; i++) {
         </ContentGrid>
 	)}
 
+	<!-- Placeholder content for journey items -->
+	{sortedJourneyItems.length === 0 && (
+		<ContentGrid columns={4} theme="journey">
+			<div class="placeholder-card glass-panel">
+				<h3>Life Milestones</h3>
+				<p>Major achievements and turning points that shaped your journey.</p>
+				</div>
+			<div class="placeholder-card glass-panel">
+				<h3>Memories</h3>
+				<p>Precious moments captured in time, from childhood wonder to adult wisdom.</p>
+			</div>
+			<div class="placeholder-card glass-panel">
+				<h3>Reflections</h3>
+				<p>Thoughts and insights gained through years of experience and growth.</p>
+		</div>
+			<div class="placeholder-card glass-panel">
+				<h3>Dreams</h3>
+				<p>Aspirations and goals that guide your path through the cosmos of possibility.</p>
+	</div>
+		</ContentGrid>
+	)}
 </CraftLayout>
 
 <style>

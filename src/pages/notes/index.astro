@@ -25,6 +25,9 @@ const allSizes = ['standard', 'short', 'tall', 'wide', 'hero'];
 for (let i = 0; i < sortedNotesItems.length; i++) {
 	const noteItem = sortedNotesItems[i];
 	
+	// Guard clause: skip if noteItem is undefined (defensive programming)
+	if (!noteItem) continue;
+	
 	// Get the previous card's actual size (if any)
 	const previousSize = enhancedNotesItems[i - 1]?.adaptiveSize || '';
 	

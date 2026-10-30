@@ -19,7 +19,7 @@ export default {
         'sketch-accent-light': '#a0c4c0', // Muted teal/aqua
         'sketch-accent-dark': '#6b8e8a', // Deeper desaturated teal
         'sketch-border': '#dcdcdc', // Soft grey
-        
+
         // Dark mode specific colors
         'dark-bg': '#0b0b12', // Match our --bg-dark variable
         'dark-text-primary': '#f0f0ff', // Match our --text-primary in dark mode

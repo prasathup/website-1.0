@@ -61,17 +61,39 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
 </div>
 
 <script is:inline define:vars={{ shouldShowByDefault }}>
-  // --- Mask Animation & Interaction Logic ---
+  // --- Physics-Based "Microscope" Interaction Logic ---
   
   const state = {
-    isExpanded: false,
+    // Reveal State (Click to Toggle)
+    isExpanded: false, // false = Spotlight, true = Full Reveal via Mask
+
+    // Focus State (Controlled by Scroll)
+    focusLevel: 0, // 0 = Blurry, 1 = Sharp
+    targetFocus: 0,
+    
+    // Velocity State (Motion Blur)
     mouseX: 0,
     mouseY: 0,
-    // Configuration - Round 5: Drastic Slowdown, 75% Softness
-    hoverRadius: 0, 
-    hoverSoftness: 135, // 75% of 180px - Smaller but still soft
-    expandRadius: '200vmax', 
-    expandSoftness: 800, 
+    lastMouseX: 0,
+    lastMouseY: 0,
+    velocity: 0,
+    
+    // Click tracking for triple-click reveal
+    clickCount: 0, // Track number of clicks in sequence
+    lastClickTime: 0, // Timestamp of last click
+    clickResetTimeout: null, // Timeout to reset click counter
+    
+    // Config
+    maxBlur: 20, // px
+    scrollSensitivity: 0.001,
+    velocitySensitivity: 0.15,
+    maxVelocityBlur: 10,
+    hoverSoftness: 135,
+    expandRadius: '200vmax', // Full reveal size
+    tripleClickWindow: 500, // Time window in ms for triple click detection
+    
+    // Perf
+    lastTime: performance.now()
   };
 
   function updateMaskVariables(x, y, radius, softness, customTransition = null) {
@@ -90,57 +112,175 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     }
   }
 
-  function handleMouseMove(e) {
-    if (state.isExpanded) return;
+  // Helper: Detect if cursor is in an "Art Zone"
+  function isInArtZone(x, y) {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    // Zones: Left (25%), Right (25%), Bottom (20%)
+    const isLeftZone = x < (width * 0.25);
+    const isRightZone = x > (width * 0.75);
+    const isBottomZone = y > (height * 0.80);
+    
+    return isLeftZone || isRightZone || isBottomZone;
+  }
 
+  // --- 1. Focus Knob (Local Scroll) ---
+  // Intercepts scroll wheel ONLY on Art Zones (Sides & Bottom).
+  // Center of viewport always scrolls the page. Do NOT blanket-skip home/bio —
+  // that killed artwork focus reveal. Page-scroll stalls were from body
+  // scrollport + lens RAF thrash (fixed separately), not from zone hijack.
+  function handleWheel(e) {
+    // Narrow phones: no art-zone hijack (artwork hidden / touch scroll).
+    // iPad / desktop (≥768) keep zone focus so side/bottom wheel reveals art.
+    if (window.innerWidth < 768) return;
+
+    // Prefer last mousemove coords; some wheel events report 0,0 → false left zone.
+    const x = e.clientX || state.mouseX;
+    const y = e.clientY || state.mouseY;
+    if (isInArtZone(x, y)) {
+        e.preventDefault(); // Stop page scroll — this wheel gesture focuses art
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        // Scroll Down (positive delta) -> FOCUS (Increase target toward 1)
+        // Scroll Up (negative delta) -> BLUR (Decrease target toward 0)
+        state.targetFocus += e.deltaY * state.scrollSensitivity;
+        state.targetFocus = Math.max(0, Math.min(1, state.targetFocus));
+    }
+  }
+
+  // --- 2. Velocity & Mask Tracking ---
+  function handleMouseMove(e) {
     state.mouseX = e.clientX;
     state.mouseY = e.clientY;
 
-    updateMaskVariables(state.mouseX, state.mouseY, state.hoverRadius, state.hoverSoftness);
+    // Only update mask position if NOT expanded (Spotlight Mode)
+    // If expanded, the mask covers everything anyway, but we keep the spotlight center following mouse for effect
+    updateMaskVariables(state.mouseX, state.mouseY, null, null);
   }
 
+  // --- 3. Click to Reveal (Independent of Focus) ---
   function handleClick(e) {
     const backgroundContainer = document.querySelector('.background-container');
     if (!backgroundContainer || !backgroundContainer.classList.contains('visible')) return;
 
-    if (!state.isExpanded) {
-        // EXPAND
-        state.isExpanded = true;
-        // DRASTIC SLOWDOWN: 6.0s
+    // Only allow toggle if clicking ON the artwork
+    if (!isInArtZone(e.clientX, e.clientY)) return;
+
+    const currentTime = Date.now();
+
+    if (state.isExpanded) {
+        // COLLAPSE (Spotlight Mode) - Single click to collapse
+        state.isExpanded = false;
+        // Reset click tracking when collapsing
+        state.clickCount = 0;
+        state.lastClickTime = 0;
+        if (state.clickResetTimeout) {
+            clearTimeout(state.clickResetTimeout);
+            state.clickResetTimeout = null;
+        }
         updateMaskVariables(
-            e.clientX, 
-            e.clientY, 
-            state.expandRadius, 
-            state.expandSoftness, 
-            '--mask-radius 6.0s cubic-bezier(0.2, 0.8, 0.2, 1), --mask-softness 6.0s ease-out'
+            null, null, 
+            0, // Back to 0 radius (Spotlight only)
+            null, 
+            '--mask-radius 3.0s cubic-bezier(0.2, 0.8, 0.2, 1)' // Slow collapse (3.0s)
         );
     } else {
-        // COLLAPSE
-        state.isExpanded = false;
+        // EXPAND (Full Reveal) - Requires triple click
+        // Check if clicks are within the time window
+        if (currentTime - state.lastClickTime > state.tripleClickWindow) {
+            // Too much time passed, reset counter
+            state.clickCount = 0;
+        }
         
-        // Slow fade out (3.0s) to keep it relaxed
-        updateMaskVariables(
-            e.clientX, 
-            e.clientY, 
-            state.hoverRadius, 
-            state.hoverSoftness, 
-            '--mask-radius 3.0s cubic-bezier(0.2, 0.8, 0.2, 1), --mask-softness 3.0s ease-out'
-        );
+        state.clickCount++;
+        state.lastClickTime = currentTime;
         
-        state.mouseX = e.clientX;
-        state.mouseY = e.clientY;
+        // Clear existing timeout
+        if (state.clickResetTimeout) {
+            clearTimeout(state.clickResetTimeout);
+        }
+        
+        // Set timeout to reset click counter if no more clicks
+        state.clickResetTimeout = setTimeout(() => {
+            state.clickCount = 0;
+            state.clickResetTimeout = null;
+        }, state.tripleClickWindow);
+        
+        // Check if we have 3 clicks
+        if (state.clickCount >= 3) {
+            // EXPAND (Full Reveal)
+            state.isExpanded = true;
+            state.clickCount = 0; // Reset after successful reveal
+            if (state.clickResetTimeout) {
+                clearTimeout(state.clickResetTimeout);
+                state.clickResetTimeout = null;
+            }
+            updateMaskVariables(
+                null, null, 
+                state.expandRadius, 
+                null, 
+                '--mask-radius 6.0s cubic-bezier(0.2, 0.8, 0.2, 1)' // Drastic Slowdown (6.0s)
+            );
+        }
     }
   }
 
-  // --- Integration & Existing Logic ---
+  // --- 4. Physics Loop (RAF) ---
+  function updatePhysics(time) {
+    const dt = time - state.lastTime;
+    state.lastTime = time;
+
+    // 1. Smooth Focus Integration
+    // Lerp current focus towards target focus
+    const focusLerpFactor = 0.1;
+    state.focusLevel += (state.targetFocus - state.focusLevel) * focusLerpFactor;
+    
+    // Calculate static focus blur (Inverse of focus level)
+    // Level 0 = Max Blur (20px), Level 1 = No Blur (0px)
+    const focusBlur = state.maxBlur * (1 - state.focusLevel);
+
+    // 2. Velocity Calculation
+    const dx = state.mouseX - state.lastMouseX;
+    const dy = state.mouseY - state.lastMouseY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    // Simple velocity: pixels per frame (approx)
+    // Add "decay" to velocity for smoothness
+    state.velocity = state.velocity * 0.8 + dist * 0.2; 
+    
+    // Calculate motion blur
+    // Disable motion blur if fully expanded (per user request)
+    let motionBlur = 0;
+    if (!state.isExpanded) {
+        motionBlur = Math.min(state.maxVelocityBlur, state.velocity * state.velocitySensitivity);
+    }
+    
+    // 3. Combine & Apply
+    const totalBlur = focusBlur + motionBlur;
+    
+    // Update CSS Variable
+    // Optimization: Only update if changed significantly
+    const container = document.querySelector('.background-container');
+    if (container && container.classList.contains('visible')) {
+       container.style.setProperty('--dynamic-blur', `${totalBlur.toFixed(1)}px`);
+    }
+
+    // Update history
+    state.lastMouseX = state.mouseX;
+    state.lastMouseY = state.mouseY;
+
+    requestAnimationFrame(updatePhysics);
+  }
+
+  // --- Integrations ---
 
   function setupEnterpriseResponsiveness() {
     const enterpriseImg = document.getElementById('enterprise-image');
     const enterpriseContainer = document.getElementById('enterprise-container');
     if (!enterpriseImg || !enterpriseContainer) return;
-    if (window.getComputedStyle(enterpriseContainer).display === 'none') {
-      return;
-    }
+    if (window.getComputedStyle(enterpriseContainer).display === 'none') return;
     enterpriseImg.style.opacity = '1';
   }
   
@@ -163,18 +303,19 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
         setupEnterpriseResponsiveness();
     } else {
         backgroundContainer.classList.remove('visible');
-        resetState();
     }
   }
 
-  function resetState() {
-    state.isExpanded = false;
-    updateMaskVariables(null, null, state.hoverRadius, state.hoverSoftness, 'none');
-  }
-  
   function initialize() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('click', handleClick);
+    
+    // Add non-passive listener for scroll interception to DOCUMENT (capturing phase for priority)
+    // Using { passive: false, capture: true } to ensure we intercept before anything else
+    document.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    
+    // Start Physics Loop
+    requestAnimationFrame(updatePhysics);
 
     setTimeout(() => {
       if (shouldShowByDefault) {
@@ -194,9 +335,22 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     initialize();
   }
   
+  // Cleanup to prevent duplicate listeners on HMR/Navigation
+  document.addEventListener('astro:before-swap', () => {
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('click', handleClick);
+    document.removeEventListener('wheel', handleWheel, { capture: true });
+    // Clear click tracking timeout on cleanup
+    if (state.clickResetTimeout) {
+      clearTimeout(state.clickResetTimeout);
+      state.clickResetTimeout = null;
+    }
+    state.clickCount = 0;
+    state.lastClickTime = 0;
+  });
+
   document.addEventListener('astro:page-load', () => {
     checkVisibility();
-    resetState();
   });
   
   document.addEventListener('astro:before-preparation', () => {
@@ -231,6 +385,9 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     --mask-y: 50%;
     --mask-radius: 0px; 
     --mask-softness: 135px;
+    
+    /* Physics Blur */
+    --dynamic-blur: 20px; /* Init as blurry */
   }
   
   @property --mask-radius {
@@ -256,6 +413,9 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     isolation: isolate;
     opacity: 0;
     transition: opacity 0.5s ease;
+    
+    /* Pass the physics blur to children */
+    --current-blur: var(--dynamic-blur);
   }
   
   .background-container.visible {
@@ -276,7 +436,7 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     background-image: var(--current-bg-dark-gradient);
   }
 
-  /* --- NEW MASK WRAPPER --- */
+  /* --- MASK WRAPPER --- */
   #artwork-mask-layer {
     position: absolute;
     inset: 0;
@@ -284,15 +444,11 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     height: 100%;
     z-index: 2;
     
-    /* 
-       Refined Gradient for "Soft Spotlight":
-       Removed 'closest-side' which might cause hard boundaries near edges.
-       Just standard 'circle' at position.
-    */
+    /* Soft Spotlight Mask */
     mask-image: radial-gradient(
         circle at var(--mask-x) var(--mask-y), 
-        black var(--mask-radius), /* Solid center */
-        transparent calc(var(--mask-radius) + var(--mask-softness)) /* Fade */
+        black var(--mask-radius), /* Focus Center or Full Reveal */
+        transparent calc(var(--mask-radius) + var(--mask-softness)) /* Fade Edge */
     );
     -webkit-mask-image: radial-gradient(
         circle at var(--mask-x) var(--mask-y), 
@@ -307,10 +463,10 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
   .art-container {
     position: fixed;
     overflow: visible;
-    /* z-index handled by parent mask layer now */
     transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
   }
   
+  /* Apply Dynamic Blur to Images */
   .bg-image {
     display: block;
     width: 100%;
@@ -320,6 +476,12 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     object-fit: contain;
     max-height: none;
     transform-origin: bottom center;
+    
+    /* PHYSICS BLUR FILTER */
+    filter: blur(var(--current-blur)); 
+    will-change: filter;
+    /* Hint for GPU acceleration */
+    transform: translateZ(0); 
   }
   
   /* Layout Constraints (Same as before) */
@@ -356,9 +518,10 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     z-index: 4; 
     transition: opacity 0.4s ease;
   }
+  /* Fix: Combine blur with brightness so one doesn't overwrite the other */
   .bottom-bg-image { 
     object-position: center bottom; 
-    filter: brightness(1.2); 
+    filter: blur(var(--current-blur)) brightness(1.2); 
   }
 
   /* Dark Mode & Responsiveness Preserved */
@@ -366,7 +529,10 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     background-color: var(--current-bg-dark) !important;
     background-image: var(--current-bg-dark-gradient) !important;
   }
-  :global(html.dark) .bottom-bg-image { filter: brightness(1.5); }
+  /* Fix: Combine blur with brightness for dark mode too */
+  :global(html.dark) .bottom-bg-image { 
+    filter: blur(var(--current-blur)) brightness(1.5); 
+  }
 
   /* Breakpoints */
   @media (min-width: 1800px) {
@@ -401,4 +567,4 @@ const shouldShowByDefault = pageName === 'home' || pageName === 'bio';
     animation-delay: 0s !important;
     animation-duration: 0s !important;
   }
-</style>
+</style> 
